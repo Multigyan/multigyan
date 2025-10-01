@@ -23,7 +23,8 @@ import {
   Globe,
   Moon,
   Sun,
-  Monitor
+  Monitor,
+  EyeOff
 } from "lucide-react"
 import { toast } from "sonner"
 import {
@@ -37,6 +38,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
@@ -70,6 +80,18 @@ export default function SettingsPage() {
     // Security Settings
     twoFactorEnabled: false,
     loginAlerts: true
+  })
+
+  // Change Password State
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   })
 
   useEffect(() => {
@@ -128,9 +150,65 @@ export default function SettingsPage() {
     }
   }
 
+  const handleChangePassword = async () => {
+    // Validate passwords
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast.error('All password fields are required')
+      return
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters long')
+      return
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match')
+      return
+    }
+
+    setPasswordLoading(true)
+    try {
+      const response = await fetch('/api/users/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('Password changed successfully!')
+        setPasswordDialogOpen(false)
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+      } else {
+        toast.error(data.error || 'Failed to change password')
+      }
+    } catch (error) {
+      toast.error('Failed to change password')
+    } finally {
+      setPasswordLoading(false)
+    }
+  }
+
   const handleExportData = async () => {
     try {
+      toast.info('Preparing your data export...')
       const response = await fetch('/api/users/export')
+      
+      if (!response.ok) {
+        throw new Error('Export failed')
+      }
+      
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -140,7 +218,7 @@ export default function SettingsPage() {
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-      toast.success('Data export started')
+      toast.success('Data exported successfully!')
     } catch (error) {
       toast.error('Failed to export data')
     }
@@ -156,7 +234,8 @@ export default function SettingsPage() {
         toast.success('Account deleted successfully')
         router.push('/')
       } else {
-        toast.error('Failed to delete account')
+        const data = await response.json()
+        toast.error(data.error || 'Failed to delete account')
       }
     } catch (error) {
       toast.error('Failed to delete account')
@@ -427,15 +506,145 @@ export default function SettingsPage() {
               <div className="p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-start gap-3">
                   <Lock className="h-5 w-5 text-blue-500 mt-0.5" />
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1">
                     <h4 className="font-medium">Change Password</h4>
                     <p className="text-sm text-muted-foreground">
                       Update your password to keep your account secure
                     </p>
-                    <Button variant="outline" size="sm" className="mt-2">
-                      <Lock className="mr-2 h-4 w-4" />
-                      Change Password
-                    </Button>
+                    <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          <Lock className="mr-2 h-4 w-4" />
+                          Change Password
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Change Password</DialogTitle>
+                          <DialogDescription>
+                            Enter your current password and choose a new password.
+                            Your new password must be at least 8 characters long.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="current-password">Current Password</Label>
+                            <div className="relative">
+                              <Input
+                                id="current-password"
+                                type={showCurrentPassword ? "text" : "password"}
+                                value={passwordData.currentPassword}
+                                onChange={(e) => setPasswordData(prev => ({
+                                  ...prev,
+                                  currentPassword: e.target.value
+                                }))}
+                                placeholder="Enter current password"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              >
+                                {showCurrentPassword ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-password">New Password</Label>
+                            <div className="relative">
+                              <Input
+                                id="new-password"
+                                type={showNewPassword ? "text" : "password"}
+                                value={passwordData.newPassword}
+                                onChange={(e) => setPasswordData(prev => ({
+                                  ...prev,
+                                  newPassword: e.target.value
+                                }))}
+                                placeholder="Enter new password (min. 8 characters)"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                              >
+                                {showNewPassword ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="confirm-password">Confirm New Password</Label>
+                            <div className="relative">
+                              <Input
+                                id="confirm-password"
+                                type={showConfirmPassword ? "text" : "password"}
+                                value={passwordData.confirmPassword}
+                                onChange={(e) => setPasswordData(prev => ({
+                                  ...prev,
+                                  confirmPassword: e.target.value
+                                }))}
+                                placeholder="Confirm new password"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              >
+                                {showConfirmPassword ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setPasswordDialogOpen(false)
+                              setPasswordData({
+                                currentPassword: '',
+                                newPassword: '',
+                                confirmPassword: ''
+                              })
+                            }}
+                            disabled={passwordLoading}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={handleChangePassword}
+                            disabled={passwordLoading}
+                          >
+                            {passwordLoading ? (
+                              <div className="flex items-center gap-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
+                                Changing...
+                              </div>
+                            ) : (
+                              <>Change Password</>
+                            )}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
@@ -467,7 +676,7 @@ export default function SettingsPage() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="mt-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                      className="mt-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40"
                       onClick={handleExportData}
                     >
                       <Download className="mr-2 h-4 w-4" />

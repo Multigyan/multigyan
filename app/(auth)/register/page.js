@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,6 +13,7 @@ import { toast } from "sonner"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { data: session, status } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -21,6 +23,14 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: ""
   })
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (status === "authenticated") {
+      toast.info("You are already logged in!")
+      router.push('/dashboard')
+    }
+  }, [status, router])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -76,6 +86,20 @@ export default function RegisterPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Show loading while checking auth status
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  // Don't render the form if already authenticated
+  if (status === "authenticated") {
+    return null
   }
 
   return (

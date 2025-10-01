@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import Category from '@/models/Category'
+import Notification from '@/models/Notification'
 
 // POST - Handle post actions (approve, reject, like, unlike, submit)
 export async function POST(request, { params }) {
@@ -61,6 +62,20 @@ export async function POST(request, { params }) {
 
         await post.approve(session.user.id)
         await Category.incrementPostCount(post.category._id)
+
+        // CREATE NOTIFICATION when post is approved
+        try {
+          await Notification.createNotification({
+            recipient: post.author._id,
+            sender: session.user.id,
+            type: 'post_published',
+            post: post._id,
+            message: `Your post "${post.title}" has been approved and published`,
+            link: `/blog/${post.slug}`
+          })
+        } catch (notifError) {
+          console.error('Error creating approval notification:', notifError)
+        }
 
         return NextResponse.json({
           message: 'Post approved and published successfully',
@@ -143,11 +158,31 @@ export async function POST(request, { params }) {
           )
         }
 
+        // Check if already liked
+        const isLiked = post.likes.includes(session.user.id)
+        
         await post.addLike(session.user.id)
+
+        // CREATE NOTIFICATION for post like (only if not already liked)
+        if (!isLiked) {
+          try {
+            await Notification.createNotification({
+              recipient: post.author._id,
+              sender: session.user.id,
+              type: 'like_post',
+              post: post._id,
+              message: `${session.user.name} liked your post "${post.title}"`,
+              link: `/blog/${post.slug}`
+            })
+          } catch (notifError) {
+            console.error('Error creating like notification:', notifError)
+          }
+        }
 
         return NextResponse.json({
           message: 'Post liked successfully',
-          likeCount: post.likeCount
+          likeCount: post.likeCount,
+          isLiked: true
         })
 
       case 'unlike':
@@ -163,7 +198,8 @@ export async function POST(request, { params }) {
 
         return NextResponse.json({
           message: 'Post unliked successfully',
-          likeCount: post.likeCount
+          likeCount: post.likeCount,
+          isLiked: false
         })
 
       case 'feature':

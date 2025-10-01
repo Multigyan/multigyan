@@ -113,13 +113,13 @@ export default function Footer() {
                   Contact
                 </Link>
                 <Link 
-                  href="/privacy" 
+                  href="/privacy-policy" 
                   className="text-muted-foreground hover:text-foreground transition-colors text-sm"
                 >
                   Privacy Policy
                 </Link>
                 <Link 
-                  href="/terms" 
+                  href="/terms-of-service" 
                   className="text-muted-foreground hover:text-foreground transition-colors text-sm"
                 >
                   Terms of Service

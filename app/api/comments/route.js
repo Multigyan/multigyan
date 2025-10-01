@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import User from '@/models/User'
+import Notification from '@/models/Notification'
 
 // GET - Get comments for a specific post
 export async function GET(request) {
@@ -101,7 +102,7 @@ export async function POST(request) {
     }
 
     // Check if post exists and allows comments
-    const post = await Post.findById(postId)
+    const post = await Post.findById(postId).populate('author', '_id name')
     if (!post) {
       return NextResponse.json(
         { error: 'Post not found' },
@@ -117,8 +118,9 @@ export async function POST(request) {
     }
 
     // If it's a reply, verify parent comment exists
+    let parentCommentAuthor = null
     if (parentComment) {
-      const parentExists = post.comments.some(comment => 
+      const parentExists = post.comments.find(comment => 
         comment._id.equals(parentComment)
       )
       if (!parentExists) {
@@ -127,6 +129,7 @@ export async function POST(request) {
           { status: 404 }
         )
       }
+      parentCommentAuthor = parentExists.author
     }
 
     // Prepare comment data
@@ -177,6 +180,38 @@ export async function POST(request) {
       await post.populate('comments.author', 'name profilePictureUrl')
     }
 
+    // CREATE NOTIFICATION
+    if (session?.user && commentData.isApproved) {
+      try {
+        if (parentComment && parentCommentAuthor) {
+          // Notification for reply to comment
+          await Notification.createNotification({
+            recipient: parentCommentAuthor,
+            sender: session.user.id,
+            type: 'reply_comment',
+            post: postId,
+            comment: newComment._id,
+            message: `${session.user.name} replied to your comment`,
+            link: `/blog/${post.slug}#comment-${newComment._id}`
+          })
+        } else {
+          // Notification for comment on post
+          await Notification.createNotification({
+            recipient: post.author._id,
+            sender: session.user.id,
+            type: 'comment_post',
+            post: postId,
+            comment: newComment._id,
+            message: `${session.user.name} commented on your post`,
+            link: `/blog/${post.slug}#comment-${newComment._id}`
+          })
+        }
+      } catch (notifError) {
+        console.error('Error creating notification:', notifError)
+        // Don't fail the comment creation if notification fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: commentData.isApproved 
@@ -217,7 +252,7 @@ export async function PUT(request) {
       )
     }
 
-    const post = await Post.findById(postId)
+    const post = await Post.findById(postId).populate('author', '_id name')
     if (!post) {
       return NextResponse.json(
         { error: 'Post not found' },
@@ -236,6 +271,23 @@ export async function PUT(request) {
     switch (action) {
       case 'like':
         await post.toggleCommentLike(commentId, session.user.id)
+        
+        // CREATE NOTIFICATION for comment like
+        if (comment.author && !comment.likes.includes(session.user.id)) {
+          try {
+            await Notification.createNotification({
+              recipient: comment.author,
+              sender: session.user.id,
+              type: 'like_comment',
+              post: postId,
+              comment: commentId,
+              message: `${session.user.name} liked your comment`,
+              link: `/blog/${post.slug}#comment-${commentId}`
+            })
+          } catch (notifError) {
+            console.error('Error creating like notification:', notifError)
+          }
+        }
         break
 
       case 'approve':
@@ -246,6 +298,23 @@ export async function PUT(request) {
           )
         }
         await post.approveComment(commentId)
+        
+        // CREATE NOTIFICATION when comment is approved
+        if (comment.author) {
+          try {
+            await Notification.createNotification({
+              recipient: comment.author,
+              sender: session.user.id,
+              type: 'post_published', // Reusing this type
+              post: postId,
+              comment: commentId,
+              message: 'Your comment was approved and published',
+              link: `/blog/${post.slug}#comment-${commentId}`
+            })
+          } catch (notifError) {
+            console.error('Error creating approval notification:', notifError)
+          }
+        }
         break
 
       case 'edit':

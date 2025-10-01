@@ -1,9 +1,11 @@
 import './globals.css'
+import 'nprogress/nprogress.css'
 import { Inter } from 'next/font/google'
 import { Toaster } from "@/components/ui/sonner"
 import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
 import AuthProvider from "@/components/AuthProvider"
+import LoadingBar from "@/components/LoadingBar"
 import StructuredData from "@/components/seo/StructuredData"
 import { generateStructuredData } from "@/lib/seo"
 
@@ -75,6 +77,7 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning={true}
       >
         <AuthProvider>
+          <LoadingBar />
           <div className="relative flex min-h-screen flex-col">
             <Navbar />
             <main className="flex-1">{children}</main>

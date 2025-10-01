@@ -20,7 +20,8 @@ import {
   Twitter,
   Facebook,
   Linkedin,
-  Copy
+  Copy,
+  Share2
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
@@ -40,9 +41,10 @@ export default function BlogPostClient({ post }) {
   }, [post])
 
   const fetchRelatedPosts = async () => {
-    if (post.category?._id) {
+    if (post.author?._id) {
       try {
-        const response = await fetch(`/api/posts?status=published&category=${post.category._id}&limit=3`)
+        // Fetch posts by same author
+        const response = await fetch(`/api/posts?status=published&author=${post.author._id}&limit=4`)
         const data = await response.json()
         
         if (response.ok) {
@@ -71,6 +73,9 @@ export default function BlogPostClient({ post }) {
         break
       case 'linkedin':
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
+        break
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(title + ' - ' + url)}`
         break
       case 'copy':
         try {
@@ -163,7 +168,7 @@ export default function BlogPostClient({ post }) {
                     </div>
                   )}
                   <span className="font-medium">
-                    <Link href={`/author/${post.author?._id}`} className="hover:text-foreground">
+                    <Link href={`/author/${post.author?.username}`} className="hover:text-foreground">
                       {post.author?.name}
                     </Link>
                   </span>
@@ -260,13 +265,24 @@ export default function BlogPostClient({ post }) {
                   variant="outline"
                   size="icon"
                   onClick={() => handleShare('linkedin')}
+                  title="Share on LinkedIn"
                 >
                   <Linkedin className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
+                  onClick={() => handleShare('whatsapp')}
+                  title="Share on WhatsApp"
+                  className="text-green-600 hover:text-green-700"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
                   onClick={() => handleShare('copy')}
+                  title="Copy link"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
@@ -294,7 +310,7 @@ export default function BlogPostClient({ post }) {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold mb-2">
-                      <Link href={`/author/${post.author?._id}`} className="hover:text-primary">
+                      <Link href={`/author/${post.author?.username}`} className="hover:text-primary">
                         {post.author?.name}
                       </Link>
                     </h3>
@@ -306,10 +322,15 @@ export default function BlogPostClient({ post }) {
               </CardContent>
             </Card>
 
-            {/* Related Posts */}
+            {/* More Posts by Author */}
             {relatedPosts.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
+                <h2 className="text-2xl font-bold mb-4">
+                  More from {post.author?.name}
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  Explore other articles by this author
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {relatedPosts.map((relatedPost) => (
                     <Card key={relatedPost._id} className="blog-card">

@@ -387,9 +387,26 @@ PostSchema.methods.submitForReview = function() {
 }
 
 // Instance method to add like
-PostSchema.methods.addLike = function(userId) {
+PostSchema.methods.addLike = async function(userId) {
   if (!this.likes.includes(userId)) {
     this.likes.push(userId)
+    
+    // Create notification for post author (don't notify yourself)
+    if (this.author.toString() !== userId.toString()) {
+      try {
+        const Notification = mongoose.model('Notification')
+        await Notification.createNotification({
+          recipient: this.author,
+          sender: userId,
+          type: 'like_post',
+          post: this._id,
+          message: 'liked your post',
+          link: `/blog/${this.slug}`
+        })
+      } catch (error) {
+        console.error('Error creating like notification:', error)
+      }
+    }
   }
   return this.save()
 }
@@ -409,9 +426,51 @@ PostSchema.methods.incrementViews = function() {
 // Comment Management Methods
 
 // Instance method to add comment to post
-PostSchema.methods.addComment = function(commentData) {
+PostSchema.methods.addComment = async function(commentData) {
   this.comments.push(commentData)
-  return this.save()
+  const savedPost = await this.save()
+  
+  // Create notification for post author (don't notify yourself)
+  if (commentData.author && this.author.toString() !== commentData.author.toString()) {
+    try {
+      const Notification = mongoose.model('Notification')
+      await Notification.createNotification({
+        recipient: this.author,
+        sender: commentData.author,
+        type: 'comment_post',
+        post: this._id,
+        message: 'commented on your post',
+        link: `/blog/${this.slug}#comments`
+      })
+    } catch (error) {
+      console.error('Error creating comment notification:', error)
+    }
+  }
+  
+  // Create notification for parent comment author (if this is a reply)
+  if (commentData.parentComment) {
+    const parentComment = this.comments.id(commentData.parentComment)
+    if (parentComment && parentComment.author && 
+        commentData.author && 
+        parentComment.author.toString() !== commentData.author.toString()) {
+      try {
+        const Notification = mongoose.model('Notification')
+        await Notification.createNotification({
+          recipient: parentComment.author,
+          sender: commentData.author,
+          type: 'reply_comment',
+          post: this._id,
+          comment: parentComment._id,
+          message: 'replied to your comment',
+          link: `/blog/${this.slug}#comment-${parentComment._id}`
+        })
+      } catch (error) {
+        console.error('Error creating reply notification:', error)
+      }
+    }
+  }
+  
+  return savedPost
 }
 
 // Instance method to get approved comments with nested structure
@@ -453,13 +512,33 @@ PostSchema.methods.deleteComment = function(commentId) {
 }
 
 // Instance method to like/unlike comment
-PostSchema.methods.toggleCommentLike = function(commentId, userId) {
+PostSchema.methods.toggleCommentLike = async function(commentId, userId) {
   const comment = this.comments.id(commentId)
   if (comment) {
-    if (comment.likes.includes(userId)) {
+    const wasLiked = comment.likes.includes(userId)
+    
+    if (wasLiked) {
       comment.removeLike(userId)
     } else {
       comment.addLike(userId)
+      
+      // Create notification for comment author (don't notify yourself)
+      if (comment.author && comment.author.toString() !== userId.toString()) {
+        try {
+          const Notification = mongoose.model('Notification')
+          await Notification.createNotification({
+            recipient: comment.author,
+            sender: userId,
+            type: 'like_comment',
+            post: this._id,
+            comment: comment._id,
+            message: 'liked your comment',
+            link: `/blog/${this.slug}#comment-${comment._id}`
+          })
+        } catch (error) {
+          console.error('Error creating comment like notification:', error)
+        }
+      }
     }
     return this.save()
   }

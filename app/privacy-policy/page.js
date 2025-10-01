@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Shield, Lock, Eye, Database, Mail, UserCheck } from 'lucide-react'
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Privacy Policy | Multigyan',
   description: 'Learn how Multigyan collects, uses, and protects your personal information.',
   robots: {
@@ -222,7 +222,7 @@ export default function PrivacyPolicyPage() {
         {/* Children's Privacy */}
         <Card className="blog-card mb-8">
           <CardHeader>
-            <CardTitle>Children's Privacy</CardTitle>
+            <CardTitle>Children&#39;s Privacy</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
@@ -242,7 +242,7 @@ export default function PrivacyPolicyPage() {
           <CardContent>
             <p className="text-muted-foreground">
               We may update our Privacy Policy from time to time. We will notify you of any changes by posting the 
-              new Privacy Policy on this page and updating the "Last updated" date. You are advised to review this 
+              new Privacy Policy on this page and updating the &#34;Last updated&#34; date. You are advised to review this 
               Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they 
               are posted on this page.
             </p>

@@ -358,6 +358,14 @@ export default function BlogPage() {
                                   {post.views}
                                 </span>
                               )}
+                              <span className="flex items-center gap-1">
+                                <Heart className="h-3 w-3" />
+                                {post.likes?.length || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MessageCircle className="h-3 w-3" />
+                                {post.comments?.filter(c => c.isApproved).length || 0}
+                              </span>
                             </div>
                           </div>
                         </CardContent>

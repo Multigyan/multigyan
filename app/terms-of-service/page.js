@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, Scale, Users, AlertTriangle, Copyright, UserX } from 'lucide-react'
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Terms of Service | Multigyan',
   description: 'Read the Terms of Service for using the Multigyan blogging platform.',
   robots: {
@@ -193,7 +193,7 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              Multigyan is provided "as is" and "as available" without warranties of any kind, either express 
+              Multigyan is provided &#34;as is&#34; and &#34;as available&#34; without warranties of any kind, either express 
               or implied. We do not warrant that:
             </p>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">

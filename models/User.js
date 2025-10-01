@@ -67,6 +67,23 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     maxlength: [200, 'Website URL cannot be more than 200 characters']
   },
+  // Follow System
+  followers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  following: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  // Statistics
+  stats: {
+    totalPosts: { type: Number, default: 0 },
+    totalViews: { type: Number, default: 0 },
+    totalLikes: { type: Number, default: 0 },
+    followersCount: { type: Number, default: 0 },
+    followingCount: { type: Number, default: 0 }
+  },
   // User Settings
   settings: {
     // Notification Settings
@@ -108,6 +125,15 @@ const UserSchema = new mongoose.Schema({
   lastLoginAt: {
     type: Date,
     default: null
+  },
+  // Password Reset
+  resetPasswordToken: {
+    type: String,
+    default: null
+  },
+  resetPasswordExpire: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true, // Adds createdAt and updatedAt
@@ -116,9 +142,9 @@ const UserSchema = new mongoose.Schema({
 })
 
 // Index for better query performance
-// Note: email index is already created by unique: true in schema
+// Note: email and username indexes are already created by unique: true in schema
+// No need to create duplicate indexes
 UserSchema.index({ role: 1 })
-UserSchema.index({ username: 1 })
 UserSchema.index({ createdAt: -1 })
 
 // Virtual for user's full profile

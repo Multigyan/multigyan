@@ -59,7 +59,7 @@ export default async function BlogPostPage({ params }) {
       slug: params.slug, 
       status: 'published' 
     })
-      .populate('author', 'name email profilePictureUrl bio twitterHandle')
+      .populate('author', 'name email username profilePictureUrl bio twitterHandle')
       .populate('category', 'name slug color')
       .lean()
     
