@@ -9,6 +9,9 @@ import Notification from '@/models/Notification'
 // POST - Handle post actions (approve, reject, like, unlike, submit)
 export async function POST(request, { params }) {
   try {
+    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
+    const resolvedParams = await params
+    
     const session = await getServerSession(authOptions)
     
     if (!session) {
@@ -29,7 +32,7 @@ export async function POST(request, { params }) {
 
     await connectDB()
 
-    const post = await Post.findById(params.id)
+    const post = await Post.findById(resolvedParams.id)
       .populate('author', 'name email')
       .populate('category', 'name')
     
@@ -40,7 +43,8 @@ export async function POST(request, { params }) {
       )
     }
 
-    const isAuthor = post.author._id.toString() === session.user.id
+    // ✅ FIX: Check if author exists before accessing properties
+    const isAuthor = post.author ? post.author._id.toString() === session.user.id : false
     const isAdmin = session.user.role === 'admin'
 
     switch (action) {
@@ -164,7 +168,7 @@ export async function POST(request, { params }) {
         await post.addLike(session.user.id)
 
         // CREATE NOTIFICATION for post like (only if not already liked)
-        if (!isLiked) {
+        if (!isLiked && post.author) {  // ✅ FIX: Check if author exists
           try {
             await Notification.createNotification({
               recipient: post.author._id,

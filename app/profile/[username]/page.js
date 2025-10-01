@@ -72,8 +72,14 @@ async function getUserStats(userId) {
   }
 }
 
+// ========================================
+// Generate metadata for SEO
+// ========================================
 export async function generateMetadata({ params }) {
-  const { username } = params
+  // ✅ FIX: Await params before using it (Next.js 15+ requirement)
+  const resolvedParams = await params
+  const { username } = resolvedParams
+  
   const user = await getUserByUsername(username)
   
   if (!user) {
@@ -118,8 +124,14 @@ export async function generateMetadata({ params }) {
   }
 }
 
+// ========================================
+// Main Profile Page Component
+// ========================================
 export default async function ProfilePage({ params }) {
-  const { username } = params
+  // ✅ FIX: Await params before using it (Next.js 15+ requirement)
+  const resolvedParams = await params
+  const { username } = resolvedParams
+  
   const user = await getUserByUsername(username)
   
   if (!user) {

@@ -8,12 +8,15 @@ import Category from '@/models/Category'
 // GET single post
 export async function GET(request, { params }) {
   try {
+    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
+    const resolvedParams = await params
+    
     await connectDB()
 
     const session = await getServerSession(authOptions)
     
     // Build query based on access permissions
-    let query = { _id: params.id }
+    let query = { _id: resolvedParams.id }
     
     if (!session) {
       // Public access - only published posts
@@ -61,6 +64,9 @@ export async function GET(request, { params }) {
 // PUT - Update post
 export async function PUT(request, { params }) {
   try {
+    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
+    const resolvedParams = await params
+    
     const session = await getServerSession(authOptions)
     
     if (!session) {
@@ -90,7 +96,7 @@ export async function PUT(request, { params }) {
 
     await connectDB()
 
-    const post = await Post.findById(params.id)
+    const post = await Post.findById(resolvedParams.id)
     
     if (!post) {
       return NextResponse.json(
@@ -255,6 +261,9 @@ export async function PUT(request, { params }) {
 // DELETE post
 export async function DELETE(request, { params }) {
   try {
+    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
+    const resolvedParams = await params
+    
     const session = await getServerSession(authOptions)
     
     if (!session) {
@@ -266,7 +275,7 @@ export async function DELETE(request, { params }) {
 
     await connectDB()
 
-    const post = await Post.findById(params.id)
+    const post = await Post.findById(resolvedParams.id)
     
     if (!post) {
       return NextResponse.json(
@@ -291,7 +300,7 @@ export async function DELETE(request, { params }) {
       await Category.decrementPostCount(post.category)
     }
 
-    await Post.findByIdAndDelete(params.id)
+    await Post.findByIdAndDelete(resolvedParams.id)
 
     return NextResponse.json({
       message: 'Post deleted successfully'

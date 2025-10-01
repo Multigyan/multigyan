@@ -2,16 +2,51 @@ import { notFound } from "next/navigation"
 import BlogPostClient from "./BlogPostClient"
 import connectDB from "@/lib/mongodb"
 import Post from "@/models/Post"
+import Category from "@/models/Category" // ✅ FIX: Import Category model for populate()
+import User from "@/models/User" // ✅ FIX: Import User model for populate()
 import { generateSEOMetadata, generateStructuredData } from "@/lib/seo"
 import StructuredData from "@/components/seo/StructuredData"
 
+// ========================================
+// HELPER FUNCTION: Convert to Date safely
+// ========================================
+// This function handles dates that might be strings or Date objects
+function toISOStringSafe(dateValue) {
+  if (!dateValue) return null
+  
+  // If it's already a Date object, use it directly
+  if (dateValue instanceof Date) {
+    return dateValue.toISOString()
+  }
+  
+  // If it's a string or number, convert to Date first
+  try {
+    const date = new Date(dateValue)
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date value:', dateValue)
+      return null
+    }
+    return date.toISOString()
+  } catch (error) {
+    console.error('Error converting date:', error)
+    return null
+  }
+}
+
+// ========================================
 // Generate metadata for SEO
+// ========================================
 export async function generateMetadata({ params }) {
   try {
+    // ✅ FIX 1: Await params before using it (Next.js 15+ requirement)
+    const resolvedParams = await params
+    
     await connectDB()
     
+    // ✅ FIX 2: Use resolvedParams.slug instead of params.slug
     const post = await Post.findOne({ 
-      slug: params.slug, 
+      slug: resolvedParams.slug, 
       status: 'published' 
     })
       .populate('author', 'name profilePictureUrl')
@@ -33,8 +68,9 @@ export async function generateMetadata({ params }) {
       description: post.seoDescription || post.excerpt,
       keywords: post.seoKeywords || post.tags,
       author: post.author,
-      publishedTime: post.publishedAt?.toISOString(),
-      modifiedTime: post.updatedAt?.toISOString(),
+      // ✅ FIX 3: Use safe date conversion helper
+      publishedTime: toISOStringSafe(post.publishedAt),
+      modifiedTime: toISOStringSafe(post.updatedAt),
       canonicalUrl: postUrl,
       imageUrl: post.featuredImageUrl,
       imageAlt: post.featuredImageAlt,
@@ -51,12 +87,19 @@ export async function generateMetadata({ params }) {
   }
 }
 
+// ========================================
+// Main Blog Post Page Component
+// ========================================
 export default async function BlogPostPage({ params }) {
   try {
+    // ✅ FIX 1: Await params before using it (Next.js 15+ requirement)
+    const resolvedParams = await params
+    
     await connectDB()
     
+    // ✅ FIX 2: Use resolvedParams.slug instead of params.slug
     const post = await Post.findOne({ 
-      slug: params.slug, 
+      slug: resolvedParams.slug, 
       status: 'published' 
     })
       .populate('author', 'name email username profilePictureUrl bio twitterHandle')
@@ -79,8 +122,9 @@ export default async function BlogPostPage({ params }) {
       title: post.title,
       description: post.excerpt,
       author: post.author,
-      publishedTime: post.publishedAt?.toISOString(),
-      modifiedTime: post.updatedAt?.toISOString(),
+      // ✅ FIX 3: Use safe date conversion helper
+      publishedTime: toISOStringSafe(post.publishedAt),
+      modifiedTime: toISOStringSafe(post.updatedAt),
       canonicalUrl: postUrl,
       imageUrl: post.featuredImageUrl,
       imageAlt: post.featuredImageAlt,
@@ -93,23 +137,25 @@ export default async function BlogPostPage({ params }) {
     const serializedPost = {
       ...post,
       _id: post._id.toString(),
-      author: {
+      // ✅ FIX: Handle null author (some posts might not have author after migration)
+      author: post.author ? {
         ...post.author,
         _id: post.author._id.toString()
-      },
-      category: {
+      } : null,
+      category: post.category ?{
         ...post.category,
         _id: post.category._id.toString()
-      },
-      publishedAt: post.publishedAt?.toISOString(),
-      updatedAt: post.updatedAt?.toISOString(),
-      createdAt: post.createdAt?.toISOString(),
+      } : null,
+      // ✅ FIX 3: Use safe date conversion helper for all dates
+      publishedAt: toISOStringSafe(post.publishedAt),
+      updatedAt: toISOStringSafe(post.updatedAt),
+      createdAt: toISOStringSafe(post.createdAt),
       comments: post.comments?.map(comment => ({
         ...comment,
         _id: comment._id.toString(),
         user: comment.user ? comment.user.toString() : null,
-        createdAt: comment.createdAt?.toISOString(),
-        updatedAt: comment.updatedAt?.toISOString()
+        createdAt: toISOStringSafe(comment.createdAt),
+        updatedAt: toISOStringSafe(comment.updatedAt)
       })) || []
     }
     

@@ -8,9 +8,12 @@ import Post from '@/models/Post'
 // GET single category
 export async function GET(request, { params }) {
   try {
+    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
+    const resolvedParams = await params
+    
     await connectDB()
 
-    const category = await Category.findById(params.id)
+    const category = await Category.findById(resolvedParams.id)
     
     if (!category) {
       return NextResponse.json(
@@ -33,6 +36,9 @@ export async function GET(request, { params }) {
 // PUT - Update category (Admin only)
 export async function PUT(request, { params }) {
   try {
+    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
+    const resolvedParams = await params
+    
     const session = await getServerSession(authOptions)
     
     if (!session || session.user.role !== 'admin') {
@@ -77,7 +83,7 @@ export async function PUT(request, { params }) {
 
     await connectDB()
 
-    const category = await Category.findById(params.id)
+    const category = await Category.findById(resolvedParams.id)
     
     if (!category) {
       return NextResponse.json(
@@ -90,7 +96,7 @@ export async function PUT(request, { params }) {
     if (name && name.trim() !== category.name) {
       const existingCategory = await Category.findOne({ 
         name: { $regex: new RegExp(`^${name.trim()}$`, 'i') },
-        _id: { $ne: params.id }
+        _id: { $ne: resolvedParams.id }
       })
       
       if (existingCategory) {
@@ -144,6 +150,9 @@ export async function PUT(request, { params }) {
 // DELETE category (Admin only)
 export async function DELETE(request, { params }) {
   try {
+    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
+    const resolvedParams = await params
+    
     const session = await getServerSession(authOptions)
     
     if (!session || session.user.role !== 'admin') {
@@ -155,7 +164,7 @@ export async function DELETE(request, { params }) {
 
     await connectDB()
 
-    const category = await Category.findById(params.id)
+    const category = await Category.findById(resolvedParams.id)
     
     if (!category) {
       return NextResponse.json(
@@ -165,7 +174,7 @@ export async function DELETE(request, { params }) {
     }
 
     // Check if category has posts
-    const postCount = await Post.countDocuments({ category: params.id })
+    const postCount = await Post.countDocuments({ category: resolvedParams.id })
     
     if (postCount > 0) {
       return NextResponse.json(
@@ -176,7 +185,7 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    await Category.findByIdAndDelete(params.id)
+    await Category.findByIdAndDelete(resolvedParams.id)
 
     return NextResponse.json({
       message: 'Category deleted successfully'

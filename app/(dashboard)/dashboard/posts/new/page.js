@@ -154,7 +154,7 @@ export default function NewPostPage() {
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
               <Link href="/dashboard/posts">
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
             <div>
@@ -170,7 +170,7 @@ export default function NewPostPage() {
             onClick={() => setShowPreview(true)}
             disabled={!formData.title && !formData.content}
           >
-            <Eye className="mr-2 h-4 w-4" />
+            <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
             Preview Post
           </Button>
         </div>
@@ -182,7 +182,7 @@ export default function NewPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Image className="h-5 w-5" />
+                  <Image className="h-5 w-5" aria-hidden="true" />
                   Featured Image
                 </CardTitle>
                 <CardDescription>
@@ -210,7 +210,7 @@ export default function NewPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+                  <FileText className="h-5 w-5" aria-hidden="true" />
                   Post Content
                 </CardTitle>
                 <CardDescription>
@@ -260,7 +260,7 @@ export default function NewPostPage() {
                     Content <span className="text-destructive">*</span>
                   </Label>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Write with rich formatting • Images auto-convert to WebP • Supports Google Drive URLs
+                    Write with rich formatting • Images auto-convert to WebP • Supports Google Drive URLs • Embed YouTube videos
                   </p>
                   <div className="mt-1">
                     <EnhancedRichTextEditor
@@ -289,7 +289,7 @@ Just start typing and use the toolbar above!"
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
+                  <Settings className="h-5 w-5" aria-hidden="true" />
                   SEO Settings
                 </CardTitle>
                 <CardDescription>
@@ -348,7 +348,7 @@ Just start typing and use the toolbar above!"
                   className="w-full"
                   disabled={loading}
                 >
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="mr-2 h-4 w-4" aria-hidden="true" />
                   Save as Draft
                 </Button>
                 
@@ -357,7 +357,7 @@ Just start typing and use the toolbar above!"
                   className="w-full"
                   disabled={loading}
                 >
-                  <Send className="mr-2 h-4 w-4" />
+                  <Send className="mr-2 h-4 w-4" aria-hidden="true" />
                   {session?.user.role === 'admin' ? 'Publish Now' : 'Submit for Review'}
                 </Button>
 
@@ -374,7 +374,7 @@ Just start typing and use the toolbar above!"
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Tag className="h-5 w-5" />
+                  <Tag className="h-5 w-5" aria-hidden="true" />
                   Category
                 </CardTitle>
                 <CardDescription>
@@ -396,7 +396,7 @@ Just start typing and use the toolbar above!"
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Tag className="h-5 w-5" />
+                  <Tag className="h-5 w-5" aria-hidden="true" />
                   Tags
                 </CardTitle>
                 <CardDescription>

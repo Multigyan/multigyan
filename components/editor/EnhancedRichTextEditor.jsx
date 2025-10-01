@@ -54,7 +54,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { toast } from 'sonner'
-import { convertToWebP, convertGoogleDriveUrl } from '@/lib/imageUtils'
+import { convertToWebP, googleDriveUrlToFile } from '@/lib/imageUtils'
 
 // Configure lowlight with popular languages
 const lowlight = createLowlight()
@@ -165,22 +165,57 @@ const MenuBar = ({ editor }) => {
     }
   }
 
-  const addImage = useCallback(() => {
-    if (imageUrl && editor) {
-      // Convert Google Drive URL if needed
-      let finalUrl = convertGoogleDriveUrl(imageUrl)
+  // ✅ FIXED: Added Google Drive support with download and upload
+  const addImage = useCallback(async () => {
+  if (imageUrl && editor) {
+    // Check if it's a Google Drive URL
+    if (imageUrl.includes('drive.google.com')) {
+      toast.info('Google Drive URL detected - downloading and uploading image...')
+      setUploadingImage(true)
       
-      if (finalUrl !== imageUrl) {
-        toast.info('Google Drive URL converted to direct link')
+      try {
+        // Download the image from Google Drive
+        const file = await googleDriveUrlToFile(imageUrl)
+        
+        if (file) {
+          toast.success('Image downloaded from Google Drive!')
+          
+          // Upload to Cloudinary
+          const cloudinaryUrl = await uploadToCloudinary(file)
+          
+          if (cloudinaryUrl) {
+            // Insert the Cloudinary URL into the editor
+            editor.chain().focus().setImage({ 
+              src: cloudinaryUrl, 
+              alt: imageAlt || 'Google Drive Image' 
+            }).run()
+            toast.success('Image uploaded successfully!')
+          }
+        } else {
+          throw new Error('Failed to download from Google Drive')
+        }
+      } catch (error) {
+        console.error('Google Drive image error:', error)
+        toast.error('Failed to process Google Drive image', {
+          description: error.message || 'Please check the sharing settings and try again',
+          duration: 5000
+        })
+      } finally {
+        setUploadingImage(false)
       }
-      
-      editor.chain().focus().setImage({ src: finalUrl, alt: imageAlt || 'Image' }).run()
+    } else {
+      // Regular URL - use directly
+      editor.chain().focus().setImage({ 
+        src: imageUrl, 
+        alt: imageAlt || 'Image' 
+      }).run()
       toast.success('Image added successfully!')
     }
-    setImageUrl('')
-    setImageAlt('')
-    setIsImageDialogOpen(false)
-  }, [editor, imageUrl, imageAlt])
+  }
+  setImageUrl('')
+  setImageAlt('')
+  setIsImageDialogOpen(false)
+}, [editor, imageUrl, imageAlt, uploadToCloudinary])
 
   const addYoutube = useCallback(() => {
     if (youtubeUrl && editor) {
@@ -537,7 +572,7 @@ const MenuBar = ({ editor }) => {
             <DialogHeader>
               <DialogTitle>Add Image</DialogTitle>
               <DialogDescription>
-                Upload an image or paste an image URL (supports Google Drive)
+                Upload an image or paste an image URL (Google Drive links will be automatically downloaded and uploaded)
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -596,6 +631,10 @@ const MenuBar = ({ editor }) => {
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <span>💡</span>
+                  <span>Google Drive images will be downloaded and uploaded to Cloudinary automatically</span>
+                </p>
               </div>
               <div>
                 <Label htmlFor="imageAlt">Alt Text (for accessibility)</Label>
@@ -607,7 +646,9 @@ const MenuBar = ({ editor }) => {
                   onKeyDown={(e) => e.key === 'Enter' && addImage()}
                 />
               </div>
-              <Button onClick={addImage} disabled={!imageUrl}>Add Image</Button>
+              <Button onClick={addImage} disabled={!imageUrl || uploadingImage}>
+                {uploadingImage ? 'Processing...' : 'Add Image'}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

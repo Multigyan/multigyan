@@ -15,19 +15,20 @@ import {
   Check,
   Crop,
   Info,
-  Zap
+  Zap,
+  Download
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import ImageCropper from '@/components/image/ImageCropper'
-import { convertToWebP, convertGoogleDriveUrl, optimizeImage } from '@/lib/imageUtils'
+import { convertToWebP, convertGoogleDriveUrl, optimizeImage, googleDriveUrlToFile } from '@/lib/imageUtils'
 
 /**
  * FeaturedImageUploader Component with WebP Conversion
  * 
  * Features:
  * - Automatic WebP conversion
- * - Google Drive URL support
+ * - Google Drive URL support (downloads & uploads to Cloudinary)
  * - Image optimization
  * - Drag & drop
  * - Optional cropping
@@ -246,49 +247,69 @@ export default function FeaturedImageUploader({
     setValidatingUrl(true)
     
     try {
-      let finalUrl = urlInput.trim()
+      const inputUrl = urlInput.trim()
       
-      // Convert Google Drive URL if needed
-      finalUrl = convertGoogleDriveUrl(finalUrl)
-      
-      if (finalUrl !== urlInput.trim()) {
-        toast.info('Google Drive URL detected - converting to direct link...')
-      }
-      
-      // Validate URL format
-      const url = new URL(finalUrl)
-      
-      // Check if it's a valid image URL by trying to load it
-      const img = new window.Image()
-      img.onload = () => {
-        // Get image dimensions
-        setImageDimensions({ 
-          width: img.naturalWidth, 
-          height: img.naturalHeight 
-        })
+      // Check if it's a Google Drive URL
+      if (inputUrl.includes('drive.google.com')) {
+        toast.info('Google Drive URL detected - downloading image...')
         
-        setImageUrl(finalUrl)
-        onChange(finalUrl)
-        setUrlInput('')
-        toast.success('Featured image URL added successfully!')
-        setValidatingUrl(false)
+        // Download the image from Google Drive
+        const file = await googleDriveUrlToFile(inputUrl)
         
-        // Auto-generate alt text from URL if none provided
-        if (!altText && onAltTextChange) {
-          const filename = url.pathname.split('/').pop()?.split('.')[0] || 'Featured image'
-          onAltTextChange(filename.replace(/[-_]/g, ' '))
+        if (file) {
+          toast.success('Image downloaded from Google Drive!')
+          setValidatingUrl(false)
+          setUrlInput('')
+          
+          // Process and upload the downloaded file
+          await processAndUploadImage(file)
+        } else {
+          throw new Error('Failed to download from Google Drive')
         }
+      } else {
+        // Regular URL - validate and use directly
+        const url = new URL(inputUrl)
+        
+        // Check if it's a valid image URL by trying to load it
+        const img = new window.Image()
+        img.crossOrigin = 'anonymous'
+        
+        img.onload = () => {
+          // Get image dimensions
+          setImageDimensions({ 
+            width: img.naturalWidth, 
+            height: img.naturalHeight 
+          })
+          
+          setImageUrl(inputUrl)
+          onChange(inputUrl)
+          setUrlInput('')
+          toast.success('Featured image URL added successfully!')
+          setValidatingUrl(false)
+          
+          // Auto-generate alt text from URL if none provided
+          if (!altText && onAltTextChange) {
+            const filename = url.pathname.split('/').pop()?.split('.')[0] || 'Featured image'
+            onAltTextChange(filename.replace(/[-_]/g, ' '))
+          }
+        }
+        
+        img.onerror = () => {
+          toast.error('Unable to load image from this URL.', {
+            description: 'Make sure the URL is publicly accessible and points to an image file.',
+            duration: 5000
+          })
+          setValidatingUrl(false)
+        }
+        
+        img.src = inputUrl
       }
-      img.onerror = () => {
-        toast.error('Unable to load image from this URL. Please check the URL and try again.', {
-          description: 'Make sure the URL is publicly accessible and points to an image file.',
-          duration: 5000
-        })
-        setValidatingUrl(false)
-      }
-      img.src = finalUrl
     } catch (error) {
-      toast.error('Please enter a valid URL')
+      console.error('URL validation error:', error)
+      toast.error('Failed to process URL', {
+        description: error.message || 'Please check the URL and try again',
+        duration: 5000
+      })
       setValidatingUrl(false)
     }
   }
@@ -475,12 +496,15 @@ export default function FeaturedImageUploader({
                 
                 {/* Google Drive Instructions */}
                 <div className="flex items-start gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                  <Info className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <Download className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p className="font-medium text-foreground">Google Drive Support:</p>
-                    <p>Just paste your Google Drive share link! It will be automatically converted to work.</p>
-                    <p className="text-[10px] font-mono bg-muted px-1 py-0.5 rounded">
+                    <p className="font-medium text-foreground">🎉 Google Drive Support!</p>
+                    <p>Paste your Google Drive share link - we'll download it, optimize it, and upload to Cloudinary for you!</p>
+                    <p className="text-[10px] font-mono bg-muted px-1 py-0.5 rounded mt-1">
                       drive.google.com/file/d/FILE_ID/view...
+                    </p>
+                    <p className="text-[10px] text-yellow-600 dark:text-yellow-400 mt-1">
+                      ⚠️ Make sure image is shared as "Anyone with the link can view"
                     </p>
                   </div>
                 </div>

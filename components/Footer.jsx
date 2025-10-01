@@ -10,7 +10,8 @@ import {
   Github, 
   Linkedin, 
   Heart,
-  Send
+  Send,
+  Instagram
 } from "lucide-react"
 
 export default function Footer() {
@@ -54,6 +55,11 @@ export default function Footer() {
                 <Button size="icon" variant="ghost" asChild>
                   <Link href="https://linkedin.com/company/multigyan" target="_blank" rel="noopener noreferrer">
                     <Linkedin className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button size="icon" variant="ghost" asChild>
+                  <Link href="https://instagram.com/multigyan.info" target="_blank" rel="noopener noreferrer">
+                    <Instagram className="h-4 w-4" />
                   </Link>
                 </Button>
               </div>
