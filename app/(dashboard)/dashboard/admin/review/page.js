@@ -28,7 +28,9 @@ import {
   Calendar,
   AlertCircle,
   FileText,
-  MessageSquare
+  MessageSquare,
+  Trash2,
+  Edit
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
@@ -137,6 +139,36 @@ export default function AdminReviewPage() {
     setSelectedPost(post)
     setRejectionReason("")
     setShowRejectDialog(true)
+  }
+
+  /**
+   * FUNCTION: Delete a post
+   * Permanently removes the post from the database
+   */
+  const handleDelete = async (postId, postTitle) => {
+    if (!confirm(`Are you sure you want to delete "${postTitle}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      setActionLoading(true)
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        toast.success('Post deleted successfully')
+        fetchPendingPosts() // Refresh the list
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Failed to delete post')
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      toast.error('Failed to delete post')
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   if (session?.user?.role !== 'admin') {
@@ -310,7 +342,7 @@ export default function AdminReviewPage() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <Button
                         onClick={() => handleApprove(post._id)}
                         disabled={actionLoading}
@@ -338,9 +370,19 @@ export default function AdminReviewPage() {
 
                       <Button variant="outline" asChild>
                         <Link href={`/dashboard/posts/${post._id}/edit`}>
-                          <FileText className="h-4 w-4 mr-2" />
+                          <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </Link>
+                      </Button>
+
+                      <Button 
+                        variant="outline"
+                        onClick={() => handleDelete(post._id, post.title)}
+                        disabled={actionLoading}
+                        className="text-destructive hover:bg-destructive hover:text-white"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
                       </Button>
                     </div>
                   </div>

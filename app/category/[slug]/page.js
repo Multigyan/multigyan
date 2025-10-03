@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { use, useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
@@ -22,6 +22,10 @@ import {
 import { formatDate } from "@/lib/helpers"
 
 export default function CategoryPage({ params }) {
+  // ✅ FIX: Unwrap params Promise using React.use() (Next.js 15+)
+  const resolvedParams = use(params)
+  const categorySlug = resolvedParams.slug
+  
   const [category, setCategory] = useState(null)
   const [posts, setPosts] = useState([])
   const [allCategories, setAllCategories] = useState([])
@@ -31,10 +35,10 @@ export default function CategoryPage({ params }) {
   const [pagination, setPagination] = useState(null)
 
   useEffect(() => {
-    if (params.slug) {
+    if (categorySlug) {
       fetchData()
     }
-  }, [params.slug, currentPage])
+  }, [categorySlug, currentPage])
 
   const fetchData = async () => {
     try {
@@ -53,7 +57,7 @@ export default function CategoryPage({ params }) {
       setAllCategories(categories)
       
       // Find current category by slug
-      const currentCategory = categories.find(cat => cat.slug === params.slug)
+      const currentCategory = categories.find(cat => cat.slug === categorySlug)
       if (!currentCategory) {
         notFound()
         return

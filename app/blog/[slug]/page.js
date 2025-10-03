@@ -104,6 +104,8 @@ export default async function BlogPostPage({ params }) {
     })
       .populate('author', 'name email username profilePictureUrl bio twitterHandle')
       .populate('category', 'name slug color')
+      .populate('comments.author', 'name profilePictureUrl role')
+      .populate('reviewedBy', 'name')
       .lean()
     
     if (!post) {
@@ -146,17 +148,45 @@ export default async function BlogPostPage({ params }) {
         ...post.category,
         _id: post.category._id.toString()
       } : null,
+      // ✅ FIX: Serialize the post's likes array
+      likes: post.likes?.map(like => like.toString()) || [],
       // ✅ FIX 3: Use safe date conversion helper for all dates
       publishedAt: toISOStringSafe(post.publishedAt),
       updatedAt: toISOStringSafe(post.updatedAt),
       createdAt: toISOStringSafe(post.createdAt),
+      // ✅ FIX: Properly serialize comments with populated author data
       comments: post.comments?.map(comment => ({
         ...comment,
         _id: comment._id.toString(),
-        user: comment.user ? comment.user.toString() : null,
+        // Keep the populated author object with all fields
+        author: comment.author ? {
+          _id: comment.author._id.toString(),
+          name: comment.author.name,
+          profilePictureUrl: comment.author.profilePictureUrl,
+          role: comment.author.role
+        } : null,
+        // Handle guest comments
+        guestName: comment.guestName || null,
+        guestEmail: comment.guestEmail || null,
+        parentComment: comment.parentComment ? comment.parentComment.toString() : null,
         createdAt: toISOStringSafe(comment.createdAt),
-        updatedAt: toISOStringSafe(comment.updatedAt)
-      })) || []
+        updatedAt: toISOStringSafe(comment.updatedAt),
+        editedAt: comment.editedAt ? toISOStringSafe(comment.editedAt) : null,
+        // Serialize likes array
+        likes: comment.likes?.map(like => like.toString()) || [],
+        // Keep other comment fields
+        content: comment.content,
+        isApproved: comment.isApproved,
+        isReported: comment.isReported,
+        reportCount: comment.reportCount || 0,
+        isEdited: comment.isEdited || false,
+        replies: [] // Replies will be structured by CommentSection component
+      })) || [],
+      // ✅ FIX: Properly serialize reviewedBy
+      reviewedBy: post.reviewedBy ? {
+        _id: post.reviewedBy._id.toString(),
+        name: post.reviewedBy.name
+      } : null
     }
     
     return (

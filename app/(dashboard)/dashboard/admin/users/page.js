@@ -328,12 +328,13 @@ export default function AdminUsersPage() {
                         <Calendar className="h-3 w-3" />
                         Joined {formatDate(user.createdAt)}
                       </span>
-                      {user.lastLoginAt && (
-                        <span className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          Last login {formatDate(user.lastLoginAt)}
-                        </span>
-                      )}
+                      <span className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {user.lastLoginAt 
+                          ? `Last login ${formatDate(user.lastLoginAt)}`
+                          : 'Never logged in'
+                        }
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -194,8 +194,8 @@ export async function POST(request) {
             message: `${session.user.name} replied to your comment`,
             link: `/blog/${post.slug}#comment-${newComment._id}`
           })
-        } else {
-          // Notification for comment on post
+        } else if (post.author && post.author._id) {
+          // Notification for comment on post (only if post has author)
           await Notification.createNotification({
             recipient: post.author._id,
             sender: session.user.id,

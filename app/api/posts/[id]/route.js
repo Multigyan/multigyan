@@ -23,8 +23,9 @@ export async function GET(request, { params }) {
       query.status = 'published'
     } else if (session.user.role !== 'admin') {
       // Authors can see their own posts + published posts
+      // ✅ FIX: Use resolvedParams.id instead of params.id
       query = {
-        _id: params.id,
+        _id: resolvedParams.id,
         $or: [
           { author: session.user.id },
           { status: 'published' }

@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Notification from '@/models/Notification'
+import Post from '@/models/Post' // ✅ Import Post model for populate()
+import User from '@/models/User' // ✅ Import User model for populate()
 
 // GET - Get notifications for current user
 export async function GET(request) {

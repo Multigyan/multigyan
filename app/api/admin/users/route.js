@@ -127,6 +127,7 @@ export async function PATCH(request) {
   } catch (error) {
     console.error('Error updating user:', error)
     
+    // Handle specific error messages
     if (error.message.includes('Cannot demote yourself') || 
         error.message.includes('Cannot deactivate your own account')) {
       return NextResponse.json(
@@ -135,8 +136,26 @@ export async function PATCH(request) {
       )
     }
 
+    // Handle validation errors (bio length, etc.)
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message)
+      return NextResponse.json(
+        { error: `Validation failed: ${validationErrors.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
+    // Handle user not found
+    if (error.message.includes('User not found')) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    // Generic error
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to update user. Please try again.' },
       { status: 500 }
     )
   }

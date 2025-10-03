@@ -136,15 +136,15 @@ export default function BlogPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Main featured post */}
               {featuredPosts[0] && (
-                <div className="lg:col-span-2">
-                  <Card className="blog-card h-full overflow-hidden">
+                <Link href={`/blog/${featuredPosts[0].slug}`} className="lg:col-span-2 block">
+                  <Card className="blog-card h-full overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group">
                     <div className="relative h-64 lg:h-80">
                       {featuredPosts[0].featuredImageUrl ? (
                         <Image
                           src={featuredPosts[0].featuredImageUrl}
                           alt={featuredPosts[0].featuredImageAlt || featuredPosts[0].title}
                           fill
-                          className="object-cover"
+                          className="object-cover transition-transform duration-300 group-hover:scale-110"
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
@@ -156,10 +156,8 @@ export default function BlogPage() {
                         <Badge className="mb-2" style={{ backgroundColor: featuredPosts[0].category?.color }}>
                           {featuredPosts[0].category?.name}
                         </Badge>
-                        <h2 className="text-2xl font-bold mb-2 line-clamp-2">
-                          <Link href={`/blog/${featuredPosts[0].slug}`} className="hover:text-primary-foreground">
-                            {featuredPosts[0].title}
-                          </Link>
+                        <h2 className="text-2xl font-bold mb-2 line-clamp-2 group-hover:text-primary-foreground">
+                          {featuredPosts[0].title}
                         </h2>
                         <div className="flex items-center gap-4 text-sm opacity-90">
                           <span className="flex items-center gap-1">
@@ -178,48 +176,48 @@ export default function BlogPage() {
                       </div>
                     </div>
                   </Card>
-                </div>
+                </Link>
               )}
 
               {/* Secondary featured posts */}
               <div className="space-y-6">
                 {featuredPosts.slice(1, 3).map((post) => (
-                  <Card key={post._id} className="blog-card overflow-hidden">
-                    <div className="flex gap-4 p-4">
-                      <div className="relative w-24 h-24 flex-shrink-0">
-                        {post.featuredImageUrl ? (
-                          <Image
-                            src={post.featuredImageUrl}
-                            alt={post.featuredImageAlt || post.title}
-                            fill
-                            className="object-cover rounded"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded">
-                            <BookOpen className="h-6 w-6 text-primary/60" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <Badge 
-                          size="sm" 
-                          className="mb-2" 
-                          style={{ backgroundColor: post.category?.color }}
-                        >
-                          {post.category?.name}
-                        </Badge>
-                        <h3 className="font-semibold text-sm line-clamp-2 mb-2">
-                          <Link href={`/blog/${post.slug}`} className="hover:text-primary">
+                  <Link key={post._id} href={`/blog/${post.slug}`} className="block">
+                    <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group">
+                      <div className="flex gap-4 p-4">
+                        <div className="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded">
+                          {post.featuredImageUrl ? (
+                            <Image
+                              src={post.featuredImageUrl}
+                              alt={post.featuredImageAlt || post.title}
+                              fill
+                              className="object-cover transition-transform duration-300 group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded">
+                              <BookOpen className="h-6 w-6 text-primary/60" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Badge 
+                            size="sm" 
+                            className="mb-2" 
+                            style={{ backgroundColor: post.category?.color }}
+                          >
+                            {post.category?.name}
+                          </Badge>
+                          <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
                             {post.title}
-                          </Link>
-                        </h3>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>{post.author?.name}</span>
-                          <span>{formatDate(post.publishedAt)}</span>
+                          </h3>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+                            <span>{post.author?.name}</span>
+                            <span>{formatDate(post.publishedAt)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -290,86 +288,88 @@ export default function BlogPage() {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                     {posts.map((post) => (
-                      <Card key={post._id} className="blog-card overflow-hidden">
-                        <div className="relative h-48">
-                          {post.featuredImageUrl ? (
-                            <Image
-                              src={post.featuredImageUrl}
-                              alt={post.featuredImageAlt || post.title}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-                              <BookOpen className="h-12 w-12 text-primary/60" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        <CardContent className="p-6">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Badge style={{ backgroundColor: post.category?.color }}>
-                              {post.category?.name}
-                            </Badge>
+                      <Link key={post._id} href={`/blog/${post.slug}`} className="block">
+                        <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group h-full">
+                          <div className="relative h-48 overflow-hidden">
+                            {post.featuredImageUrl ? (
+                              <Image
+                                src={post.featuredImageUrl}
+                                alt={post.featuredImageAlt || post.title}
+                                fill
+                                className="object-cover transition-transform duration-300 group-hover:scale-110"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
+                                <BookOpen className="h-12 w-12 text-primary/60 transition-transform duration-300 group-hover:scale-110" />
+                              </div>
+                            )}
+                            {/* Overlay on hover */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
                           </div>
                           
-                          <h3 className="text-xl font-semibold mb-3 line-clamp-2">
-                            <Link href={`/blog/${post.slug}`} className="hover:text-primary">
-                              {post.title}
-                            </Link>
-                          </h3>
-                          
-                          <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                            {post.excerpt}
-                          </p>
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {post.author?.profilePictureUrl ? (
-                                <Image
-                                  src={post.author.profilePictureUrl}
-                                  alt={post.author.name}
-                                  width={24}
-                                  height={24}
-                                  className="rounded-full"
-                                />
-                              ) : (
-                                <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
-                                  <User className="h-3 w-3 text-primary" />
-                                </div>
-                              )}
-                              <span className="text-sm text-muted-foreground">
-                                {post.author?.name}
-                              </span>
+                          <CardContent className="p-6">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Badge style={{ backgroundColor: post.category?.color }}>
+                                {post.category?.name}
+                              </Badge>
                             </div>
                             
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {formatDate(post.publishedAt)}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {post.readingTime} min
-                              </span>
-                              {post.views > 0 && (
-                                <span className="flex items-center gap-1">
-                                  <Eye className="h-3 w-3" />
-                                  {post.views}
+                            <h3 className="text-xl font-semibold mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                              {post.title}
+                            </h3>
+                            
+                            <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                              {post.excerpt}
+                            </p>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {post.author?.profilePictureUrl ? (
+                                  <Image
+                                    src={post.author.profilePictureUrl}
+                                    alt={post.author.name}
+                                    width={24}
+                                    height={24}
+                                    className="rounded-full ring-2 ring-transparent group-hover:ring-primary transition-all"
+                                  />
+                                ) : (
+                                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center ring-2 ring-transparent group-hover:ring-primary transition-all">
+                                    <User className="h-3 w-3 text-primary" />
+                                  </div>
+                                )}
+                                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                                  {post.author?.name}
                                 </span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <Heart className="h-3 w-3" />
-                                {post.likes?.length || 0}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <MessageCircle className="h-3 w-3" />
-                                {post.comments?.filter(c => c.isApproved).length || 0}
-                              </span>
+                              </div>
+                              
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1 group-hover:text-foreground transition-colors">
+                                  <Calendar className="h-3 w-3" />
+                                  {formatDate(post.publishedAt)}
+                                </span>
+                                <span className="flex items-center gap-1 group-hover:text-foreground transition-colors">
+                                  <Clock className="h-3 w-3" />
+                                  {post.readingTime} min
+                                </span>
+                                {post.views > 0 && (
+                                  <span className="flex items-center gap-1 group-hover:text-foreground transition-colors">
+                                    <Eye className="h-3 w-3" />
+                                    {post.views}
+                                  </span>
+                                )}
+                                <span className="flex items-center gap-1 text-red-500 group-hover:scale-110 transition-transform">
+                                  <Heart className="h-3 w-3" />
+                                  {post.likes?.length || 0}
+                                </span>
+                                <span className="flex items-center gap-1 text-blue-500 group-hover:scale-110 transition-transform">
+                                  <MessageCircle className="h-3 w-3" />
+                                  {post.comments?.filter(c => c.isApproved).length || 0}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                      </Link>
                     ))}
                   </div>
 

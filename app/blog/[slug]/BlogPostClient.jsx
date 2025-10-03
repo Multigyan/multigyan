@@ -27,6 +27,7 @@ import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
 import CommentSection from "@/components/comments/CommentSection"
 import { PostLikeButton } from "@/components/interactions/LikeButton"
+import TableOfContents from "@/components/blog/TableOfContents"
 
 export default function BlogPostClient({ post }) {
   const { data: session } = useSession()
@@ -116,7 +117,8 @@ export default function BlogPostClient({ post }) {
     <div className="min-h-screen">
       <article className="py-8">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+          {/* Main Container with TOC */}
+          <div className="max-w-7xl mx-auto">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
               <Link href="/" className="hover:text-foreground">Home</Link>
@@ -127,11 +129,15 @@ export default function BlogPostClient({ post }) {
                 {post.category?.name}
               </Link>
               <span>/</span>
-              <span className="text-foreground">{post.title}</span>
+              <span className="text-foreground truncate">{post.title}</span>
             </nav>
 
-            {/* Header */}
-            <header className="mb-8">
+            {/* Two Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Main Content - 8 columns */}
+              <div className="lg:col-span-8">
+                {/* Header */}
+                <header className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <Badge style={{ backgroundColor: post.category?.color }}>
                   {post.category?.name}
@@ -191,23 +197,269 @@ export default function BlogPostClient({ post }) {
               </div>
             </header>
 
-            {/* Featured Image */}
+            {/* Featured Image - Original Aspect Ratio */}
             {post.featuredImageUrl && (
-              <div className="relative h-64 md:h-96 mb-8 rounded-lg overflow-hidden">
-                <Image
+              <div className="mb-8 rounded-lg overflow-hidden bg-muted">
+                <img
                   src={post.featuredImageUrl}
                   alt={post.featuredImageAlt || post.title}
-                  fill
-                  className="object-cover"
-                  priority
+                  className="w-full h-auto"
+                  loading="eager"
+                  style={{ maxHeight: '600px', objectFit: 'contain' }}
                 />
               </div>
             )}
 
-            {/* Content */}
-            <div className="prose prose-lg max-w-none mb-12">
+            {/* Enhanced Content with Better Styling */}
+            <div className="blog-content mb-12">
+              <style jsx global>{`
+                /* Blog Content Styles */
+                .blog-content {
+                  font-size: 1.125rem;
+                  line-height: 1.8;
+                  color: var(--foreground);
+                }
+
+                /* Headings */
+                .blog-content h1 {
+                  font-size: 2.5rem;
+                  font-weight: 700;
+                  margin-top: 2.5rem;
+                  margin-bottom: 1.5rem;
+                  line-height: 1.2;
+                  color: var(--foreground);
+                }
+
+                .blog-content h2 {
+                  font-size: 2rem;
+                  font-weight: 700;
+                  margin-top: 2rem;
+                  margin-bottom: 1.25rem;
+                  line-height: 1.3;
+                  color: var(--foreground);
+                  border-bottom: 2px solid var(--border);
+                  padding-bottom: 0.5rem;
+                }
+
+                .blog-content h3 {
+                  font-size: 1.5rem;
+                  font-weight: 600;
+                  margin-top: 1.75rem;
+                  margin-bottom: 1rem;
+                  line-height: 1.4;
+                  color: var(--foreground);
+                }
+
+                .blog-content h4 {
+                  font-size: 1.25rem;
+                  font-weight: 600;
+                  margin-top: 1.5rem;
+                  margin-bottom: 0.75rem;
+                  line-height: 1.5;
+                  color: var(--foreground);
+                }
+
+                /* Paragraphs */
+                .blog-content p {
+                  margin-bottom: 1.5rem;
+                  line-height: 1.8;
+                }
+
+                /* Images in content */
+                .blog-content img {
+                  max-width: 100%;
+                  height: auto;
+                  border-radius: 0.5rem;
+                  margin: 2rem 0;
+                  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                }
+
+                /* Links */
+                .blog-content a {
+                  color: var(--primary);
+                  text-decoration: underline;
+                  text-underline-offset: 4px;
+                  transition: all 0.2s;
+                }
+
+                .blog-content a:hover {
+                  color: var(--primary);
+                  text-decoration-thickness: 2px;
+                }
+
+                /* Lists */
+                .blog-content ul,
+                .blog-content ol {
+                  margin: 1.5rem 0;
+                  padding-left: 2rem;
+                }
+
+                .blog-content ul {
+                  list-style-type: disc;
+                }
+
+                .blog-content ol {
+                  list-style-type: decimal;
+                }
+
+                .blog-content li {
+                  margin-bottom: 0.75rem;
+                  line-height: 1.8;
+                }
+
+                .blog-content li::marker {
+                  color: var(--primary);
+                  font-weight: 600;
+                }
+
+                /* Nested lists */
+                .blog-content ul ul,
+                .blog-content ol ol,
+                .blog-content ul ol,
+                .blog-content ol ul {
+                  margin: 0.5rem 0;
+                }
+
+                /* Tables - Enhanced Design */
+                .blog-content table {
+                  width: 100%;
+                  border-collapse: separate;
+                  border-spacing: 0;
+                  margin: 2rem 0;
+                  overflow: hidden;
+                  border-radius: 0.5rem;
+                  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+                  font-size: 0.95rem;
+                }
+
+                .blog-content thead {
+                  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+                  color: white;
+                }
+
+                .blog-content thead th {
+                  padding: 1rem 1.25rem;
+                  text-align: left;
+                  font-weight: 600;
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  font-size: 0.875rem;
+                  border-bottom: 2px solid hsl(var(--primary));
+                }
+
+                .blog-content tbody tr {
+                  background-color: var(--card);
+                  transition: all 0.2s;
+                  border-bottom: 1px solid var(--border);
+                }
+
+                .blog-content tbody tr:nth-child(even) {
+                  background-color: var(--muted);
+                }
+
+                .blog-content tbody tr:hover {
+                  background-color: hsl(var(--primary) / 0.05);
+                  transform: translateX(4px);
+                  box-shadow: -4px 0 0 hsl(var(--primary));
+                }
+
+                .blog-content tbody td {
+                  padding: 1rem 1.25rem;
+                  border-bottom: 1px solid var(--border);
+                }
+
+                .blog-content tbody tr:last-child td {
+                  border-bottom: none;
+                }
+
+                /* Blockquotes */
+                .blog-content blockquote {
+                  border-left: 4px solid var(--primary);
+                  padding-left: 1.5rem;
+                  margin: 2rem 0;
+                  font-style: italic;
+                  color: var(--muted-foreground);
+                  background: var(--muted);
+                  padding: 1.5rem;
+                  padding-left: 1.5rem;
+                  border-radius: 0.5rem;
+                }
+
+                .blog-content blockquote p {
+                  margin: 0;
+                }
+
+                /* Code blocks */
+                .blog-content code {
+                  background: var(--muted);
+                  padding: 0.25rem 0.5rem;
+                  border-radius: 0.25rem;
+                  font-family: 'Courier New', monospace;
+                  font-size: 0.9em;
+                  color: var(--primary);
+                  border: 1px solid var(--border);
+                }
+
+                .blog-content pre {
+                  background: var(--muted);
+                  padding: 1.5rem;
+                  border-radius: 0.5rem;
+                  overflow-x: auto;
+                  margin: 2rem 0;
+                  border: 1px solid var(--border);
+                }
+
+                .blog-content pre code {
+                  background: none;
+                  padding: 0;
+                  border: none;
+                  color: var(--foreground);
+                }
+
+                /* Strong and emphasis */
+                .blog-content strong {
+                  font-weight: 700;
+                  color: var(--foreground);
+                }
+
+                .blog-content em {
+                  font-style: italic;
+                }
+
+                /* Horizontal rule */
+                .blog-content hr {
+                  margin: 3rem 0;
+                  border: none;
+                  border-top: 2px solid var(--border);
+                }
+
+                /* Figure and figcaption */
+                .blog-content figure {
+                  margin: 2rem 0;
+                }
+
+                .blog-content figcaption {
+                  text-align: center;
+                  font-size: 0.9rem;
+                  color: var(--muted-foreground);
+                  margin-top: 0.75rem;
+                  font-style: italic;
+                }
+
+                /* Responsive tables */
+                @media (max-width: 768px) {
+                  .blog-content table {
+                    font-size: 0.875rem;
+                  }
+                  
+                  .blog-content thead th,
+                  .blog-content tbody td {
+                    padding: 0.75rem;
+                  }
+                }
+              `}</style>
               <div 
-                className="text-foreground leading-relaxed"
+                className="text-foreground"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             </div>
@@ -218,7 +470,7 @@ export default function BlogPostClient({ post }) {
                 <h3 className="text-lg font-semibold mb-4">Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {post.tags.map((tag, index) => (
-                    <Badge key={index} variant="outline">
+                    <Badge key={index} variant="outline" className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
                       #{tag}
                     </Badge>
                   ))}
@@ -229,7 +481,7 @@ export default function BlogPostClient({ post }) {
             <Separator className="my-8" />
 
             {/* Actions */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
               <div className="flex items-center gap-4">
                 <PostLikeButton
                   targetId={post._id}
@@ -251,6 +503,8 @@ export default function BlogPostClient({ post }) {
                   variant="outline"
                   size="icon"
                   onClick={() => handleShare('twitter')}
+                  title="Share on Twitter"
+                  className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600"
                 >
                   <Twitter className="h-4 w-4" />
                 </Button>
@@ -258,6 +512,8 @@ export default function BlogPostClient({ post }) {
                   variant="outline"
                   size="icon"
                   onClick={() => handleShare('facebook')}
+                  title="Share on Facebook"
+                  className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700"
                 >
                   <Facebook className="h-4 w-4" />
                 </Button>
@@ -266,6 +522,7 @@ export default function BlogPostClient({ post }) {
                   size="icon"
                   onClick={() => handleShare('linkedin')}
                   title="Share on LinkedIn"
+                  className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600"
                 >
                   <Linkedin className="h-4 w-4" />
                 </Button>
@@ -274,7 +531,7 @@ export default function BlogPostClient({ post }) {
                   size="icon"
                   onClick={() => handleShare('whatsapp')}
                   title="Share on WhatsApp"
-                  className="text-green-600 hover:text-green-700"
+                  className="hover:bg-green-50 hover:text-green-600 hover:border-green-600"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
@@ -283,6 +540,7 @@ export default function BlogPostClient({ post }) {
                   size="icon"
                   onClick={() => handleShare('copy')}
                   title="Copy link"
+                  className="hover:bg-gray-50"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
@@ -290,7 +548,7 @@ export default function BlogPostClient({ post }) {
             </div>
 
             {/* Author Bio */}
-            <Card className="mb-12">
+            <Card className="mb-12 hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0">
@@ -298,25 +556,34 @@ export default function BlogPostClient({ post }) {
                       <Image
                         src={post.author.profilePictureUrl}
                         alt={post.author.name}
-                        width={64}
-                        height={64}
-                        className="rounded-full"
+                        width={80}
+                        height={80}
+                        className="rounded-full ring-2 ring-primary/20"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                        <User className="h-8 w-8 text-primary" />
+                      <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center ring-2 ring-primary/20">
+                        <User className="h-10 w-10 text-primary" />
                       </div>
                     )}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold mb-2">
-                      <Link href={`/author/${post.author?.username}`} className="hover:text-primary">
+                      <Link href={`/author/${post.author?.username}`} className="hover:text-primary transition-colors">
                         {post.author?.name}
                       </Link>
                     </h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground mb-3">
                       {post.author?.bio || 'No bio available.'}
                     </p>
+                    {post.author?.twitterHandle && (
+                      <Link 
+                        href={`https://twitter.com/${post.author.twitterHandle}`}
+                        target="_blank"
+                        className="text-sm text-primary hover:underline"
+                      >
+                        @{post.author.twitterHandle}
+                      </Link>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -325,7 +592,7 @@ export default function BlogPostClient({ post }) {
             {/* More Posts by Author */}
             {relatedPosts.length > 0 && (
               <section>
-                <h2 className="text-2xl font-bold mb-4">
+                <h2 className="text-2xl font-bold mb-2">
                   More from {post.author?.name}
                 </h2>
                 <p className="text-muted-foreground mb-6">
@@ -333,14 +600,14 @@ export default function BlogPostClient({ post }) {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {relatedPosts.map((relatedPost) => (
-                    <Card key={relatedPost._id} className="blog-card">
-                      <div className="relative h-40">
+                    <Card key={relatedPost._id} className="blog-card hover:shadow-lg transition-all">
+                      <div className="relative h-40 overflow-hidden">
                         {relatedPost.featuredImageUrl ? (
                           <Image
                             src={relatedPost.featuredImageUrl}
                             alt={relatedPost.featuredImageAlt || relatedPost.title}
                             fill
-                            className="object-cover rounded-t-lg"
+                            className="object-cover rounded-t-lg transition-transform hover:scale-105"
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded-t-lg">
@@ -353,7 +620,7 @@ export default function BlogPostClient({ post }) {
                           {relatedPost.category?.name}
                         </Badge>
                         <h3 className="font-semibold text-sm line-clamp-2 mb-2">
-                          <Link href={`/blog/${relatedPost.slug}`} className="hover:text-primary">
+                          <Link href={`/blog/${relatedPost.slug}`} className="hover:text-primary transition-colors">
                             {relatedPost.title}
                           </Link>
                         </h3>
@@ -382,7 +649,7 @@ export default function BlogPostClient({ post }) {
 
             {/* Back to Blog */}
             <div className="text-center mt-12">
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="hover:bg-primary hover:text-primary-foreground transition-colors">
                 <Link href="/blog">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Blog
@@ -390,8 +657,15 @@ export default function BlogPostClient({ post }) {
               </Button>
             </div>
           </div>
+
+          {/* TOC Sidebar - 4 columns */}
+          <aside className="lg:col-span-4">
+            <TableOfContents content={post.content} />
+          </aside>
         </div>
-      </article>
+      </div>
     </div>
+  </article>
+</div>
   )
 }
