@@ -1,0 +1,26 @@
+name: multigyan_sync
+
+# This action triggers on every push to the master branch of your personal repo
+on:
+  push:
+    branches:
+      - master  # Change this if your primary branch has a different name (e.g., master)
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out the code from the personal repository
+      - name: Checkout Personal Repo
+        uses: actions/checkout@v4
+        with:
+          # Fetch all branches and tags
+          fetch-depth: 0
+
+      # Step 2: Push the code to the official repository
+      - name: Push to Official Repo
+        env:
+          OFFICIAL_TOKEN: ${{ secrets.OFFICIAL_GIT_TOKEN }}
+        run: |
+          git remote add official_repo https://x-access-token:${OFFICIAL_TOKEN}@github.com/Multigyan/multigyan.git
+          git push official_repo master --force

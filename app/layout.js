@@ -7,6 +7,7 @@ import Footer from "@/components/Footer"
 import AuthProvider from "@/components/AuthProvider"
 import LoadingBar from "@/components/LoadingBar"
 import StructuredData from "@/components/seo/StructuredData"
+import FloatingSocialSidebar from "@/components/layout/FloatingSocialSidebar"
 import { generateStructuredData } from "@/lib/seo"
 
 const inter = Inter({ subsets: ['latin'] })
@@ -83,6 +84,7 @@ export default function RootLayout({ children }) {
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
+          <FloatingSocialSidebar />
           <Toaster />
         </AuthProvider>
       </body>
