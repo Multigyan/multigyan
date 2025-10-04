@@ -10,12 +10,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import EnhancedRichTextEditor from "@/components/editor/EnhancedRichTextEditor"
 import FeaturedImageUploader from "@/components/blog/FeaturedImageUploader"
 import FlexibleTagInput from "@/components/blog/FlexibleTagInput"
 import CategorySelector from "@/components/blog/CategorySelector"
 import BlogPostPreview from "@/components/blog/BlogPostPreview"
-import { ArrowLeft, Save, Loader2, Eye } from "lucide-react"
+import { ArrowLeft, Save, Loader2, Eye, User } from "lucide-react"
 import { toast } from "sonner"
 
 export default function EditPostPage({ params }) {
@@ -25,7 +26,9 @@ export default function EditPostPage({ params }) {
   const [initialLoading, setInitialLoading] = useState(true)
   const [showPreview, setShowPreview] = useState(false)
   const [categories, setCategories] = useState([])
+  const [authors, setAuthors] = useState([]) // ✅ NEW: Store all authors
   const [postId, setPostId] = useState(null)
+  const [originalAuthor, setOriginalAuthor] = useState(null) // ✅ NEW: Track original author
   const [formData, setFormData] = useState({
     title: "",
     excerpt: "",
@@ -36,7 +39,8 @@ export default function EditPostPage({ params }) {
     tags: [],
     seoTitle: "",
     seoDescription: "",
-    allowComments: true
+    allowComments: true,
+    author: "" // ✅ NEW: Add author field
   })
 
   useEffect(() => {
@@ -52,10 +56,18 @@ export default function EditPostPage({ params }) {
     
     async function loadData() {
       try {
-        const [categoriesRes, postRes] = await Promise.all([
+        const promises = [
           fetch('/api/categories'),
           fetch(`/api/posts/${postId}`)
-        ])
+        ]
+
+        // ✅ NEW: Fetch authors if user is admin
+        if (session?.user?.role === 'admin') {
+          promises.push(fetch('/api/admin/users'))
+        }
+
+        const responses = await Promise.all(promises)
+        const [categoriesRes, postRes, authorsRes] = responses
 
         const categoriesData = await categoriesRes.json()
         const postData = await postRes.json()
@@ -64,8 +76,15 @@ export default function EditPostPage({ params }) {
           setCategories(categoriesData.categories || [])
         }
 
+        // ✅ NEW: Load authors for admin
+        if (authorsRes && authorsRes.ok) {
+          const authorsData = await authorsRes.json()
+          setAuthors(authorsData.users || [])
+        }
+
         if (postRes.ok) {
           const post = postData.post || postData
+          setOriginalAuthor(post.author?._id || post.author) // ✅ NEW: Store original author
           setFormData({
             title: post.title || "",
             excerpt: post.excerpt || "",
@@ -76,7 +95,8 @@ export default function EditPostPage({ params }) {
             tags: post.tags || [],
             seoTitle: post.seoTitle || "",
             seoDescription: post.seoDescription || "",
-            allowComments: post.allowComments !== false
+            allowComments: post.allowComments !== false,
+            author: post.author?._id || post.author || "" // ✅ NEW: Set author
           })
         } else {
           toast.error(postData.error || 'Failed to load post')
@@ -91,7 +111,7 @@ export default function EditPostPage({ params }) {
     }
 
     loadData()
-  }, [postId, router])
+  }, [postId, router, session])
 
   function handleInputChange(e) {
     const { name, value, type, checked } = e.target
@@ -146,6 +166,11 @@ export default function EditPostPage({ params }) {
   function getCategoryName() {
     const category = categories.find(cat => cat._id === formData.category)
     return category?.name || ''
+  }
+
+  function getAuthorName() {
+    const author = authors.find(a => a._id === formData.author)
+    return author?.name || session?.user?.name || ''
   }
 
   const previewData = {
@@ -313,6 +338,48 @@ export default function EditPostPage({ params }) {
               </CardContent>
             </Card>
 
+            {/* ✅ NEW: Author Selector (Admin Only) */}
+            {session?.user?.role === 'admin' && authors.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Post Author
+                  </CardTitle>
+                  <CardDescription>
+                    Change the author of this post
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Select
+                    value={formData.author}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, author: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select author" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {authors.map((author) => (
+                        <SelectItem key={author._id} value={author._id}>
+                          <div className="flex items-center gap-2">
+                            <span>{author.name}</span>
+                            {author._id === originalAuthor && (
+                              <span className="text-xs text-muted-foreground">(Original)</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData.author !== originalAuthor && (
+                    <p className="text-xs text-amber-600 mt-2">
+                      ⚠️ Changing author will transfer post ownership
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle>Category</CardTitle>
@@ -365,7 +432,7 @@ export default function EditPostPage({ params }) {
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
         postData={previewData}
-        author={session?.user}
+        author={{ name: getAuthorName() }}
       />
     </>
   )

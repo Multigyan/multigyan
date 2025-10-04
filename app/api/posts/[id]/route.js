@@ -4,26 +4,22 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import Category from '@/models/Category'
+import User from '@/models/User' // ✅ Import User model
 
 // GET single post
 export async function GET(request, { params }) {
   try {
-    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
     const resolvedParams = await params
     
     await connectDB()
 
     const session = await getServerSession(authOptions)
     
-    // Build query based on access permissions
     let query = { _id: resolvedParams.id }
     
     if (!session) {
-      // Public access - only published posts
       query.status = 'published'
     } else if (session.user.role !== 'admin') {
-      // Authors can see their own posts + published posts
-      // ✅ FIX: Use resolvedParams.id instead of params.id
       query = {
         _id: resolvedParams.id,
         $or: [
@@ -32,7 +28,6 @@ export async function GET(request, { params }) {
         ]
       }
     }
-    // Admins can see all posts (no additional restrictions)
 
     const post = await Post.findOne(query)
       .populate('author', 'name email profilePictureUrl bio')
@@ -46,7 +41,6 @@ export async function GET(request, { params }) {
       )
     }
 
-    // Increment view count for published posts (but not for post authors viewing their own drafts)
     if (post.status === 'published' && (!session || session.user.id !== post.author._id.toString())) {
       await post.incrementViews()
     }
@@ -65,7 +59,6 @@ export async function GET(request, { params }) {
 // PUT - Update post
 export async function PUT(request, { params }) {
   try {
-    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
     const resolvedParams = await params
     
     const session = await getServerSession(authOptions)
@@ -92,7 +85,8 @@ export async function PUT(request, { params }) {
       seoTitle,
       seoDescription,
       seoKeywords,
-      rejectionReason
+      rejectionReason,
+      author // ✅ NEW: Accept author field
     } = updateData
 
     await connectDB()
@@ -151,6 +145,26 @@ export async function PUT(request, { params }) {
       }
     }
 
+    // ✅ NEW: Verify author if being changed (admin only)
+    if (author && author !== post.author.toString()) {
+      if (!isAdmin) {
+        return NextResponse.json(
+          { error: 'Only admins can change post author' },
+          { status: 403 }
+        )
+      }
+      
+      const newAuthor = await User.findById(author)
+      if (!newAuthor) {
+        return NextResponse.json(
+          { error: 'Invalid author selected' },
+          { status: 400 }
+        )
+      }
+      
+      post.author = author
+    }
+
     // Store old values for potential rollback
     const oldStatus = post.status
     const oldCategory = post.category.toString()
@@ -169,7 +183,6 @@ export async function PUT(request, { params }) {
 
     // Handle category change
     if (category && category !== oldCategory) {
-      // Decrement old category count if post was published
       if (oldStatus === 'published') {
         await Category.decrementPostCount(oldCategory)
       }
@@ -179,10 +192,8 @@ export async function PUT(request, { params }) {
     // Handle status changes with role-based restrictions
     if (status !== undefined) {
       if (isAdmin) {
-        // Admins can set any status
         post.status = status
         
-        // Set review info for admin actions
         if (status === 'published' && oldStatus === 'pending_review') {
           post.reviewedBy = session.user.id
           post.reviewedAt = new Date()
@@ -193,10 +204,8 @@ export async function PUT(request, { params }) {
           if (rejectionReason) post.rejectionReason = rejectionReason
         }
       } else if (isAuthor) {
-        // Authors have limited status options
         if (status === 'draft' || status === 'pending_review') {
           post.status = status
-          // Clear review info when author resubmits
           if (status === 'pending_review') {
             post.reviewedBy = undefined
             post.reviewedAt = undefined
@@ -222,10 +231,8 @@ export async function PUT(request, { params }) {
     const newStatus = post.status
     if (oldStatus !== newStatus) {
       if (oldStatus === 'published' && newStatus !== 'published') {
-        // Post was unpublished
         await Category.decrementPostCount(post.category)
       } else if (oldStatus !== 'published' && newStatus === 'published') {
-        // Post was published
         await Category.incrementPostCount(post.category)
       }
     }
@@ -243,7 +250,6 @@ export async function PUT(request, { params }) {
   } catch (error) {
     console.error('Error updating post:', error)
 
-    // Handle mongoose validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message)
       return NextResponse.json(
@@ -262,7 +268,6 @@ export async function PUT(request, { params }) {
 // DELETE post
 export async function DELETE(request, { params }) {
   try {
-    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
     const resolvedParams = await params
     
     const session = await getServerSession(authOptions)
@@ -285,7 +290,6 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    // Check permissions
     const isAuthor = post.author.toString() === session.user.id
     const isAdmin = session.user.role === 'admin'
     
@@ -296,7 +300,6 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    // Decrement category post count if post was published
     if (post.status === 'published') {
       await Category.decrementPostCount(post.category)
     }
