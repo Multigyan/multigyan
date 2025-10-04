@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Lock, Eye, EyeOff, Loader2, CheckCircle, XCircle, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
@@ -327,5 +327,23 @@ export default function ResetPasswordPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center px-4 py-12">
+        <Card className="w-full max-w-md">
+          <CardContent className="py-16 text-center">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+            <h3 className="text-lg font-semibold mb-2">Loading...</h3>
+            <p className="text-muted-foreground">Please wait...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }
