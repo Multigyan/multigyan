@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -54,7 +54,7 @@ export default function EditPostPage({ params }) {
       fetchCategories()
       fetchPost()
     }
-  }, [postId])
+  }, [postId, fetchPost])
 
   const fetchCategories = async () => {
     try {
@@ -69,7 +69,7 @@ export default function EditPostPage({ params }) {
     }
   }
 
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       const response = await fetch(`/api/posts/${postId}`)
       const data = await response.json()
@@ -103,7 +103,7 @@ export default function EditPostPage({ params }) {
     } finally {
       setInitialLoading(false)
     }
-  }
+  }, [postId, router])
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target

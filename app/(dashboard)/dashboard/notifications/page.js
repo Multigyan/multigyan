@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
@@ -40,9 +40,9 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     fetchNotifications()
-  }, [filter, typeFilter])
+  }, [filter, typeFilter, fetchNotifications])
 
-  const fetchNotifications = async (loadMore = false) => {
+  const fetchNotifications = useCallback(async (loadMore = false) => {
     if (loadMore) {
       setActionLoading(true)
     } else {
@@ -79,7 +79,7 @@ export default function NotificationsPage() {
       setLoading(false)
       setActionLoading(false)
     }
-  }
+  }, [filter, page])
 
   const refreshNotifications = async () => {
     setRefreshing(true)
@@ -302,8 +302,8 @@ export default function NotificationsPage() {
               </h3>
               <p className="text-sm sm:text-base text-muted-foreground mb-6">
                 {filter === 'unread' 
-                  ? 'You\'re all caught up!' 
-                  : 'When you get notifications, they\'ll show up here'
+                  ? "You're all caught up!" 
+                  : "When you get notifications, they'll show up here"
                 }
               </p>
               {filter === 'unread' && (
@@ -394,7 +394,7 @@ export default function NotificationsPage() {
                         
                         {notification.post?.title && (
                           <p className="text-xs sm:text-sm text-muted-foreground mb-2 italic line-clamp-2 break-words">
-                            "{notification.post.title}"
+                            &quot;{notification.post.title}&quot;
                           </p>
                         )}
                         

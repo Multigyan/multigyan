@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
@@ -32,9 +32,9 @@ export default function AuthorPage({ params }) {
     if (params.username) {
       fetchData()
     }
-  }, [params.username, currentPage, searchTerm])
+  }, [params.username, currentPage, searchTerm, fetchData])
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -73,7 +73,7 @@ export default function AuthorPage({ params }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.username, currentPage, searchTerm])
 
   const handleSearch = (e) => {
     e.preventDefault()

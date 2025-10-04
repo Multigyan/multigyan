@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -57,8 +57,7 @@ export default function AdminUsersPage() {
       return
     }
     fetchUsers()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, router])
+  }, [session, router, fetchUsers])
 
   useEffect(() => {
     // Filter users based on search term
@@ -73,7 +72,7 @@ export default function AdminUsersPage() {
     }
   }, [users, searchTerm])
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch('/api/admin/users')
@@ -94,7 +93,7 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   const handleUserAction = async (userId, action) => {
     try {

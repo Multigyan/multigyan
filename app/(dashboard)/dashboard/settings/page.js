@@ -280,7 +280,7 @@ export default function SettingsPage() {
               Notification Preferences
             </CardTitle>
             <CardDescription>
-              Choose what notifications you'd like to receive
+              Choose what notifications you&apos;d like to receive
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

@@ -182,7 +182,7 @@ export default function NewPostPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Image className="h-5 w-5" aria-hidden="true" />
+                  <Image className="h-5 w-5" aria-hidden="true" alt="" />
                   Featured Image
                 </CardTitle>
                 <CardDescription>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -85,13 +85,13 @@ export default function PostPreviewPage({ params }) {
     if (postId) {
       fetchPost()
     }
-  }, [postId])
+  }, [postId, fetchPost])
 
   /**
    * FUNCTION: Fetch post data from API
    * This sends a request to the backend to get post details
    */
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/posts/${postId}`)
@@ -113,7 +113,7 @@ export default function PostPreviewPage({ params }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [postId, router])
 
   /**
    * FUNCTION: Approve a post (Admin only)
@@ -268,7 +268,7 @@ export default function PostPreviewPage({ params }) {
             <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Post Not Found</h3>
             <p className="text-muted-foreground mb-4">
-              The post you're looking for doesn't exist or you don't have permission to view it.
+              The post you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
             </p>
             <Button asChild>
               <Link href="/dashboard/posts">
