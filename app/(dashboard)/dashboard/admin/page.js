@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -23,7 +23,7 @@ import {
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 
-function AdminDashboardContent() {
+export default function AdminDashboardPage() {
   const { data: session } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -474,24 +474,5 @@ function AdminDashboardContent() {
         </Card>
       )}
     </div>
-  )
-}
-
-export default function AdminDashboardPage() {
-  return (
-    <Suspense fallback={
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-muted rounded w-1/4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-24 bg-muted rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    }>
-      <AdminDashboardContent />
-    </Suspense>
   )
 }
