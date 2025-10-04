@@ -53,6 +53,7 @@ export default function AdminReviewPage() {
       return
     }
     fetchPendingPosts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, router, currentPage])
 
   const fetchPendingPosts = async () => {
@@ -146,7 +147,7 @@ export default function AdminReviewPage() {
    * Permanently removes the post from the database
    */
   const handleDelete = async (postId, postTitle) => {
-    if (!confirm(`Are you sure you want to delete "${postTitle}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete &quot;${postTitle}&quot;? This action cannot be undone.`)) {
       return
     }
 
@@ -424,7 +425,7 @@ export default function AdminReviewPage() {
           <DialogHeader>
             <DialogTitle>Reject Post</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting "{selectedPost?.title}". 
+              Please provide a reason for rejecting &quot;{selectedPost?.title}&quot;. 
               This will help the author understand what needs to be improved.
             </DialogDescription>
           </DialogHeader>

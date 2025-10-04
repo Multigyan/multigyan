@@ -91,6 +91,7 @@ export default function PublishedPostsPage() {
       fetchPosts()
       fetchStats()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, categoryFilter, sortBy, session])
 
   /**
@@ -201,7 +202,7 @@ export default function PublishedPostsPage() {
    * Permanently removes a post from the database
    */
   const handleDelete = async (postId, postTitle) => {
-    if (!confirm(`Are you sure you want to delete "${postTitle}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete &quot;${postTitle}&quot;? This action cannot be undone.`)) {
       return
     }
 

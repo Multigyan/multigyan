@@ -57,6 +57,7 @@ export default function AdminUsersPage() {
       return
     }
     fetchUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, router])
 
   useEffect(() => {
@@ -416,7 +417,7 @@ export default function AdminUsersPage() {
           <DialogHeader>
             <DialogTitle>Promote to Administrator</DialogTitle>
             <DialogDescription>
-              Are you sure you want to promote "{selectedUser?.name}" to administrator? 
+              Are you sure you want to promote &quot;{selectedUser?.name}&quot; to administrator? 
               This will give them full access to manage users and content.
             </DialogDescription>
           </DialogHeader>
@@ -469,7 +470,7 @@ export default function AdminUsersPage() {
           <DialogHeader>
             <DialogTitle>Demote to Author</DialogTitle>
             <DialogDescription>
-              Are you sure you want to demote "{selectedUser?.name}" to author? 
+              Are you sure you want to demote &quot;{selectedUser?.name}&quot; to author? 
               This will remove their administrative privileges.
             </DialogDescription>
           </DialogHeader>
@@ -509,7 +510,7 @@ export default function AdminUsersPage() {
           <DialogHeader>
             <DialogTitle>Deactivate User</DialogTitle>
             <DialogDescription>
-              Are you sure you want to deactivate "{selectedUser?.name}"? 
+              Are you sure you want to deactivate &quot;{selectedUser?.name}&quot;? 
               They will not be able to log in until reactivated.
             </DialogDescription>
           </DialogHeader>

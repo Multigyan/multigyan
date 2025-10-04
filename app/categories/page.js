@@ -249,7 +249,7 @@ export default async function CategoriesPage() {
               <Card className="bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border-primary/20">
                 <CardContent className="py-12 px-6">
                   <h2 className="text-2xl font-bold mb-4">
-                    Can't Find What You're Looking For?
+                    Can&apos;t Find What You&apos;re Looking For?
                   </h2>
                   <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
                     Browse all articles or use the search function to find specific topics 

@@ -31,6 +31,7 @@ export default function BlogPage() {
 
   useEffect(() => {
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage])
 
   const fetchData = async () => {
@@ -261,7 +262,7 @@ export default function BlogPage() {
                   </h2>
                   <p className="text-muted-foreground mt-2">
                     {searchTerm 
-                      ? `Found ${pagination?.total || 0} articles for "${searchTerm}"`
+                      ? `Found ${pagination?.total || 0} articles for &quot;${searchTerm}&quot;`
                       : 'Discover our latest insights and stories'
                     }
                   </p>

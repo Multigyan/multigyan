@@ -41,6 +41,7 @@ export default function PostsPage() {
 
   useEffect(() => {
     fetchPosts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, statusFilter])
 
   const fetchPosts = async () => {
