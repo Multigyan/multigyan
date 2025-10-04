@@ -8,7 +8,6 @@ import Post from '@/models/Post'
 // GET single category
 export async function GET(request, { params }) {
   try {
-    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
     const resolvedParams = await params
     
     await connectDB()
@@ -36,7 +35,6 @@ export async function GET(request, { params }) {
 // PUT - Update category (Admin only)
 export async function PUT(request, { params }) {
   try {
-    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
     const resolvedParams = await params
     
     const session = await getServerSession(authOptions)
@@ -131,7 +129,6 @@ export async function PUT(request, { params }) {
   } catch (error) {
     console.error('Error updating category:', error)
 
-    // Handle mongoose validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message)
       return NextResponse.json(
@@ -150,7 +147,6 @@ export async function PUT(request, { params }) {
 // DELETE category (Admin only)
 export async function DELETE(request, { params }) {
   try {
-    // ✅ FIX: Await params before using it (Next.js 15+ requirement)
     const resolvedParams = await params
     
     const session = await getServerSession(authOptions)
@@ -173,22 +169,47 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    // Check if category has posts
+    // ✅ NEW: Check if there are posts with this category
     const postCount = await Post.countDocuments({ category: resolvedParams.id })
     
+    // ✅ NEW: Remove category from all posts (set to null)
     if (postCount > 0) {
-      return NextResponse.json(
-        { 
-          error: `Cannot delete category. It has ${postCount} post(s). Please move or delete the posts first.` 
-        },
-        { status: 400 }
+      // Find or create "Uncategorized" category
+      let uncategorized = await Category.findOne({ 
+        slug: 'uncategorized' 
+      })
+
+      if (!uncategorized) {
+        uncategorized = await Category.create({
+          name: 'Uncategorized',
+          description: 'Posts without a specific category',
+          color: '#6B7280'
+        })
+      }
+
+      // Move all posts to "Uncategorized"
+      await Post.updateMany(
+        { category: resolvedParams.id },
+        { $set: { category: uncategorized._id } }
       )
+
+      // Update post counts
+      const publishedCount = await Post.countDocuments({
+        category: uncategorized._id,
+        status: 'published'
+      })
+      uncategorized.postCount = publishedCount
+      await uncategorized.save()
     }
 
+    // Delete the category
     await Category.findByIdAndDelete(resolvedParams.id)
 
     return NextResponse.json({
-      message: 'Category deleted successfully'
+      message: postCount > 0 
+        ? `Category deleted successfully. ${postCount} post(s) moved to Uncategorized.`
+        : 'Category deleted successfully',
+      movedPosts: postCount
     })
 
   } catch (error) {

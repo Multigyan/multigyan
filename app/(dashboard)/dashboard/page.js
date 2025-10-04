@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PenTool, Users, BarChart3, Settings, Plus, FileText } from "lucide-react"
+import { PenTool, Users, BarChart3, Settings, Plus, FileText, Folder } from "lucide-react"
 import Link from "next/link"
 
 export default function DashboardPage() {
@@ -13,7 +13,7 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (status === "loading") return // Still loading
+    if (status === "loading") return
     if (!session) router.push("/login")
   }, [session, status, router])
 
@@ -33,7 +33,6 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">
           Welcome back, {session.user.name}
@@ -43,7 +42,6 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -92,9 +90,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Content Management */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -121,7 +117,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Admin Panel */}
         {isAdmin ? (
           <Card>
             <CardHeader>
@@ -138,6 +133,12 @@ export default function DashboardPage() {
                 <Link href="/dashboard/admin/users">
                   <Users className="mr-2 h-4 w-4" />
                   Manage Users
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full" asChild>
+                <Link href="/dashboard/admin/categories">
+                  <Folder className="mr-2 h-4 w-4" />
+                  Manage Categories
                 </Link>
               </Button>
               <Button variant="outline" className="w-full" asChild>
@@ -177,7 +178,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Role Info */}
       <div className="mt-8">
         <Card>
           <CardHeader>
