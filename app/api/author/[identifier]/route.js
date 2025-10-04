@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 import Post from '@/models/Post'
+import Category from '@/models/Category' // ✅ FIX: Import Category model
 import mongoose from 'mongoose'
 
 // Helper function to check if string is a valid MongoDB ObjectId
@@ -9,20 +10,19 @@ function isValidObjectId(str) {
   return mongoose.Types.ObjectId.isValid(str) && /^[0-9a-fA-F]{24}$/.test(str)
 }
 
-// ✅ ADD: API Route Configuration for Vercel
-export const runtime = 'nodejs' // Use Node.js runtime
-export const dynamic = 'force-dynamic' // Always run dynamically
-export const maxDuration = 10 // Maximum execution time (10s for hobby plan)
+// ✅ API Route Configuration for Vercel
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 10
 
 export async function GET(request, context) {
   try {
-    // ✅ FIX: Add connection timeout
+    // ✅ Connect to database with timeout protection
     const dbConnectPromise = connectDB()
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error('Database connection timeout')), 8000)
     )
     
-    // Race between connection and timeout
     await Promise.race([dbConnectPromise, timeoutPromise])
 
     // Next.js 15: await params before accessing properties
@@ -48,11 +48,9 @@ export async function GET(request, context) {
     // Determine if identifier is an ID or username
     let user
     if (isValidObjectId(identifier)) {
-      // It's a MongoDB ObjectId
       console.log('🔑 Searching by ID:', identifier)
       user = await User.findById(identifier).select('-password').lean()
     } else {
-      // It's a username
       console.log('👤 Searching by username:', identifier)
       user = await User.findOne({ 
         username: identifier.toLowerCase() 
@@ -84,12 +82,12 @@ export async function GET(request, context) {
       ]
     }
 
-    // ✅ FIX: Use Promise.all for parallel queries to save time
+    // ✅ Use Promise.all for parallel queries
     const [total, posts, allAuthorPosts] = await Promise.all([
       Post.countDocuments(postsQuery),
       Post.find(postsQuery)
-        .populate('category', 'name slug color')
-        .select('title slug excerpt featuredImage publishedAt readTime views likes category')
+        .populate('category', 'name slug color') // ✅ Now Category model is registered
+        .select('title slug excerpt featuredImageUrl publishedAt readingTime views likes category')
         .sort({ publishedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
@@ -133,7 +131,7 @@ export async function GET(request, context) {
     console.error('❌ Error in author API:', error.message)
     console.error('Stack:', error.stack)
     
-    // ✅ ADD: Better error responses
+    // Better error responses
     if (error.message === 'Database connection timeout') {
       return NextResponse.json(
         { success: false, error: 'Database connection timeout. Please try again.' },
