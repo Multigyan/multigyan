@@ -43,7 +43,7 @@ export default function ContactPage() {
       // For now, we'll just simulate a successful submission
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      toast.success('Message sent successfully! We\'ll get back to you soon.')
+      toast.success('Message sent successfully! We&apos;ll get back to you soon.')
       setFormData({
         name: '',
         email: '',
@@ -66,8 +66,8 @@ export default function ContactPage() {
             Get in <span className="title-gradient">Touch</span>
           </h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Have questions or feedback? We'd love to hear from you. 
-            Send us a message and we'll respond as soon as possible.
+            Have questions or feedback? We&apos;d love to hear from you. 
+            Send us a message and we&apos;ll respond as soon as possible.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export default function ContactPage() {
                   Send us a Message
                 </CardTitle>
                 <CardDescription>
-                  Fill out the form below and we'll get back to you within 24-48 hours
+                  Fill out the form below and we&apos;ll get back to you within 24-48 hours
                 </CardDescription>
               </CardHeader>
               <CardContent>

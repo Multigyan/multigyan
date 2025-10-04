@@ -38,6 +38,7 @@ export default function CategoryPage({ params }) {
     if (categorySlug) {
       fetchData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categorySlug, currentPage])
 
   const fetchData = async () => {

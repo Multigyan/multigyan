@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
             </div>
             <CardTitle className="text-2xl">Check Your Email</CardTitle>
             <CardDescription>
-              We've sent password reset instructions to:
+              We&apos;ve sent password reset instructions to:
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
                 Click the link in the email to reset your password. The link will expire in 1 hour.
               </p>
               <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                <p className="font-medium text-foreground">Didn't receive the email?</p>
+                <p className="font-medium text-foreground">Didn&apos;t receive the email?</p>
                 <ul className="list-disc list-inside space-y-1 text-xs">
                   <li>Check your spam or junk folder</li>
                   <li>Make sure you entered the correct email</li>
@@ -172,7 +172,7 @@ export default function ForgotPasswordPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Forgot Password?</CardTitle>
           <CardDescription>
-            No worries! Enter your email address and we'll send you instructions to reset your password.
+            No worries! Enter your email address and we&apos;ll send you instructions to reset your password.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -194,13 +194,13 @@ export default function ForgotPasswordPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                We'll verify your account and send a password reset link
+                We&apos;ll verify your account and send a password reset link
               </p>
             </div>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                <strong>Note:</strong> We'll check if an account exists with this email before sending the reset link.
+                <strong>Note:</strong> We&apos;ll check if an account exists with this email before sending the reset link.
               </p>
             </div>
 
@@ -239,7 +239,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-6 pt-6 border-t">
             <div className="text-sm text-center space-y-2">
               <p className="text-muted-foreground">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/register"
                   className="text-primary hover:underline font-medium"

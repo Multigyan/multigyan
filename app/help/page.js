@@ -31,7 +31,7 @@ export default function HelpPage() {
       questions: [
         {
           q: 'How do I create an account?',
-          a: 'Click on "Sign In" in the top right corner, then select "Sign up" or "Get Started". Fill in your name, email, and password. You\'ll receive a confirmation email to verify your account.'
+          a: 'Click on "Sign In" in the top right corner, then select "Sign up" or "Get Started". Fill in your name, email, and password. You&apos;ll receive a confirmation email to verify your account.'
         },
         {
           q: 'What are the different user roles?',
@@ -119,7 +119,7 @@ export default function HelpPage() {
         },
         {
           q: 'Can I export my data?',
-          a: 'Yes, you can request a copy of your data by contacting us at privacy@multigyan.com. We\'ll provide your data in a standard format within 30 days.'
+          a: 'Yes, you can request a copy of your data by contacting us at privacy@multigyan.com. We&apos;ll provide your data in a standard format within 30 days.'
         }
       ]
     },
@@ -128,7 +128,7 @@ export default function HelpPage() {
       icon: <Settings className="h-5 w-5" />,
       questions: [
         {
-          q: 'Why can\'t I upload images?',
+          q: 'Why can&apos;t I upload images?',
           a: 'Check that your image is under 5MB and in a supported format (JPG, PNG, WebP, GIF). Clear your browser cache and try again. If the issue persists, contact support.'
         },
         {
@@ -136,7 +136,7 @@ export default function HelpPage() {
           a: 'Try refreshing your browser or clearing your cache. Make sure JavaScript is enabled. If using an ad blocker, try disabling it temporarily. Contact support if the problem continues.'
         },
         {
-          q: 'I\'m not receiving email notifications',
+          q: 'I&apos;m not receiving email notifications',
           a: 'Check your spam/junk folder. Add noreply@multigyan.com to your contacts. Verify your email settings in your account preferences.'
         }
       ]
@@ -248,7 +248,7 @@ export default function HelpPage() {
               <CardContent className="p-12 text-center">
                 <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-lg text-muted-foreground">
-                  No results found for "{searchQuery}"
+                  No results found for &quot;{searchQuery}&quot;
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Try a different search term or contact us for help
@@ -306,7 +306,7 @@ export default function HelpPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Still Need Help?</CardTitle>
             <CardDescription className="text-base">
-              Can't find what you're looking for? Our support team is here to help
+              Can&apos;t find what you&apos;re looking for? Our support team is here to help
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-4 justify-center">
