@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { 
@@ -34,7 +34,7 @@ import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
 
 export default function AdminUsersPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -52,15 +52,17 @@ export default function AdminUsersPage() {
   })
 
   useEffect(() => {
-    if (session?.user?.role !== 'admin') {
+    if (status === 'loading') return
+    
+    if (status === 'unauthenticated' || session?.user?.role !== 'admin') {
       router.push('/dashboard')
       return
     }
+
     fetchUsers()
-  }, [session, router, fetchUsers])
+  }, [status, session, router])
 
   useEffect(() => {
-    // Filter users based on search term
     if (!searchTerm.trim()) {
       setFilteredUsers(users)
     } else {
@@ -72,7 +74,7 @@ export default function AdminUsersPage() {
     }
   }, [users, searchTerm])
 
-  const fetchUsers = useCallback(async () => {
+  async function fetchUsers() {
     try {
       setLoading(true)
       const response = await fetch('/api/admin/users')
@@ -93,9 +95,9 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
-  const handleUserAction = async (userId, action) => {
+  async function handleUserAction(userId, action) {
     try {
       setActionLoading(true)
       const response = await fetch('/api/admin/users', {
@@ -110,7 +112,7 @@ export default function AdminUsersPage() {
 
       if (response.ok) {
         toast.success(data.message)
-        fetchUsers() // Refresh the list
+        fetchUsers()
         setShowPromoteDialog(false)
         setShowDemoteDialog(false)
         setShowDeactivateDialog(false)
@@ -125,22 +127,22 @@ export default function AdminUsersPage() {
     }
   }
 
-  const openPromoteDialog = (user) => {
+  function openPromoteDialog(user) {
     setSelectedUser(user)
     setShowPromoteDialog(true)
   }
 
-  const openDemoteDialog = (user) => {
+  function openDemoteDialog(user) {
     setSelectedUser(user)
     setShowDemoteDialog(true)
   }
 
-  const openDeactivateDialog = (user) => {
+  function openDeactivateDialog(user) {
     setSelectedUser(user)
     setShowDeactivateDialog(true)
   }
 
-  const getRoleBadge = (role) => {
+  function getRoleBadge(role) {
     if (role === 'admin') {
       return (
         <Badge className="bg-purple-500 hover:bg-purple-600">
@@ -157,7 +159,7 @@ export default function AdminUsersPage() {
     )
   }
 
-  const getStatusBadge = (isActive) => {
+  function getStatusBadge(isActive) {
     if (isActive) {
       return (
         <Badge variant="outline" className="border-green-500 text-green-700">
@@ -171,6 +173,17 @@ export default function AdminUsersPage() {
         <XCircle className="h-3 w-3 mr-1" />
         Inactive
       </Badge>
+    )
+  }
+
+  if (status === 'loading' || !session) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="h-4 bg-muted rounded w-1/2"></div>
+        </div>
+      </div>
     )
   }
 
@@ -189,11 +202,6 @@ export default function AdminUsersPage() {
               <div key={i} className="h-24 bg-muted rounded"></div>
             ))}
           </div>
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-20 bg-muted rounded"></div>
-            ))}
-          </div>
         </div>
       </div>
     )
@@ -201,7 +209,6 @@ export default function AdminUsersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">User Management</h1>
         <p className="text-muted-foreground">
@@ -209,7 +216,6 @@ export default function AdminUsersPage() {
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -218,9 +224,7 @@ export default function AdminUsersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Registered accounts
-            </p>
+            <p className="text-xs text-muted-foreground">Registered accounts</p>
           </CardContent>
         </Card>
 
@@ -233,9 +237,7 @@ export default function AdminUsersPage() {
             <div className="text-2xl font-bold text-purple-600">
               {stats.adminCount} / {stats.maxAdmins}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Current admin slots
-            </p>
+            <p className="text-xs text-muted-foreground">Current admin slots</p>
           </CardContent>
         </Card>
 
@@ -248,9 +250,7 @@ export default function AdminUsersPage() {
             <div className="text-2xl font-bold text-blue-600">
               {users.filter(user => user.role === 'author').length}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Content creators
-            </p>
+            <p className="text-xs text-muted-foreground">Content creators</p>
           </CardContent>
         </Card>
 
@@ -263,14 +263,11 @@ export default function AdminUsersPage() {
             <div className="text-2xl font-bold">
               {stats.canPromoteMore ? 'Yes' : 'No'}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Admin slots available
-            </p>
+            <p className="text-xs text-muted-foreground">Admin slots available</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search */}
       <div className="mb-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -284,14 +281,12 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Users List */}
       <div className="space-y-4">
         {filteredUsers.map((user) => (
           <Card key={user._id}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  {/* Profile Picture */}
                   <div className="flex-shrink-0">
                     {user.profilePictureUrl ? (
                       <Image
@@ -308,7 +303,6 @@ export default function AdminUsersPage() {
                     )}
                   </div>
 
-                  {/* User Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="font-semibold text-lg">{user.name}</h3>
@@ -328,18 +322,10 @@ export default function AdminUsersPage() {
                         <Calendar className="h-3 w-3" />
                         Joined {formatDate(user.createdAt)}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {user.lastLoginAt 
-                          ? `Last login ${formatDate(user.lastLoginAt)}`
-                          : 'Never logged in'
-                        }
-                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex items-center gap-2">
                   {user._id !== session.user.id && (
                     <>
@@ -351,7 +337,7 @@ export default function AdminUsersPage() {
                           className="bg-purple-600 hover:bg-purple-700"
                         >
                           <Crown className="h-4 w-4 mr-1" />
-                          Promote to Admin
+                          Promote
                         </Button>
                       )}
 
@@ -363,7 +349,7 @@ export default function AdminUsersPage() {
                           disabled={actionLoading}
                         >
                           <UserMinus className="h-4 w-4 mr-1" />
-                          Demote to Author
+                          Demote
                         </Button>
                       )}
 
@@ -383,7 +369,7 @@ export default function AdminUsersPage() {
                           variant="outline"
                           onClick={() => handleUserAction(user._id, 'activate')}
                           disabled={actionLoading}
-                          className="border-green-500 text-green-700 hover:bg-green-50"
+                          className="border-green-500 text-green-700"
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
                           Activate
@@ -397,147 +383,82 @@ export default function AdminUsersPage() {
           </Card>
         ))}
 
-        {filteredUsers.length === 0 && !loading && (
+        {filteredUsers.length === 0 && (
           <Card>
             <CardContent className="text-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No users found</h3>
               <p className="text-muted-foreground">
-                {searchTerm ? 'Try adjusting your search terms.' : 'No users are registered yet.'}
+                {searchTerm ? 'Try adjusting your search terms.' : 'No users registered yet.'}
               </p>
             </CardContent>
           </Card>
         )}
       </div>
 
-      {/* Promote Dialog */}
       <Dialog open={showPromoteDialog} onOpenChange={setShowPromoteDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Promote to Administrator</DialogTitle>
             <DialogDescription>
-              Are you sure you want to promote &quot;{selectedUser?.name}&quot; to administrator? 
-              This will give them full access to manage users and content.
+              Promote {selectedUser?.name} to administrator?
             </DialogDescription>
           </DialogHeader>
-          
           <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-yellow-800">Important</p>
                 <p className="text-sm text-yellow-700 mt-1">
-                  Administrators can promote/demote other users, approve content, and access sensitive areas. 
-                  Only {stats.maxAdmins} administrators are allowed.
+                  Admins can manage users and content. Only {stats.maxAdmins} admins allowed.
                 </p>
               </div>
             </div>
           </div>
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowPromoteDialog(false)}
-              disabled={actionLoading}
-            >
+            <Button variant="outline" onClick={() => setShowPromoteDialog(false)} disabled={actionLoading}>
               Cancel
             </Button>
-            <Button
-              onClick={() => handleUserAction(selectedUser?._id, 'promote')}
-              disabled={actionLoading}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {actionLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Promoting...
-                </>
-              ) : (
-                <>
-                  <Crown className="h-4 w-4 mr-2" />
-                  Promote to Admin
-                </>
-              )}
+            <Button onClick={() => handleUserAction(selectedUser?._id, 'promote')} disabled={actionLoading} className="bg-purple-600">
+              {actionLoading ? 'Promoting...' : 'Promote'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Demote Dialog */}
       <Dialog open={showDemoteDialog} onOpenChange={setShowDemoteDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Demote to Author</DialogTitle>
             <DialogDescription>
-              Are you sure you want to demote &quot;{selectedUser?.name}&quot; to author? 
-              This will remove their administrative privileges.
+              Demote {selectedUser?.name} to author role?
             </DialogDescription>
           </DialogHeader>
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDemoteDialog(false)}
-              disabled={actionLoading}
-            >
+            <Button variant="outline" onClick={() => setShowDemoteDialog(false)} disabled={actionLoading}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => handleUserAction(selectedUser?._id, 'demote')}
-              disabled={actionLoading}
-            >
-              {actionLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Demoting...
-                </>
-              ) : (
-                <>
-                  <UserMinus className="h-4 w-4 mr-2" />
-                  Demote to Author
-                </>
-              )}
+            <Button variant="destructive" onClick={() => handleUserAction(selectedUser?._id, 'demote')} disabled={actionLoading}>
+              {actionLoading ? 'Demoting...' : 'Demote'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Deactivate Dialog */}
       <Dialog open={showDeactivateDialog} onOpenChange={setShowDeactivateDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Deactivate User</DialogTitle>
             <DialogDescription>
-              Are you sure you want to deactivate &quot;{selectedUser?.name}&quot;? 
-              They will not be able to log in until reactivated.
+              Deactivate {selectedUser?.name}? They cannot log in until reactivated.
             </DialogDescription>
           </DialogHeader>
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDeactivateDialog(false)}
-              disabled={actionLoading}
-            >
+            <Button variant="outline" onClick={() => setShowDeactivateDialog(false)} disabled={actionLoading}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => handleUserAction(selectedUser?._id, 'deactivate')}
-              disabled={actionLoading}
-            >
-              {actionLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Deactivating...
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Deactivate User
-                </>
-              )}
+            <Button variant="destructive" onClick={() => handleUserAction(selectedUser?._id, 'deactivate')} disabled={actionLoading}>
+              {actionLoading ? 'Deactivating...' : 'Deactivate'}
             </Button>
           </DialogFooter>
         </DialogContent>

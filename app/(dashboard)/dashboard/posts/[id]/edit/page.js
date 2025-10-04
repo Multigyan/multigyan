@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -39,73 +39,61 @@ export default function EditPostPage({ params }) {
     allowComments: true
   })
 
-  // Fetch post ID from params
   useEffect(() => {
-    const fetchParams = async () => {
+    async function init() {
       const resolvedParams = await params
       setPostId(resolvedParams.id)
     }
-    fetchParams()
+    init()
   }, [params])
 
-  // Fetch categories and post data
   useEffect(() => {
-    if (postId) {
-      fetchCategories()
-      fetchPost()
-    }
-  }, [postId, fetchPost])
+    if (!postId) return
+    
+    async function loadData() {
+      try {
+        const [categoriesRes, postRes] = await Promise.all([
+          fetch('/api/categories'),
+          fetch(`/api/posts/${postId}`)
+        ])
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/categories')
-      const data = await response.json()
-      
-      if (response.ok) {
-        setCategories(data.categories || [])
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
+        const categoriesData = await categoriesRes.json()
+        const postData = await postRes.json()
 
-  const fetchPost = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/posts/${postId}`)
-      const data = await response.json()
-      
-      if (response.ok) {
-        // ✅ FIX: API returns { post: {...} }, so we need to access data.post
-        const post = data.post || data // Handle both formats
-        
-        console.log('Fetched post data:', post) // Debug log
-        
-        setFormData({
-          title: post.title || "",
-          excerpt: post.excerpt || "",
-          content: post.content || "",
-          featuredImageUrl: post.featuredImageUrl || "",
-          featuredImageAlt: post.featuredImageAlt || "",
-          category: post.category?._id || "",
-          tags: post.tags || [],
-          seoTitle: post.seoTitle || "",
-          seoDescription: post.seoDescription || "",
-          allowComments: post.allowComments !== false
-        })
-      } else {
-        toast.error(data.error || 'Failed to load post')
+        if (categoriesRes.ok) {
+          setCategories(categoriesData.categories || [])
+        }
+
+        if (postRes.ok) {
+          const post = postData.post || postData
+          setFormData({
+            title: post.title || "",
+            excerpt: post.excerpt || "",
+            content: post.content || "",
+            featuredImageUrl: post.featuredImageUrl || "",
+            featuredImageAlt: post.featuredImageAlt || "",
+            category: post.category?._id || "",
+            tags: post.tags || [],
+            seoTitle: post.seoTitle || "",
+            seoDescription: post.seoDescription || "",
+            allowComments: post.allowComments !== false
+          })
+        } else {
+          toast.error(postData.error || 'Failed to load post')
+          router.push('/dashboard/posts')
+        }
+      } catch (error) {
+        toast.error('Failed to load post')
         router.push('/dashboard/posts')
+      } finally {
+        setInitialLoading(false)
       }
-    } catch (error) {
-      console.error('Error fetching post:', error)
-      toast.error('Failed to load post')
-      router.push('/dashboard/posts')
-    } finally {
-      setInitialLoading(false)
     }
+
+    loadData()
   }, [postId, router])
 
-  const handleInputChange = (e) => {
+  function handleInputChange(e) {
     const { name, value, type, checked } = e.target
     setFormData(prev => ({
       ...prev,
@@ -113,8 +101,7 @@ export default function EditPostPage({ params }) {
     }))
   }
 
-  const handleSubmit = async () => {
-    // Validation
+  async function handleSubmit() {
     if (!formData.title.trim()) {
       toast.error('Post title is required')
       return
@@ -150,20 +137,17 @@ export default function EditPostPage({ params }) {
         toast.error(data.error || 'Failed to update post')
       }
     } catch (error) {
-      console.error('Submit error:', error)
       toast.error('Failed to update post')
     } finally {
       setLoading(false)
     }
   }
 
-  // Get category name for preview
-  const getCategoryName = () => {
+  function getCategoryName() {
     const category = categories.find(cat => cat._id === formData.category)
     return category?.name || ''
   }
 
-  // Prepare preview data
   const previewData = {
     ...formData,
     categoryName: getCategoryName()
@@ -183,7 +167,6 @@ export default function EditPostPage({ params }) {
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
@@ -197,7 +180,6 @@ export default function EditPostPage({ params }) {
             </div>
           </div>
           
-          {/* Preview Button */}
           <Button 
             variant="outline" 
             size="sm"
@@ -205,20 +187,15 @@ export default function EditPostPage({ params }) {
             disabled={!formData.title && !formData.content}
           >
             <Eye className="mr-2 h-4 w-4" />
-            Preview Post
+            Preview
           </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content - Same as new post page */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Featured Image */}
             <Card>
               <CardHeader>
                 <CardTitle>Featured Image</CardTitle>
-                <CardDescription>
-                  Upload a high-quality image (auto-converts to WebP)
-                </CardDescription>
               </CardHeader>
               <CardContent>
                 <FeaturedImageUploader
@@ -226,29 +203,23 @@ export default function EditPostPage({ params }) {
                   onChange={(url) => setFormData(prev => ({ ...prev, featuredImageUrl: url }))}
                   onAltTextChange={(alt) => setFormData(prev => ({ ...prev, featuredImageAlt: alt }))}
                   altText={formData.featuredImageAlt}
-                  maxSizeInMB={10}
-                  placeholder="Upload featured image..."
-                  enableCropping={true}
-                  aspectRatio={16 / 9}
-                  enableWebPConversion={true}
                 />
               </CardContent>
             </Card>
 
-            {/* Post Content */}
             <Card>
               <CardHeader>
                 <CardTitle>Post Content</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="title">Title <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    className="mt-1 text-lg"
+                    className="mt-1"
                     required
                   />
                 </div>
@@ -266,7 +237,7 @@ export default function EditPostPage({ params }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="content">Content <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="content">Content *</Label>
                   <div className="mt-1">
                     <EnhancedRichTextEditor
                       content={formData.content}
@@ -277,7 +248,6 @@ export default function EditPostPage({ params }) {
               </CardContent>
             </Card>
 
-            {/* SEO Settings */}
             <Card>
               <CardHeader>
                 <CardTitle>SEO Settings</CardTitle>
@@ -317,9 +287,7 @@ export default function EditPostPage({ params }) {
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Save Button */}
             <Card>
               <CardHeader>
                 <CardTitle>Update Post</CardTitle>
@@ -338,14 +306,13 @@ export default function EditPostPage({ params }) {
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      Update Post
+                      Update
                     </>
                   )}
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Category */}
             <Card>
               <CardHeader>
                 <CardTitle>Category</CardTitle>
@@ -360,7 +327,6 @@ export default function EditPostPage({ params }) {
               </CardContent>
             </Card>
 
-            {/* Tags */}
             <Card>
               <CardHeader>
                 <CardTitle>Tags</CardTitle>
@@ -374,10 +340,9 @@ export default function EditPostPage({ params }) {
               </CardContent>
             </Card>
 
-            {/* Comments */}
             <Card>
               <CardHeader>
-                <CardTitle>Discussion Settings</CardTitle>
+                <CardTitle>Discussion</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
@@ -396,7 +361,6 @@ export default function EditPostPage({ params }) {
         </div>
       </div>
 
-      {/* Preview Modal */}
       <BlogPostPreview
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
