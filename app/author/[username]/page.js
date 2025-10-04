@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { use, useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
@@ -21,6 +21,9 @@ import {
 } from "lucide-react"
 
 export default function AuthorPage({ params }) {
+  // ✅ FIX for Next.js 15: Unwrap params Promise using React.use()
+  const { username } = use(params)
+  
   const [author, setAuthor] = useState(null)
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,12 +31,7 @@ export default function AuthorPage({ params }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState(null)
 
-  useEffect(() => {
-    if (params.username) {
-      fetchData()
-    }
-  }, [params.username, currentPage, searchTerm, fetchData])
-
+  // ✅ FIX: Define fetchData with useCallback BEFORE useEffect
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
@@ -50,7 +48,7 @@ export default function AuthorPage({ params }) {
 
       // Fetch author and posts
       // The API will handle both username and ID
-      const response = await fetch(`/api/author/${params.username}?${queryParams}`)
+      const response = await fetch(`/api/author/${username}?${queryParams}`)
       
       if (!response.ok) {
         notFound()
@@ -73,7 +71,14 @@ export default function AuthorPage({ params }) {
     } finally {
       setLoading(false)
     }
-  }, [params.username, currentPage, searchTerm])
+  }, [username, currentPage, searchTerm])
+
+  // ✅ FIX: Now fetchData is defined, we can use it in useEffect
+  useEffect(() => {
+    if (username) {
+      fetchData()
+    }
+  }, [username, fetchData])
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -222,7 +227,7 @@ export default function AuthorPage({ params }) {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder={`Search in ${author.name}&apos;s articles...`}
+                  placeholder={`Search in ${author.name}'s articles...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -245,7 +250,7 @@ export default function AuthorPage({ params }) {
               </h2>
               <p className="text-muted-foreground mt-1">
                 {searchTerm 
-                  ? `Found ${pagination?.total || 0} articles for &quot;${searchTerm}&quot;`
+                  ? `Found ${pagination?.total || 0} articles for "${searchTerm}"`
                   : `${pagination?.total || 0} published articles`
                 }
               </p>
@@ -263,7 +268,7 @@ export default function AuthorPage({ params }) {
                 <p className="text-muted-foreground mb-4">
                   {searchTerm 
                     ? `No articles by ${author.name} match your search.`
-                    : `${author.name} hasn&apos;t published any articles yet.`
+                    : `${author.name} hasn't published any articles yet.`
                   }
                 </p>
                 <Button variant="outline" asChild>
