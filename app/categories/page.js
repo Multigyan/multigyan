@@ -56,7 +56,8 @@ export default async function CategoriesPage() {
         actualPostCount: stats?.postCount || 0,
         latestPost: stats?.latestPost,
         totalViews: stats?.totalViews || 0,
-        createdAt: category.createdAt?.toISOString()
+        // ✅ FIX: createdAt is already a string when using .lean()
+        createdAt: category.createdAt
       }
     })
 
