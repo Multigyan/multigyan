@@ -18,7 +18,6 @@ import User from "@/models/User"
 import Post from "@/models/Post"
 import { generateSEOMetadata } from "@/lib/seo"
 
-// Generate metadata for SEO
 export const metadata = generateSEOMetadata({
   title: 'Authors - Meet Our Talented Writers',
   description: 'Discover the talented authors behind Multigyan. Connect with expert writers sharing knowledge across technology, programming, design, and more.',
@@ -31,7 +30,6 @@ export default async function AuthorsPage() {
   try {
     await connectDB()
     
-    // Get all users who have published posts
     const authorsWithPosts = await Post.aggregate([
       { $match: { status: 'published' } },
       { 
@@ -47,7 +45,6 @@ export default async function AuthorsPage() {
 
     const authorIds = authorsWithPosts.map(author => author._id)
     
-    // Get author details
     const authors = await User.find({ 
       _id: { $in: authorIds },
       isActive: true 
@@ -55,7 +52,6 @@ export default async function AuthorsPage() {
       .select('name email profilePictureUrl bio role createdAt')
       .lean()
 
-    // Combine author data with stats
     const authorsWithStats = authors.map(author => {
       const stats = authorsWithPosts.find(stat => 
         stat._id.toString() === author._id.toString()
@@ -67,11 +63,10 @@ export default async function AuthorsPage() {
         latestPost: stats?.latestPost,
         totalViews: stats?.totalViews || 0,
         totalLikes: stats?.totalLikes || 0,
-        createdAt: author.createdAt?.toISOString()
+        createdAt: author.createdAt // ✅ FIX: Already a string with .lean()
       }
     })
 
-    // Sort by post count and then by name
     authorsWithStats.sort((a, b) => {
       if (b.postCount !== a.postCount) {
         return b.postCount - a.postCount
@@ -79,7 +74,6 @@ export default async function AuthorsPage() {
       return a.name.localeCompare(b.name)
     })
 
-    // Calculate stats
     const totalAuthors = authorsWithStats.length
     const totalPosts = authorsWithStats.reduce((sum, author) => sum + author.postCount, 0)
     const totalViews = authorsWithStats.reduce((sum, author) => sum + author.totalViews, 0)
@@ -89,7 +83,6 @@ export default async function AuthorsPage() {
       <div className="min-h-screen py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            {/* Header */}
             <div className="text-center mb-12">
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
                 Meet Our <span className="title-gradient">Authors</span>
@@ -100,7 +93,6 @@ export default async function AuthorsPage() {
               </p>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
               <Card>
                 <CardContent className="p-6 text-center">
@@ -143,7 +135,6 @@ export default async function AuthorsPage() {
               </Card>
             </div>
 
-            {/* Authors Grid */}
             {authorsWithStats.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {authorsWithStats.map((author) => (
@@ -193,14 +184,12 @@ export default async function AuthorsPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-4">
-                      {/* Bio */}
                       {author.bio && (
                         <p className="text-sm text-muted-foreground line-clamp-3">
                           {author.bio}
                         </p>
                       )}
 
-                      {/* Stats */}
                       <div className="grid grid-cols-2 gap-4 text-center">
                         <div>
                           <div className="text-lg font-semibold text-foreground">
@@ -220,7 +209,6 @@ export default async function AuthorsPage() {
                         </div>
                       </div>
 
-                      {/* Latest Activity */}
                       {author.latestPost && (
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
@@ -230,7 +218,6 @@ export default async function AuthorsPage() {
                         </div>
                       )}
 
-                      {/* View Profile Button */}
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -264,7 +251,6 @@ export default async function AuthorsPage() {
               </Card>
             )}
 
-            {/* CTA Section */}
             <div className="mt-16 text-center">
               <Card className="bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border-primary/20">
                 <CardContent className="py-12 px-6">
