@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "env": {
+    "MONGODB_URI": "@mongodb-uri"
+  },
+  "functions": {
+    "app/api/**/*.js": {
+      "maxDuration": 10
+    }
+  },
+  "regions": ["iad1"],
+  "framework": "nextjs"
+}
