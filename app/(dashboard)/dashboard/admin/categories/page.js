@@ -72,7 +72,8 @@ export default function AdminCategoriesPage() {
   async function fetchCategories() {
     try {
       setLoading(true)
-      const response = await fetch('/api/categories')
+      // Fetch with real-time post counts
+      const response = await fetch('/api/categories?includeCounts=true')
       const data = await response.json()
 
       if (response.ok) {

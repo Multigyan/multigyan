@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Category from '@/models/Category'
+import Post from '@/models/Post'
 
 // GET all categories
 export async function GET(request) {
@@ -11,12 +12,43 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url)
     const includeInactive = searchParams.get('includeInactive') === 'true'
+    const includeCounts = searchParams.get('includeCounts') === 'true' // NEW: option to include real counts
 
     const query = includeInactive ? {} : { isActive: true }
     
     const categories = await Category.find(query)
       .select('name slug description color postCount isActive createdAt')
       .sort({ name: 1 })
+      .lean()
+
+    // NEW: If includeCounts is true, calculate real post counts from Post collection
+    if (includeCounts) {
+      const postCounts = await Post.aggregate([
+        { $match: { status: 'published' } },
+        { 
+          $group: { 
+            _id: '$category',
+            count: { $sum: 1 }
+          }
+        }
+      ])
+
+      // Map counts to categories
+      const enrichedCategories = categories.map(category => {
+        const countData = postCounts.find(pc => 
+          pc._id && pc._id.toString() === category._id.toString()
+        )
+        return {
+          ...category,
+          postCount: countData ? countData.count : 0
+        }
+      })
+
+      return NextResponse.json({
+        categories: enrichedCategories,
+        total: enrichedCategories.length
+      })
+    }
 
     return NextResponse.json({
       categories,
