@@ -36,6 +36,7 @@ export default function ResetPasswordPage() {
     }
 
     verifyToken()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   const verifyToken = async () => {
@@ -218,7 +219,7 @@ export default function ResetPasswordPage() {
           </div>
           <CardTitle className="text-2xl">Reset Your Password</CardTitle>
           <CardDescription>
-            Enter your new password below. Make sure it's at least 8 characters long.
+            Enter your new password below. Make sure it&apos;s at least 8 characters long.
           </CardDescription>
         </CardHeader>
         <CardContent>

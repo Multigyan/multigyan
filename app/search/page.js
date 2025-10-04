@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -206,9 +207,11 @@ function SearchContent() {
                           <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
                               {author.profilePictureUrl ? (
-                                <img
+                                <Image
                                   src={author.profilePictureUrl}
                                   alt={author.name}
+                                  width={64}
+                                  height={64}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (

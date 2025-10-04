@@ -222,7 +222,7 @@ export default function AuthorPage({ params }) {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder={`Search in ${author.name}'s articles...`}
+                  placeholder={`Search in ${author.name}&apos;s articles...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -245,7 +245,7 @@ export default function AuthorPage({ params }) {
               </h2>
               <p className="text-muted-foreground mt-1">
                 {searchTerm 
-                  ? `Found ${pagination?.total || 0} articles for "${searchTerm}"`
+                  ? `Found ${pagination?.total || 0} articles for &quot;${searchTerm}&quot;`
                   : `${pagination?.total || 0} published articles`
                 }
               </p>
@@ -263,7 +263,7 @@ export default function AuthorPage({ params }) {
                 <p className="text-muted-foreground mb-4">
                   {searchTerm 
                     ? `No articles by ${author.name} match your search.`
-                    : `${author.name} hasn't published any articles yet.`
+                    : `${author.name} hasn&apos;t published any articles yet.`
                   }
                 </p>
                 <Button variant="outline" asChild>

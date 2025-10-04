@@ -161,7 +161,7 @@ export default function HomePage() {
                   Featured <span className="title-gradient">Stories</span>
                 </h2>
                 <p className="text-muted-foreground">
-                  Hand-picked articles our editors think you'll love
+                  Hand-picked articles our editors think you&apos;ll love
                 </p>
               </div>
             </div>
@@ -340,7 +340,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle className="text-xl">Easy Discovery</CardTitle>
                 <CardDescription className="text-base leading-relaxed mt-3">
-                  Find exactly what you're looking for with organized categories, tags, and powerful search functionality.
+                  Find exactly what you&apos;re looking for with organized categories, tags, and powerful search functionality.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -364,7 +364,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle className="text-xl">Always Fresh</CardTitle>
                 <CardDescription className="text-base leading-relaxed mt-3">
-                  New articles published regularly across all categories, so there's always something new to discover.
+                  New articles published regularly across all categories, so there&apos;s always something new to discover.
                 </CardDescription>
               </CardHeader>
             </Card>

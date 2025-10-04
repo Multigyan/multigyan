@@ -3,7 +3,7 @@ name: multigyan_sync
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   sync:
@@ -27,4 +27,4 @@ jobs:
           git remote add official_repo https://oauth2:${OFFICIAL_TOKEN}@github.com/Multigyan/multigyan.git
           
           # Push to official repo
-          git push official_repo main --force --set-upstream
+          git push official_repo master --force --set-upstream
