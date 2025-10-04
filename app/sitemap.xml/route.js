@@ -90,7 +90,7 @@ export async function GET() {
     // Category pages
     const categoryPages = categories.map(category => ({
       url: `${siteUrl}/category/${category.slug}`,
-      lastmod: category.updatedAt.toISOString(),
+      lastmod: category.updatedAt ? new Date(category.updatedAt).toISOString() : currentDate,
       changefreq: 'weekly',
       priority: '0.6'
     }))
@@ -100,7 +100,7 @@ export async function GET() {
       .filter(author => author.username) // Only include authors with username
       .map(author => ({
         url: `${siteUrl}/author/${author.username}`,
-        lastmod: author.updatedAt.toISOString(),
+        lastmod: author.updatedAt ? new Date(author.updatedAt).toISOString() : currentDate,
         changefreq: 'monthly',
         priority: '0.6'
       }))

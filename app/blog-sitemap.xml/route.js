@@ -23,7 +23,7 @@ export async function GET() {
       
       return {
         url: `${siteUrl}/blog/${post.slug}`,
-        lastmod: (post.updatedAt || post.publishedAt).toISOString(),
+        lastmod: new Date(post.updatedAt || post.publishedAt).toISOString(),
         changefreq: 'weekly',
         priority: priority
       }
