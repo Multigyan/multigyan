@@ -11,7 +11,8 @@ import {
   Mail,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Twitter
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -36,31 +37,45 @@ const socialLinks = [
     external: false
   },
   {
+    name: "WhatsApp Channel",
+    icon: MessageCircle,
+    href: "https://whatsapp.com/channel/0029VbBBdkrDOQIQFDv6Rc1v",
+    color: "bg-[#25D366] hover:bg-[#1DA851]",
+    external: true
+  },
+  {
     name: "Telegram",
     icon: Send,
-    href: "https://t.me/multigyan",
+    href: "https://t.me/multigyanexpert",
     color: "bg-[#0088cc] hover:bg-[#006699]",
     external: true
   },
   {
     name: "Instagram",
     icon: Instagram,
-    href: "https://instagram.com/multigyan",
+    href: "https://instagram.com/multigyan.info",
     color: "bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 hover:opacity-90",
     external: true
   },
   {
     name: "YouTube",
     icon: Youtube,
-    href: "https://youtube.com/@multigyan",
+    href: "https://youtube.com/@multigyan_in",
     color: "bg-red-600 hover:bg-red-700",
     external: true
   },
   {
     name: "LinkedIn",
     icon: Linkedin,
-    href: "https://linkedin.com/company/multigyan",
+    href: "https://www.linkedin.com/company/multigyan/",
     color: "bg-[#0077b5] hover:bg-[#006399]",
+    external: true
+  },
+  {
+    name: "Twitter",
+    icon: Twitter,
+    href: "https://twitter.com/Multigyan_in",
+    color: "bg-[#1DA1F2] hover:bg-[#1A91DA]",
     external: true
   }
 ]

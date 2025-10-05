@@ -7,11 +7,13 @@ import {
   BookOpen, 
   Mail, 
   Twitter, 
-  Github, 
+  Send, 
   Linkedin, 
   Heart,
-  Send,
-  Instagram
+  Send as SendIcon,
+  Instagram,
+  MessageCircle,
+  Youtube
 } from "lucide-react"
 
 export default function Footer() {
@@ -42,23 +44,33 @@ export default function Footer() {
               </p>
               <div className="flex space-x-2">
                 <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
-                  <Link href="https://twitter.com/multigyan" target="_blank" rel="noopener noreferrer">
+                  <Link href="https://twitter.com/Multigyan_in" target="_blank" rel="noopener noreferrer">
                     <Twitter className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
-                  <Link href="https://github.com/multigyan" target="_blank" rel="noopener noreferrer">
-                    <Github className="h-4 w-4" />
+                  <Link href="https://t.me/multigyanexpert" target="_blank" rel="noopener noreferrer">
+                    <Send className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
-                  <Link href="https://linkedin.com/company/multigyan" target="_blank" rel="noopener noreferrer">
+                  <Link href="https://www.linkedin.com/company/multigyan/" target="_blank" rel="noopener noreferrer">
                     <Linkedin className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
                   <Link href="https://instagram.com/multigyan.info" target="_blank" rel="noopener noreferrer">
                     <Instagram className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
+                  <Link href="https://youtube.com/@multigyan_in" target="_blank" rel="noopener noreferrer">
+                    <Youtube className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
+                  <Link href="https://whatsapp.com/channel/0029VbBBdkrDOQIQFDv6Rc1v" target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="h-4 w-4" />
                   </Link>
                 </Button>
               </div>
@@ -146,7 +158,7 @@ export default function Footer() {
                     className="flex-1 transition-all focus:scale-105"
                   />
                   <Button size="icon" className="transition-all hover:scale-110">
-                    <Send className="h-4 w-4" />
+                    <SendIcon className="h-4 w-4" />
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -181,17 +193,6 @@ export default function Footer() {
               >
                 RSS Feed
               </Link>
-              <div className="text-muted-foreground">
-                Powered by{" "}
-                <Link 
-                  href="https://nextjs.org" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:text-foreground transition-all font-medium hover:scale-105 inline-block"
-                >
-                  Next.js
-                </Link>
-              </div>
             </div>
           </div>
         </div>
