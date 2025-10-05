@@ -199,11 +199,11 @@ const PostSchema = new mongoose.Schema({
   },
   seoTitle: {
     type: String,
-    maxlength: [60, 'SEO title cannot be more than 60 characters']
+    maxlength: [80, 'SEO title cannot be more than 60 characters']
   },
   seoDescription: {
     type: String,
-    maxlength: [160, 'SEO description cannot be more than 160 characters']
+    maxlength: [210, 'SEO description cannot be more than 160 characters']
   },
   seoKeywords: [{
     type: String,
