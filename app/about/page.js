@@ -139,14 +139,14 @@ export default function AboutPage() {
             <CardContent className="prose prose-lg max-w-none">
               <p>
                 Multigyan was born from a simple yet powerful idea: knowledge grows when shared. 
-                In today's fast-paced digital world, we recognized the need for a platform that 
+                In today&#39;s fast-paced digital world, we recognized the need for a platform that 
                 not only makes it easy to share insights but also fosters genuine collaboration 
                 among writers, thinkers, and creators.
               </p>
               <p>
                 Built with modern web technologies, Multigyan represents the perfect blend of 
                 cutting-edge technology and user-friendly design. We believe that great content 
-                deserves a great platform, and we've worked tirelessly to create exactly that.
+                deserves a great platform, and we&#39;ve worked tirelessly to create exactly that.
               </p>
             </CardContent>
           </Card>
@@ -303,7 +303,7 @@ export default function AboutPage() {
             Join Our <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Community</span>
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Whether you're a writer, reader, or both, there's a place for you at Multigyan.
+            Whether you&#39;re a writer, reader, or both, there&#39;s a place for you at Multigyan.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
