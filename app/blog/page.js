@@ -46,8 +46,8 @@ export default function BlogPage() {
       const featuredResponse = await fetch('/api/posts?status=published&featured=true&limit=3')
       const featuredData = await featuredResponse.json()
       
-      // Fetch categories
-      const categoriesResponse = await fetch('/api/categories')
+      // Fetch categories with real-time counts
+      const categoriesResponse = await fetch('/api/categories?includeCounts=true')
       const categoriesData = await categoriesResponse.json()
 
       if (postsResponse.ok) {
