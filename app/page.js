@@ -252,10 +252,10 @@ export default function HomePage() {
                   <span className="text-xs font-medium text-primary uppercase tracking-wider">Featured</span>
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                  Editor's <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Picks</span>
+                  Editor&#39;s <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Picks</span>
                 </h2>
                 <p className="text-muted-foreground">
-                  Hand-picked articles our editors think you'll love
+                  Hand-picked articles our editors think you&#39;ll love
                 </p>
               </div>
             </div>
