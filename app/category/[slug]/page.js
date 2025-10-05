@@ -45,8 +45,8 @@ export default function CategoryPage({ params }) {
     try {
       setLoading(true)
       
-      // Fetch all categories to find the current one
-      const categoriesResponse = await fetch('/api/categories')
+      // Fetch all categories to find the current one - with real counts
+      const categoriesResponse = await fetch('/api/categories?includeCounts=true')
       const categoriesData = await categoriesResponse.json()
       
       if (!categoriesResponse.ok) {
