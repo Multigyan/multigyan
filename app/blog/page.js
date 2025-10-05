@@ -40,14 +40,23 @@ export default function BlogPage() {
       
       // Fetch published posts
       const postsResponse = await fetch(`/api/posts?status=published&page=${currentPage}&limit=12`)
+      if (!postsResponse.ok) {
+        throw new Error('Failed to fetch posts')
+      }
       const postsData = await postsResponse.json()
       
       // Fetch featured posts
       const featuredResponse = await fetch('/api/posts?status=published&featured=true&limit=3')
+      if (!featuredResponse.ok) {
+        throw new Error('Failed to fetch featured posts')
+      }
       const featuredData = await featuredResponse.json()
       
       // Fetch categories with real-time counts
       const categoriesResponse = await fetch('/api/categories?includeCounts=true')
+      if (!categoriesResponse.ok) {
+        throw new Error('Failed to fetch categories')
+      }
       const categoriesData = await categoriesResponse.json()
 
       if (postsResponse.ok) {
@@ -65,6 +74,8 @@ export default function BlogPage() {
       
     } catch (error) {
       console.error('Error fetching data:', error)
+      // You could add a state here to show an error message to users
+      // For example: setError(error.message)
     } finally {
       setLoading(false)
     }
@@ -288,89 +299,92 @@ export default function BlogPage() {
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                    {posts.map((post) => (
-                      <Link key={post._id} href={`/blog/${post.slug}`} className="block">
-                        <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group h-full">
-                          <div className="relative h-48 overflow-hidden">
-                            {post.featuredImageUrl ? (
-                              <Image
-                                src={post.featuredImageUrl}
-                                alt={post.featuredImageAlt || post.title}
-                                fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-110"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-                                <BookOpen className="h-12 w-12 text-primary/60 transition-transform duration-300 group-hover:scale-110" />
-                              </div>
-                            )}
-                            {/* Overlay on hover */}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
-                          </div>
-                          
-                          <CardContent className="p-6">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Badge style={{ backgroundColor: post.category?.color }}>
-                                {post.category?.name}
-                              </Badge>
-                            </div>
-                            
-                            <h3 className="text-xl font-semibold mb-3 line-clamp-2 group-hover:text-primary transition-colors">
-                              {post.title}
-                            </h3>
-                            
-                            <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                              {post.excerpt}
-                            </p>
-                            
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                {post.author?.profilePictureUrl ? (
-                                  <Image
-                                    src={post.author.profilePictureUrl}
-                                    alt={post.author.name}
-                                    width={24}
-                                    height={24}
-                                    className="rounded-full ring-2 ring-transparent group-hover:ring-primary transition-all"
-                                  />
-                                ) : (
-                                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center ring-2 ring-transparent group-hover:ring-primary transition-all">
-                                    <User className="h-3 w-3 text-primary" />
-                                  </div>
-                                )}
-                                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                                  {post.author?.name}
-                                </span>
-                              </div>
-                              
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1 group-hover:text-foreground transition-colors">
-                                  <Calendar className="h-3 w-3" />
-                                  {formatDate(post.publishedAt)}
-                                </span>
-                                <span className="flex items-center gap-1 group-hover:text-foreground transition-colors">
-                                  <Clock className="h-3 w-3" />
-                                  {post.readingTime} min
-                                </span>
-                                {post.views > 0 && (
-                                  <span className="flex items-center gap-1 group-hover:text-foreground transition-colors">
-                                    <Eye className="h-3 w-3" />
-                                    {post.views}
-                                  </span>
-                                )}
-                                <span className="flex items-center gap-1 text-red-500 group-hover:scale-110 transition-transform">
-                                  <Heart className="h-3 w-3" />
-                                  {post.likes?.length || 0}
-                                </span>
-                                <span className="flex items-center gap-1 text-blue-500 group-hover:scale-110 transition-transform">
-                                  <MessageCircle className="h-3 w-3" />
-                                  {post.comments?.filter(c => c.isApproved).length || 0}
-                                </span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
+                  {posts.map((post) => (
+                  <Link key={post._id} href={`/blog/${post.slug}`} className="block">
+                  <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group h-full">
+                  <div className="relative h-48 overflow-hidden">
+                  {post.featuredImageUrl ? (
+                  <Image
+                  src={post.featuredImageUrl}
+                  alt={post.featuredImageAlt || post.title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-110"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority={false}
+                    loading="lazy"
+                    />
+                  ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
+                    <BookOpen className="h-12 w-12 text-primary/60 transition-transform duration-300 group-hover:scale-110" />
+                    </div>
+                  )}
+                  {/* Overlay on hover */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+                  </div>
+                  
+                  <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                  <Badge style={{ backgroundColor: post.category?.color }}>
+                    {post.category?.name}
+                    </Badge>
+                  </div>
+                  
+                  <h3 className="text-xl font-semibold mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                    {post.title}
+                  </h3>
+                  
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                    {post.excerpt}
+                  </p>
+                  
+                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                  {post.author?.profilePictureUrl ? (
+                  <Image
+                  src={post.author.profilePictureUrl}
+                  alt={post.author.name}
+                  width={24}
+                  height={24}
+                    className="rounded-full ring-2 ring-transparent group-hover:ring-primary transition-all"
+                    />
+                  ) : (
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center ring-2 ring-transparent group-hover:ring-primary transition-all">
+                    <User className="h-3 w-3 text-primary" />
+                    </div>
+                  )}
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                    {post.author?.name}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1 group-hover:text-foreground transition-colors">
+                  <Calendar className="h-3 w-3" />
+                    {formatDate(post.publishedAt)}
+                  </span>
+                  <span className="flex items-center gap-1 group-hover:text-foreground transition-colors">
+                  <Clock className="h-3 w-3" />
+                    {post.readingTime} min
+                  </span>
+                  {post.views > 0 && (
+                  <span className="flex items-center gap-1 group-hover:text-foreground transition-colors">
+                  <Eye className="h-3 w-3" />
+                    {post.views}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1 text-red-500 group-hover:scale-110 transition-transform">
+                  <Heart className="h-3 w-3" />
+                    {post.likes?.length || 0}
+                  </span>
+                  <span className="flex items-center gap-1 text-blue-500 group-hover:scale-110 transition-transform">
+                  <MessageCircle className="h-3 w-3" />
+                    {post.comments?.filter(c => c.isApproved).length || 0}
+                    </span>
+                    </div>
+                    </div>
+                    </CardContent>
+                    </Card>
+                    </Link>
                     ))}
                   </div>
 

@@ -8,6 +8,7 @@ import AuthProvider from "@/components/AuthProvider"
 import LoadingBar from "@/components/LoadingBar"
 import StructuredData from "@/components/seo/StructuredData"
 import FloatingSocialSidebar from "@/components/layout/FloatingSocialSidebar"
+import BackToTop from "@/components/ui/BackToTop"
 import { generateStructuredData } from "@/lib/seo"
 
 const inter = Inter({ subsets: ['latin'] })
@@ -85,6 +86,7 @@ export default function RootLayout({ children }) {
             <Footer />
           </div>
           <FloatingSocialSidebar />
+          <BackToTop />
           <Toaster />
         </AuthProvider>
       </body>

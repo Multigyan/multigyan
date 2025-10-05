@@ -10,7 +10,7 @@ import {
   ChevronRight,
   ChevronDown,
   BookOpen,
-  Menu
+  ArrowUp
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils"
  * - Smooth scroll to sections
  * - Collapsible sections
  * - Reading progress indicator
+ * 
+ * Note: Global Back to Top button is handled by BackToTop component in layout
  */
 
 export default function TableOfContents({ content }) {
@@ -48,8 +50,23 @@ export default function TableOfContents({ content }) {
         // Create or use existing ID
         let id = heading.id
         if (!id) {
-          id = `heading-${heading.tagName.toLowerCase()}-${index}`
-          heading.id = id
+          // Create a URL-friendly ID from the text content
+          const text = heading.textContent
+          id = text
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
+          
+          // Ensure uniqueness
+          let finalId = id
+          let counter = 1
+          while (document.getElementById(finalId)) {
+            finalId = `${id}-${counter}`
+            counter++
+          }
+          
+          heading.id = finalId
+          id = finalId
         }
 
         const text = heading.textContent
@@ -59,35 +76,39 @@ export default function TableOfContents({ content }) {
       })
 
       setHeadings(extractedHeadings)
-    }, 100)
+    }, 300) // Increased timeout for content to fully render
 
     return () => clearTimeout(timer)
   }, [content])
 
   // Track active section and reading progress
   useEffect(() => {
-    if (headings.length === 0) return
-
     const handleScroll = () => {
       // Calculate reading progress
       const windowHeight = window.innerHeight
       const documentHeight = document.documentElement.scrollHeight - windowHeight
       const scrolled = window.scrollY
-      const progress = Math.min((scrolled / documentHeight) * 100, 100)
+      const progress = documentHeight > 0 ? Math.min((scrolled / documentHeight) * 100, 100) : 0
       setReadingProgress(progress)
 
       // Find active heading
+      if (headings.length === 0) return
+
       const headingElements = headings
         .map(h => document.getElementById(h.id))
         .filter(Boolean)
       
       let currentActiveId = ""
+      
+      // Get the navbar height to account for offset
+      const navbarHeight = 100 // Adjust this to match your navbar height
+      
       for (let i = headingElements.length - 1; i >= 0; i--) {
         const element = headingElements[i]
         const rect = element.getBoundingClientRect()
         
-        // Consider a heading active if it's within 150px from the top
-        if (rect.top <= 150) {
+        // Consider a heading active if it's within viewport considering navbar
+        if (rect.top <= navbarHeight + 50) {
           currentActiveId = element.id
           break
         }
@@ -102,17 +123,38 @@ export default function TableOfContents({ content }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [headings])
 
-  // Smooth scroll to section
+  // Smooth scroll to section - FIXED VERSION
   const scrollToHeading = (id) => {
     const element = document.getElementById(id)
     if (element) {
-      const offsetTop = element.offsetTop - 100 // Account for header
+      // Get the navbar height (adjust this value to match your navbar)
+      const navbarHeight = 100
+      
+      // Calculate the position
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight
+      
+      // Smooth scroll
       window.scrollTo({
-        top: offsetTop,
+        top: offsetPosition,
         behavior: 'smooth'
       })
-      setIsOpen(false) // Close mobile drawer
+      
+      // Close mobile drawer
+      setIsOpen(false)
+      
+      // Update active state immediately for better UX
+      setActiveId(id)
     }
+  }
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+    setIsOpen(false)
   }
 
   if (headings.length === 0) {
@@ -121,7 +163,7 @@ export default function TableOfContents({ content }) {
 
   // Desktop Sidebar View
   const DesktopTOC = () => (
-    <div className="hidden lg:block sticky top-24 max-h-[calc(100vh-8rem)] overflow-auto">
+    <div className="hidden lg:block sticky top-24 max-h-[calc(100vh-8rem)] overflow-auto custom-scrollbar">
       <Card className="shadow-lg">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -206,7 +248,7 @@ export default function TableOfContents({ content }) {
           <Button
             onClick={() => setIsOpen(true)}
             size="lg"
-            className="rounded-full shadow-lg h-14 w-14 p-0"
+            className="rounded-full shadow-lg h-14 w-14 p-0 hover:scale-110 transition-transform"
             aria-label="Open Table of Contents"
           >
             <List className="h-6 w-6" />
@@ -288,7 +330,7 @@ export default function TableOfContents({ content }) {
             </div>
 
             {/* TOC List */}
-            <div className="overflow-y-auto max-h-[calc(85vh-150px)] p-4">
+            <div className="overflow-y-auto max-h-[calc(85vh-200px)] p-4 custom-scrollbar">
               <nav className="space-y-2">
                 {headings.map((heading, index) => (
                   <button
@@ -298,7 +340,7 @@ export default function TableOfContents({ content }) {
                       "w-full text-left text-sm py-3 px-4 rounded-lg transition-all",
                       heading.level === 'h3' && "pl-10 text-xs",
                       activeId === heading.id 
-                        ? "bg-primary text-primary-foreground font-medium shadow-md" 
+                        ? "bg-primary text-primary-foreground font-medium shadow-md scale-[1.02]" 
                         : "hover:bg-muted active:scale-[0.98]"
                     )}
                     aria-label={`Go to section: ${heading.text}`}
@@ -315,6 +357,18 @@ export default function TableOfContents({ content }) {
                   </button>
                 ))}
               </nav>
+
+              {/* Back to Top in Mobile Drawer */}
+              <div className="mt-4 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={scrollToTop}
+                  className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  <ArrowUp className="h-4 w-4 mr-2" />
+                  Back to Top
+                </Button>
+              </div>
             </div>
           </div>
         </>

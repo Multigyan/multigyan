@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { 
   MessageCircle, 
@@ -21,6 +21,10 @@ import { cn } from "@/lib/utils"
  * 
  * A fixed sidebar on the right side of the screen with social media links
  * and contact options. Includes collapse/expand functionality.
+ * 
+ * POSITIONING:
+ * - Desktop: Right side, middle of screen (sticky)
+ * - Mobile: Bottom-left corner (to avoid collision with TOC button)
  */
 
 const socialLinks = [
@@ -64,8 +68,27 @@ const socialLinks = [
 export default function FloatingSocialSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  if (!isVisible) return null
+  // Prevent hydration mismatch by only rendering interactive parts after mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!isVisible) {
+    return (
+      // Reopen Button (when closed) - Desktop only
+      <button
+        onClick={() => setIsVisible(true)}
+        className="hidden lg:flex fixed top-1/2 -translate-y-1/2 right-0 bg-primary text-primary-foreground w-8 h-16 items-center justify-center rounded-l-lg shadow-lg hover:bg-primary/90 transition-all z-40"
+        aria-label="Show social links"
+        title="Show social links"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+    )
+  }
 
   return (
     <>
@@ -127,58 +150,69 @@ export default function FloatingSocialSidebar() {
         </div>
       </div>
 
-      {/* Mobile Floating Button */}
-      <div className="lg:hidden fixed bottom-6 right-6 z-40">
-        <div className="relative">
-          <Button
-            size="lg"
-            className="rounded-full shadow-lg h-14 w-14 p-0"
-            onClick={() => {
-              const menu = document.getElementById('mobile-social-menu')
-              if (menu) {
-                menu.classList.toggle('hidden')
-              }
-            }}
-          >
-            <MessageCircle className="h-6 w-6" />
-          </Button>
+      {/* Mobile Floating Button - MOVED TO BOTTOM-LEFT */}
+      {mounted && (
+        <div className="lg:hidden fixed bottom-6 left-6 z-40">
+          <div className="relative">
+            {/* Main Social Button */}
+            <Button
+              size="lg"
+              className="rounded-full shadow-lg h-14 w-14 p-0 hover:scale-110 transition-transform"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close social menu" : "Open social menu"}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <MessageCircle className="h-6 w-6" />
+              )}
+            </Button>
 
-          {/* Mobile Menu - Icon only */}
-          <div
-            id="mobile-social-menu"
-            className="hidden absolute bottom-16 right-0 flex flex-col gap-1 bg-background border rounded-lg shadow-xl p-2"
-          >
-            {socialLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                target={link.external ? "_blank" : undefined}
-                rel={link.external ? "noopener noreferrer" : undefined}
-                className="group"
-                title={link.name}
-              >
-                <div className={cn(
-                  "flex items-center justify-center w-12 h-12 text-white rounded-lg transition-all",
-                  link.color
-                )}>
-                  <link.icon className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                </div>
-              </Link>
-            ))}
+            {/* Backdrop - Use CSS instead of conditional rendering */}
+            <div 
+              className={cn(
+                "fixed inset-0 bg-black/20 backdrop-blur-sm -z-10 transition-opacity duration-200",
+                mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+              )}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+
+            {/* Mobile Menu - Use CSS instead of conditional rendering */}
+            <div className={cn(
+              "absolute bottom-16 left-0 flex flex-col gap-2 bg-background border rounded-xl shadow-2xl p-3 transition-all duration-200 origin-bottom-left",
+              mobileMenuOpen 
+                ? "opacity-100 scale-100 pointer-events-auto" 
+                : "opacity-0 scale-95 pointer-events-none"
+            )}>
+              <div className="text-xs font-semibold text-muted-foreground px-2 mb-1">
+                Connect with us
+              </div>
+              {socialLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  target={link.external ? "_blank" : undefined}
+                  rel={link.external ? "noopener noreferrer" : undefined}
+                  className="group flex items-center gap-3 hover:bg-muted rounded-lg transition-all p-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                  title={link.name}
+                  tabIndex={mobileMenuOpen ? 0 : -1}
+                >
+                  <div className={cn(
+                    "flex items-center justify-center w-10 h-10 text-white rounded-lg transition-all flex-shrink-0",
+                    link.color
+                  )}>
+                    <link.icon className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <span className="text-sm font-medium whitespace-nowrap">
+                    {link.name}
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Reopen Button (when closed) */}
-      {!isVisible && (
-        <button
-          onClick={() => setIsVisible(true)}
-          className="hidden lg:flex fixed top-1/2 -translate-y-1/2 right-0 bg-primary text-primary-foreground w-8 h-16 items-center justify-center rounded-l-lg shadow-lg hover:bg-primary/90 transition-all z-40"
-          aria-label="Show social links"
-          title="Show social links"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
       )}
     </>
   )
