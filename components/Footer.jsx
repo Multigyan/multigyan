@@ -24,7 +24,7 @@ export default function Footer() {
         <div className="py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Brand Section */}
-            <div className="space-y-4">
+            <div className="space-y-4 fade-in">
               <Link href="/" className="flex items-center space-x-3">
                 <div className="brand-logo">
                   <Image
@@ -35,29 +35,28 @@ export default function Footer() {
                     className="w-30 h-30 object-contain"
                   />
                 </div>
-                {/* <span className="text-xl font-bold title-gradient">Multigyan</span> */}
               </Link>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 A secure, high-performance, and SEO-optimized multi-author blogging platform 
                 built with modern web technologies.
               </p>
               <div className="flex space-x-2">
-                <Button size="icon" variant="ghost" asChild>
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
                   <Link href="https://twitter.com/multigyan" target="_blank" rel="noopener noreferrer">
                     <Twitter className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="icon" variant="ghost" asChild>
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
                   <Link href="https://github.com/multigyan" target="_blank" rel="noopener noreferrer">
                     <Github className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="icon" variant="ghost" asChild>
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
                   <Link href="https://linkedin.com/company/multigyan" target="_blank" rel="noopener noreferrer">
                     <Linkedin className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="icon" variant="ghost" asChild>
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
                   <Link href="https://instagram.com/multigyan.info" target="_blank" rel="noopener noreferrer">
                     <Instagram className="h-4 w-4" />
                   </Link>
@@ -66,30 +65,30 @@ export default function Footer() {
             </div>
 
             {/* Quick Links */}
-            <div className="space-y-4">
+            <div className="space-y-4 fade-in" style={{ animationDelay: '100ms' }}>
               <h3 className="font-semibold text-foreground">Quick Links</h3>
               <nav className="flex flex-col space-y-2">
                 <Link 
                   href="/blog" 
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   All Posts
                 </Link>
                 <Link 
                   href="/categories" 
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Categories
                 </Link>
                 <Link 
                   href="/authors" 
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Authors
                 </Link>
                 <Link 
                   href="/about" 
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   About Us
                 </Link>
@@ -97,36 +96,36 @@ export default function Footer() {
             </div>
 
             {/* Resources */}
-            <div className="space-y-4">
+            <div className="space-y-4 fade-in" style={{ animationDelay: '200ms' }}>
               <h3 className="font-semibold text-foreground">Resources</h3>
               <nav className="flex flex-col space-y-2">
                 <Link 
                   href="/dashboard" 
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Write a Post
                 </Link>
                 <Link 
                   href="/help" 
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Help & Support
                 </Link>
                 <Link 
                   href="/contact" 
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Contact
                 </Link>
                 <Link 
                   href="/privacy-policy" 
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Privacy Policy
                 </Link>
                 <Link 
                   href="/terms-of-service" 
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Terms of Service
                 </Link>
@@ -134,7 +133,7 @@ export default function Footer() {
             </div>
 
             {/* Newsletter */}
-            <div className="space-y-4">
+            <div className="space-y-4 fade-in" style={{ animationDelay: '300ms' }}>
               <h3 className="font-semibold text-foreground">Stay Updated</h3>
               <p className="text-muted-foreground text-sm">
                 Subscribe to our newsletter for the latest posts and updates.
@@ -144,9 +143,9 @@ export default function Footer() {
                   <Input 
                     type="email" 
                     placeholder="your@email.com" 
-                    className="flex-1"
+                    className="flex-1 transition-all focus:scale-105"
                   />
-                  <Button size="icon">
+                  <Button size="icon" className="transition-all hover:scale-110">
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
@@ -165,20 +164,20 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex items-center space-x-1 text-sm text-muted-foreground">
               <span>© {currentYear} Multigyan. Made with</span>
-              <Heart className="h-4 w-4 text-red-500 fill-current" />
+              <Heart className="h-4 w-4 text-red-500 fill-current pulse-once" />
               <span>for the community</span>
             </div>
             
             <div className="flex items-center space-x-6 text-sm">
               <Link 
                 href="/sitemap.xml" 
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-all hover:scale-105"
               >
                 Sitemap
               </Link>
               <Link 
                 href="/rss.xml" 
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-all hover:scale-105"
               >
                 RSS Feed
               </Link>
@@ -188,7 +187,7 @@ export default function Footer() {
                   href="https://nextjs.org" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="hover:text-foreground transition-colors font-medium"
+                  className="hover:text-foreground transition-all font-medium hover:scale-105 inline-block"
                 >
                   Next.js
                 </Link>

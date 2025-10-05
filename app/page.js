@@ -86,28 +86,108 @@ export default function HomePage() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        {/* Hero Skeleton */}
+        <section className="relative bg-gradient-to-br from-background via-background to-muted/20 py-20 md:py-32">
+          <div className="container mx-auto px-4">
+            <div className="text-center max-w-5xl mx-auto">
+              <div className="skeleton-text h-8 w-96 mx-auto mb-6 animate-shimmer"></div>
+              <div className="skeleton-text h-16 w-full max-w-3xl mx-auto mb-4 animate-shimmer"></div>
+              <div className="skeleton-text h-6 w-full max-w-2xl mx-auto mb-8 animate-shimmer"></div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                <div className="skeleton h-14 w-48 mx-auto sm:mx-0"></div>
+                <div className="skeleton h-14 w-48 mx-auto sm:mx-0"></div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="text-center">
+                    <div className="skeleton-text h-10 w-20 mx-auto mb-1"></div>
+                    <div className="skeleton-text h-4 w-16 mx-auto"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Posts Skeleton */}
+        <section className="py-16 md:py-20 bg-muted/20">
+          <div className="container mx-auto px-4">
+            <div className="mb-12">
+              <div className="skeleton-text h-10 w-64 mb-2"></div>
+              <div className="skeleton-text h-5 w-96"></div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="border rounded-lg overflow-hidden">
+                  <div className="skeleton h-56 w-full animate-shimmer"></div>
+                  <div className="p-6 space-y-3">
+                    <div className="skeleton-text w-24 h-5"></div>
+                    <div className="skeleton-text w-full h-6"></div>
+                    <div className="skeleton-text w-5/6 h-6"></div>
+                    <div className="skeleton-text w-full h-4"></div>
+                    <div className="skeleton-text w-4/5 h-4"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Latest Posts Skeleton */}
+        <section className="py-16 md:py-20">
+          <div className="container mx-auto px-4">
+            <div className="mb-12">
+              <div className="skeleton-text h-10 w-64 mb-2"></div>
+              <div className="skeleton-text h-5 w-96"></div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="border rounded-lg overflow-hidden">
+                  <div className="skeleton h-48 w-full animate-shimmer"></div>
+                  <div className="p-6 space-y-3">
+                    <div className="skeleton-text w-24 h-5"></div>
+                    <div className="skeleton-text w-full h-6"></div>
+                    <div className="skeleton-text w-5/6 h-6"></div>
+                    <div className="skeleton-text w-full h-4"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-background via-background to-muted/20 py-20 md:py-32">
+      <section className="relative bg-gradient-to-br from-background via-background to-muted/20 py-20 md:py-32 fade-in">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6 border border-primary/20">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6 border border-primary/20 pulse-once">
               <TrendingUp className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium text-primary">Multi-Author Blogging Platform</span>
             </div>
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight scale-in">
               Welcome to{" "}
               <span className="title-gradient">Multigyan</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed max-w-3xl mx-auto slide-in">
               Discover insightful articles, expert perspectives, and engaging stories from our community of talented writers. 
               Where knowledge multiplies through collaboration.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 fade-in" style={{ animationDelay: '200ms' }}>
               <Button size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-shadow" asChild>
                 <Link href="/blog">
                   <BookOpen className="mr-2 h-5 w-5" />
@@ -123,21 +203,21 @@ export default function HomePage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto fade-in" style={{ animationDelay: '300ms' }}>
               <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-primary mb-1">
+                <div className="text-3xl md:text-4xl font-bold text-primary mb-1 pulse-once">
                   {stats.totalPosts > 0 ? `${stats.totalPosts}+` : '0'}
                 </div>
                 <div className="text-sm text-muted-foreground">Articles</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-primary mb-1">
+                <div className="text-3xl md:text-4xl font-bold text-primary mb-1 pulse-once" style={{ animationDelay: '100ms' }}>
                   {stats.totalCategories > 0 ? `${stats.totalCategories}+` : '0'}
                 </div>
                 <div className="text-sm text-muted-foreground">Categories</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-primary mb-1">
+                <div className="text-3xl md:text-4xl font-bold text-primary mb-1 pulse-once" style={{ animationDelay: '200ms' }}>
                   {stats.totalAuthors > 0 ? `${stats.totalAuthors}+` : '0'}
                 </div>
                 <div className="text-sm text-muted-foreground">Authors</div>
@@ -149,7 +229,7 @@ export default function HomePage() {
 
       {/* Featured Posts Section */}
       {!loading && featuredPosts.length > 0 && (
-        <section className="py-16 md:py-20 bg-muted/20">
+        <section className="py-16 md:py-20 bg-muted/20 fade-in">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-12">
               <div>
@@ -167,8 +247,10 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredPosts.map((post) => (
-                <PostCard key={post._id} post={post} featured={true} />
+              {featuredPosts.map((post, index) => (
+                <div key={post._id} className="scale-in" style={{ animationDelay: `${index * 100}ms` }}>
+                  <PostCard post={post} featured={true} />
+                </div>
               ))}
             </div>
           </div>
@@ -177,7 +259,7 @@ export default function HomePage() {
 
       {/* Latest Posts Section */}
       {!loading && latestPosts.length > 0 && (
-        <section className="py-16 md:py-20">
+        <section className="py-16 md:py-20 fade-in">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-12">
               <div>
@@ -201,12 +283,14 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {latestPosts.slice(0, 6).map((post) => (
-                <PostCard key={post._id} post={post} />
+              {latestPosts.slice(0, 6).map((post, index) => (
+                <div key={post._id} className="scale-in" style={{ animationDelay: `${index * 50}ms` }}>
+                  <PostCard post={post} />
+                </div>
               ))}
             </div>
 
-            <div className="text-center mt-10 sm:hidden">
+            <div className="text-center mt-10 sm:hidden fade-in">
               <Button variant="outline" asChild>
                 <Link href="/blog">
                   View All Articles
@@ -222,8 +306,8 @@ export default function HomePage() {
       {!loading && latestPosts.length === 0 && (
         <section className="py-16 md:py-20">
           <div className="container mx-auto px-4 text-center">
-            <div className="max-w-md mx-auto">
-              <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="max-w-md mx-auto scale-in">
+              <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6 pulse-once">
                 <BookOpen className="h-10 w-10 text-muted-foreground" />
               </div>
               <h2 className="text-2xl font-bold mb-4">No Articles Yet</h2>
@@ -243,7 +327,7 @@ export default function HomePage() {
 
       {/* Categories Section */}
       {!loading && categories.length > 0 && (
-        <section className="py-16 md:py-20 bg-muted/20">
+        <section className="py-16 md:py-20 bg-muted/20 fade-in">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -255,17 +339,18 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {categories.map((category) => (
+              {categories.map((category, index) => (
                 <Link
                   key={category._id}
                   href={`/category/${category.slug}`}
-                  className="group"
+                  className="group scale-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <Card className="blog-card text-center h-full hover:shadow-lg transition-all">
                     <CardContent className="p-6">
                       <div
-                        className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center transition-transform group-hover:scale-110"
-                        style={{ backgroundColor: `${category.color}20` }}
+                        className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center transition-transform group-hover:scale-110 pulse-once"
+                        style={{ backgroundColor: `${category.color}20`, animationDelay: `${index * 100}ms` }}
                       >
                         <div
                           className="w-8 h-8 rounded-full"
@@ -284,7 +369,7 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="text-center mt-10">
+            <div className="text-center mt-10 fade-in">
               <Button variant="outline" asChild>
                 <Link href="/categories">
                   View All Categories
@@ -297,7 +382,7 @@ export default function HomePage() {
       )}
 
       {/* Why Choose Section - Benefits, not tech stack */}
-      <section className="py-16 md:py-20">
+      <section className="py-16 md:py-20 fade-in">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -309,83 +394,65 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <Card className="blog-card hover:shadow-lg transition-all border">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/60 rounded-xl flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <CardTitle className="text-xl">Diverse Perspectives</CardTitle>
-                <CardDescription className="text-base leading-relaxed mt-3">
-                  Read from multiple authors with unique viewpoints and expertise across various topics and industries.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="blog-card hover:shadow-lg transition-all border">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Quality Content</CardTitle>
-                <CardDescription className="text-base leading-relaxed mt-3">
-                  Every article goes through our review process to ensure high-quality, valuable content for our readers.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="blog-card hover:shadow-lg transition-all border">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
-                  <Search className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Easy Discovery</CardTitle>
-                <CardDescription className="text-base leading-relaxed mt-3">
-                  Find exactly what you&apos;re looking for with organized categories, tags, and powerful search functionality.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="blog-card hover:shadow-lg transition-all border">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
-                  <PenTool className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Share Your Voice</CardTitle>
-                <CardDescription className="text-base leading-relaxed mt-3">
-                  Become an author and share your knowledge with our growing community of engaged readers.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="blog-card hover:shadow-lg transition-all border">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-4">
-                  <Zap className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Always Fresh</CardTitle>
-                <CardDescription className="text-base leading-relaxed mt-3">
-                  New articles published regularly across all categories, so there&apos;s always something new to discover.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="blog-card hover:shadow-lg transition-all border">
-              <CardHeader>
-                <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center mb-4">
-                  <BookOpen className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-xl">Free Access</CardTitle>
-                <CardDescription className="text-base leading-relaxed mt-3">
-                  All our content is freely accessible to everyone. No paywalls, no subscriptions required.
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            {[
+              {
+                icon: Users,
+                title: "Diverse Perspectives",
+                description: "Read from multiple authors with unique viewpoints and expertise across various topics and industries.",
+                gradient: "from-primary to-primary/60"
+              },
+              {
+                icon: Shield,
+                title: "Quality Content",
+                description: "Every article goes through our review process to ensure high-quality, valuable content for our readers.",
+                gradient: "from-green-500 to-green-600"
+              },
+              {
+                icon: Search,
+                title: "Easy Discovery",
+                description: "Find exactly what you're looking for with organized categories, tags, and powerful search functionality.",
+                gradient: "from-blue-500 to-blue-600"
+              },
+              {
+                icon: PenTool,
+                title: "Share Your Voice",
+                description: "Become an author and share your knowledge with our growing community of engaged readers.",
+                gradient: "from-purple-500 to-purple-600"
+              },
+              {
+                icon: Zap,
+                title: "Always Fresh",
+                description: "New articles published regularly across all categories, so there's always something new to discover.",
+                gradient: "from-orange-500 to-red-600"
+              },
+              {
+                icon: BookOpen,
+                title: "Free Access",
+                description: "All our content is freely accessible to everyone. No paywalls, no subscriptions required.",
+                gradient: "from-pink-500 to-rose-600"
+              }
+            ].map((benefit, index) => {
+              const Icon = benefit.icon
+              return (
+                <Card key={index} className="blog-card hover:shadow-lg transition-all border scale-in" style={{ animationDelay: `${index * 100}ms` }}>
+                  <CardHeader>
+                    <div className={`w-12 h-12 bg-gradient-to-br ${benefit.gradient} rounded-xl flex items-center justify-center mb-4 pulse-once`} style={{ animationDelay: `${index * 150}ms` }}>
+                      <Icon className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-xl">{benefit.title}</CardTitle>
+                    <CardDescription className="text-base leading-relaxed mt-3">
+                      {benefit.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5">
+      <section className="py-16 md:py-20 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 fade-in">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
