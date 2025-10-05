@@ -547,6 +547,17 @@ export default function BlogPostClient({ post }) {
               </div>
             </div>
 
+            {/* Comment Section */}
+            <section className="mb-12">
+              <CommentSection 
+                postId={post._id} 
+                allowComments={post.allowComments}
+                showStats={true}
+              />
+            </section>
+
+            <Separator className="my-8" />
+
             {/* Author Bio */}
             <Card className="mb-12 hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
@@ -591,7 +602,7 @@ export default function BlogPostClient({ post }) {
 
             {/* More Posts by Author */}
             {relatedPosts.length > 0 && (
-              <section>
+              <section className="mb-12">
                 <h2 className="text-2xl font-bold mb-2">
                   More from {post.author?.name}
                 </h2>
@@ -600,52 +611,42 @@ export default function BlogPostClient({ post }) {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {relatedPosts.map((relatedPost) => (
-                    <Card key={relatedPost._id} className="blog-card hover:shadow-lg transition-all">
-                      <div className="relative h-40 overflow-hidden">
-                        {relatedPost.featuredImageUrl ? (
-                          <Image
-                            src={relatedPost.featuredImageUrl}
-                            alt={relatedPost.featuredImageAlt || relatedPost.title}
-                            fill
-                            className="object-cover rounded-t-lg transition-transform hover:scale-105"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded-t-lg">
-                            <BookOpen className="h-8 w-8 text-primary/60" />
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-4">
-                        <Badge size="sm" className="mb-2" style={{ backgroundColor: relatedPost.category?.color }}>
-                          {relatedPost.category?.name}
-                        </Badge>
-                        <h3 className="font-semibold text-sm line-clamp-2 mb-2">
-                          <Link href={`/blog/${relatedPost.slug}`} className="hover:text-primary transition-colors">
-                            {relatedPost.title}
-                          </Link>
-                        </h3>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{formatDate(relatedPost.publishedAt)}</span>
-                          <span>•</span>
-                          <span>{relatedPost.readingTime} min</span>
+                    <Link key={relatedPost._id} href={`/blog/${relatedPost.slug}`} className="block">
+                      <Card className="blog-card hover:shadow-lg transition-all cursor-pointer group h-full">
+                        <div className="relative h-40 overflow-hidden">
+                          {relatedPost.featuredImageUrl ? (
+                            <Image
+                              src={relatedPost.featuredImageUrl}
+                              alt={relatedPost.featuredImageAlt || relatedPost.title}
+                              fill
+                              className="object-cover rounded-t-lg transition-transform group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded-t-lg">
+                              <BookOpen className="h-8 w-8 text-primary/60 transition-transform group-hover:scale-110" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
                         </div>
-                      </CardContent>
-                    </Card>
+                        <CardContent className="p-4">
+                          <Badge size="sm" className="mb-2" style={{ backgroundColor: relatedPost.category?.color }}>
+                            {relatedPost.category?.name}
+                          </Badge>
+                          <h3 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                            {relatedPost.title}
+                          </h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+                            <span>{formatDate(relatedPost.publishedAt)}</span>
+                            <span>•</span>
+                            <span>{relatedPost.readingTime} min</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))}
                 </div>
               </section>
             )}
-
-            {/* Enhanced Comment Section */}
-            <section className="mt-16">
-              <Separator className="mb-8" />
-              
-              <CommentSection 
-                postId={post._id} 
-                allowComments={post.allowComments}
-                showStats={true}
-              />
-            </section>
 
             {/* Back to Blog */}
             <div className="text-center mt-12">
@@ -660,7 +661,7 @@ export default function BlogPostClient({ post }) {
 
           {/* TOC Sidebar - 4 columns */}
           <aside className="lg:col-span-4">
-            <TableOfContents content={post.content} />
+            <TableOfContents content={post.content} readingTime={post.readingTime} />
           </aside>
         </div>
       </div>

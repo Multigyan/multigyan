@@ -22,6 +22,22 @@ export const metadata = {
   keywords: ['blog', 'nextjs', 'mongodb', 'multi-author', 'cms', 'multigyan'],
   authors: [{ name: 'Multigyan Team' }],
   creator: 'Multigyan',
+  icons: {
+    icon: [
+      { url: '/Multigyan_Logo.ico', sizes: '16x16', type: 'image/x-icon' },
+      { url: '/Multigyan_Logo_bg.ico', sizes: '32x32', type: 'image/x-icon' }
+    ],
+    shortcut: '/Multigyan_Logo_bg.ico',
+    apple: [
+      { url: '/Multigyan_Logo_bg.png', sizes: '180x180', type: 'image/png' }
+    ],
+    other: [
+      {
+        rel: 'icon',
+        url: '/Multigyan_Logo_bg.ico',
+      }
+    ]
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -29,6 +45,14 @@ export const metadata = {
     title: 'Multigyan - Multi-Author Blogging Platform',
     description: 'A secure, high-performance, and SEO-optimized multi-author blogging platform.',
     siteName: 'Multigyan',
+    images: [
+      {
+        url: '/Multigyan_Logo_bg.png',
+        width: 512,
+        height: 512,
+        alt: 'Multigyan Logo',
+      }
+    ],
   },
   twitter: {
     card: 'summary_large_image',

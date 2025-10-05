@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export default function TableOfContents({ content }) {
+export default function TableOfContents({ content, readingTime }) {
   const [headings, setHeadings] = useState([])
   const [activeId, setActiveId] = useState("")
   const [isOpen, setIsOpen] = useState(false)
@@ -52,6 +52,9 @@ export default function TableOfContents({ content }) {
         // Get clean text content
         const text = heading.textContent.trim()
         
+        // Skip if empty
+        if (!text) return
+        
         // Create ID: Keep structure intact, just convert spaces to hyphens
         const id = text
           .toLowerCase()
@@ -59,6 +62,9 @@ export default function TableOfContents({ content }) {
           .replace(/\s+/g, '-') // Replace spaces with single hyphen
           .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
           .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+        
+        // Skip if invalid ID
+        if (!id) return
         
         // Make ID unique if needed
         let finalId = id
@@ -83,7 +89,6 @@ export default function TableOfContents({ content }) {
 
       if (extractedHeadings.length > 0) {
         setHeadings(extractedHeadings)
-        console.log('TOC: Extracted headings:', extractedHeadings.map(h => ({ id: h.id, text: h.text })))
       }
     }
 
@@ -147,13 +152,10 @@ export default function TableOfContents({ content }) {
 
   // Smooth scroll to section
   const scrollToHeading = (id) => {
-    console.log('TOC: Attempting to scroll to:', id)
-    
     const element = document.getElementById(id)
     
     if (!element) {
-      console.error('TOC: Element not found for id:', id)
-      // Try to find by text content as fallback
+      // Try to find by text content as fallback - silently
       const allHeadings = document.querySelectorAll('.blog-content h2, .blog-content h3')
       const found = Array.from(allHeadings).find(h => {
         const headingId = h.textContent.trim()
@@ -166,10 +168,12 @@ export default function TableOfContents({ content }) {
       })
       
       if (found) {
-        console.log('TOC: Found element by text content')
         found.setAttribute('id', id)
         scrollToElement(found, id)
+        return
       }
+      
+      // If still not found, just return silently
       return
     }
     
@@ -177,8 +181,6 @@ export default function TableOfContents({ content }) {
   }
 
   const scrollToElement = (element, id) => {
-    console.log('TOC: Scrolling to element:', element)
-    
     const navbarHeight = 100
     const elementPosition = element.getBoundingClientRect().top
     const offsetPosition = elementPosition + window.pageYOffset - navbarHeight
@@ -276,7 +278,7 @@ export default function TableOfContents({ content }) {
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{headings.length} sections</span>
                 <Badge variant="outline" className="text-xs">
-                  {Math.ceil(headings.length * 0.5)} min
+                  {readingTime ? `${readingTime} min` : `${Math.ceil(headings.length * 0.5)} min`}
                 </Badge>
               </div>
             </div>
@@ -284,7 +286,7 @@ export default function TableOfContents({ content }) {
         )}
       </Card>
     </div>
-  ), [headings, activeId, isCollapsed, readingProgress])
+  ), [headings, activeId, isCollapsed, readingProgress, readingTime])
 
   // Mobile TOC
   const MobileTOC = () => (
