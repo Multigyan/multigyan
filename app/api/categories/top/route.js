@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Category from '@/models/Category'
 import Post from '@/models/Post'
+import { apiCache } from '@/lib/cache'
 
 export async function GET(request) {
   try {
@@ -9,6 +10,13 @@ export async function GET(request) {
     
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit')) || 8
+    
+    // Check cache
+    const cacheKey = `categories-top-${limit}`
+    const cached = apiCache.get(cacheKey)
+    if (cached) {
+      return NextResponse.json(cached)
+    }
 
     // Get all active categories
     const categories = await Category.find({ isActive: true })
@@ -46,10 +54,15 @@ export async function GET(request) {
     const totalActiveCategories = activeCategories.length
     const topCategories = activeCategories.slice(0, limit)
 
-    return NextResponse.json({
+    const response = {
       categories: topCategories,
-      total: totalActiveCategories // Total count of ALL categories with posts
-    })
+      total: totalActiveCategories
+    }
+    
+    // Cache for 5 minutes
+    apiCache.set(cacheKey, response, 300)
+
+    return NextResponse.json(response)
 
   } catch (error) {
     console.error('Error fetching top categories:', error)

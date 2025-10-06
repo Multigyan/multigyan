@@ -1,5 +1,37 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Optimize compiler
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
+  // Optimize output
+  output: 'standalone',
+  
+  // Cache static pages
+  async headers() {
+    return [
+      {
+        source: '/blog/:slug',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 's-maxage=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
+      {
+        source: '/category/:slug',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 's-maxage=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
+    ]
+  },
+  
   images: {
     remotePatterns: [
       {

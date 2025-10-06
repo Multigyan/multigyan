@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import Category from '@/models/Category'
+import { apiCache } from '@/lib/cache'
 
 // GET posts with filters and pagination
 export async function GET(request) {
@@ -21,6 +22,15 @@ export async function GET(request) {
     const slug = searchParams.get('slug')
 
     const session = await getServerSession(authOptions)
+    
+    // Check cache for public requests only
+    if (!session && status === 'published') {
+      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}`
+      const cached = apiCache.get(cacheKey)
+      if (cached) {
+        return NextResponse.json(cached)
+      }
+    }
     
     // Build query based on user role and filters
     let query = {}
@@ -91,7 +101,7 @@ export async function GET(request) {
     // Get total count for pagination
     const total = await Post.countDocuments(query)
 
-    return NextResponse.json({
+    const response = {
       posts,
       pagination: {
         current: page,
@@ -101,7 +111,15 @@ export async function GET(request) {
         hasNext: page < Math.ceil(total / limit),
         hasPrev: page > 1
       }
-    })
+    }
+    
+    // Cache public requests only
+    if (!session && status === 'published') {
+      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}`
+      apiCache.set(cacheKey, response, 300) // 5 minutes
+    }
+
+    return NextResponse.json(response)
 
   } catch (error) {
     console.error('Error fetching posts:', error)
