@@ -42,11 +42,13 @@ export async function GET(request) {
     const activeCategories = categoriesWithCounts
       .filter(cat => cat.postCount > 0)
       .sort((a, b) => b.postCount - a.postCount)
-      .slice(0, limit)
+
+    const totalActiveCategories = activeCategories.length
+    const topCategories = activeCategories.slice(0, limit)
 
     return NextResponse.json({
-      categories: activeCategories,
-      total: activeCategories.length
+      categories: topCategories,
+      total: totalActiveCategories // Total count of ALL categories with posts
     })
 
   } catch (error) {

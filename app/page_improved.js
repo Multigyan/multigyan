@@ -4,12 +4,13 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { BookOpen, PenTool, ArrowRight, TrendingUp, Sparkles } from "lucide-react"
+import { BookOpen, PenTool, ArrowRight, TrendingUp, Sparkles, RefreshCw, AlertCircle } from "lucide-react"
 import PostCard from "@/components/blog/PostCard"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/helpers"
 import { Calendar, Clock, Eye, User } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function HomePage() {
   const [latestPosts, setLatestPosts] = useState([])
@@ -19,69 +20,130 @@ export default function HomePage() {
     totalAuthors: 0,
     totalCategories: 0
   })
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState({
+    posts: true,
+    categories: true,
+    authors: true
+  })
+  const [errors, setErrors] = useState({
+    posts: null,
+    categories: null,
+    authors: null
+  })
 
   useEffect(() => {
     fetchHomeData()
   }, [])
 
   const fetchHomeData = async () => {
+    await Promise.all([
+      fetchLatestPosts(),
+      fetchTopCategories(),
+      fetchAuthorsCount()
+    ])
+  }
+
+  // Fetch latest posts with error handling
+  const fetchLatestPosts = async () => {
     try {
-      // Fetch latest posts
-      try {
-        const latestResponse = await fetch('/api/posts?status=published&limit=7')
-        if (latestResponse.ok) {
-          const latestData = await latestResponse.json()
-          setLatestPosts(latestData.posts || [])
-          setStats(prev => ({
-            ...prev,
-            totalPosts: latestData.pagination?.total || 0
-          }))
-        }
-      } catch (error) {
-        console.error('Error fetching latest posts:', error)
-      }
+      setLoading(prev => ({ ...prev, posts: true }))
+      setErrors(prev => ({ ...prev, posts: null }))
+
+      const response = await fetch('/api/posts?status=published&limit=7')
       
-      // Fetch top 8 categories with actual post counts
-      try {
-        const categoriesResponse = await fetch('/api/categories/top?limit=8')
-        if (categoriesResponse.ok) {
-          const categoriesData = await categoriesResponse.json()
-          setTopCategories(categoriesData.categories || [])
-          setStats(prev => ({
-            ...prev,
-            totalCategories: categoriesData.total || 0
-          }))
-        }
-      } catch (error) {
-        console.error('Error fetching categories:', error)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch posts: ${response.status}`)
       }
 
-      // Fetch authors count
-      try {
-        const authorsResponse = await fetch('/api/users/authors')
-        if (authorsResponse.ok) {
-          const authorsData = await authorsResponse.json()
-          setStats(prev => ({
-            ...prev,
-            totalAuthors: authorsData.total || 0
-          }))
-        }
-      } catch (error) {
-        console.error('Error fetching authors:', error)
-      }
+      const data = await response.json()
       
+      setLatestPosts(data.posts || [])
+      setStats(prev => ({
+        ...prev,
+        totalPosts: data.pagination?.total || 0
+      }))
     } catch (error) {
-      console.error('Error fetching home data:', error)
+      console.error('Error fetching latest posts:', error)
+      setErrors(prev => ({ 
+        ...prev, 
+        posts: 'Failed to load latest articles. Please try again.' 
+      }))
     } finally {
-      setLoading(false)
+      setLoading(prev => ({ ...prev, posts: false }))
     }
+  }
+
+  // Fetch top categories with error handling
+  const fetchTopCategories = async () => {
+    try {
+      setLoading(prev => ({ ...prev, categories: true }))
+      setErrors(prev => ({ ...prev, categories: null }))
+
+      const response = await fetch('/api/categories/top?limit=8')
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch categories: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      setTopCategories(data.categories || [])
+      setStats(prev => ({
+        ...prev,
+        totalCategories: data.total || 0
+      }))
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+      setErrors(prev => ({ 
+        ...prev, 
+        categories: 'Failed to load categories. Please try again.' 
+      }))
+    } finally {
+      setLoading(prev => ({ ...prev, categories: false }))
+    }
+  }
+
+  // Fetch authors count with error handling
+  const fetchAuthorsCount = async () => {
+    try {
+      setLoading(prev => ({ ...prev, authors: true }))
+      setErrors(prev => ({ ...prev, authors: null }))
+
+      const response = await fetch('/api/users/authors')
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch authors: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      setStats(prev => ({
+        ...prev,
+        totalAuthors: data.total || 0
+      }))
+    } catch (error) {
+      console.error('Error fetching authors:', error)
+      setErrors(prev => ({ 
+        ...prev, 
+        authors: 'Failed to load author count.' 
+      }))
+    } finally {
+      setLoading(prev => ({ ...prev, authors: false }))
+    }
+  }
+
+  // Refresh all data
+  const handleRefresh = () => {
+    fetchHomeData()
   }
 
   const featuredPost = latestPosts[0]
   const remainingPosts = latestPosts.slice(1, 7)
 
-  if (loading) {
+  // Check if all data is still loading
+  const isInitialLoading = loading.posts && loading.categories && loading.authors
+
+  if (isInitialLoading) {
     return (
       <div className="min-h-screen">
         <section className="relative overflow-hidden py-20 md:py-32 bg-gradient-to-br from-background via-primary/5 to-background">
@@ -90,6 +152,10 @@ export default function HomePage() {
               <div className="h-6 bg-muted rounded w-64 mx-auto mb-8"></div>
               <div className="h-16 bg-muted rounded w-full mb-6"></div>
               <div className="h-6 bg-muted rounded w-3/4 mx-auto mb-12"></div>
+              <div className="flex gap-4 justify-center">
+                <div className="h-12 bg-muted rounded w-40"></div>
+                <div className="h-12 bg-muted rounded w-40"></div>
+              </div>
             </div>
           </div>
         </section>
@@ -145,8 +211,44 @@ export default function HomePage() {
               </div>
             </div>
 
+            {/* Error Alert for Posts */}
+            {errors.posts && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span>{errors.posts}</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={fetchLatestPosts}
+                    disabled={loading.posts}
+                  >
+                    {loading.posts ? "Loading..." : "Retry"}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Featured Latest Post */}
-            {featuredPost && (
+            {loading.posts ? (
+              <div className="animate-pulse">
+                <div className="h-6 bg-muted rounded w-32 mb-4"></div>
+                <Card className="overflow-hidden">
+                  <div className="grid md:grid-cols-2 gap-0">
+                    <div className="h-64 md:h-96 bg-muted"></div>
+                    <div className="p-6 md:p-8">
+                      <div className="h-6 bg-muted rounded w-24 mb-4"></div>
+                      <div className="h-8 bg-muted rounded w-full mb-4"></div>
+                      <div className="h-20 bg-muted rounded w-full mb-6"></div>
+                      <div className="flex gap-4">
+                        <div className="h-4 bg-muted rounded w-32"></div>
+                        <div className="h-4 bg-muted rounded w-32"></div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            ) : featuredPost ? (
               <div className="animate-in fade-in slide-in-from-bottom-12 duration-700 delay-600">
                 <div className="flex items-center gap-2 mb-4">
                   <TrendingUp className="h-5 w-5 text-primary" />
@@ -232,13 +334,20 @@ export default function HomePage() {
                   </Card>
                 </Link>
               </div>
-            )}
+            ) : !errors.posts ? (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  No articles available yet. Be the first to create one!
+                </AlertDescription>
+              </Alert>
+            ) : null}
           </div>
         </div>
       </section>
 
       {/* Latest 6 Posts Section */}
-      {remainingPosts.length > 0 && (
+      {(remainingPosts.length > 0 || loading.posts) && (
         <section className="py-16 md:py-20">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-12">
@@ -262,13 +371,29 @@ export default function HomePage() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {remainingPosts.map((post, index) => (
-                <div key={post._id} className="animate-in fade-in slide-in-from-bottom-6 duration-500" style={{ animationDelay: `${index * 50}ms` }}>
-                  <PostCard post={post} />
-                </div>
-              ))}
-            </div>
+            {loading.posts ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[...Array(6)].map((_, index) => (
+                  <Card key={index} className="overflow-hidden animate-pulse">
+                    <div className="h-48 bg-muted"></div>
+                    <CardContent className="p-6">
+                      <div className="h-4 bg-muted rounded w-20 mb-3"></div>
+                      <div className="h-6 bg-muted rounded w-full mb-3"></div>
+                      <div className="h-4 bg-muted rounded w-full mb-2"></div>
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {remainingPosts.map((post, index) => (
+                  <div key={post._id} className="animate-in fade-in slide-in-from-bottom-6 duration-500" style={{ animationDelay: `${index * 50}ms` }}>
+                    <PostCard post={post} />
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="text-center mt-10 sm:hidden">
               <Button variant="outline" asChild>
@@ -283,7 +408,7 @@ export default function HomePage() {
       )}
 
       {/* Explore by Category Section */}
-      {topCategories.length > 0 && (
+      {(topCategories.length > 0 || loading.categories) && (
         <section className="py-16 md:py-20 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -299,36 +424,68 @@ export default function HomePage() {
               </p>
             </div>
 
+            {/* Error Alert for Categories */}
+            {errors.categories && (
+              <Alert variant="destructive" className="mb-6 max-w-4xl mx-auto">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span>{errors.categories}</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={fetchTopCategories}
+                    disabled={loading.categories}
+                  >
+                    {loading.categories ? "Loading..." : "Retry"}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Top 8 Categories Grid - 2 rows x 4 columns */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto mb-8">
-              {topCategories.slice(0, 8).map((category, index) => (
-                <Link
-                  key={category._id}
-                  href={`/category/${category.slug}`}
-                  className="group"
-                >
-                  <Card className="blog-card text-center h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                    <CardContent className="p-6">
-                      <div
-                        className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center transition-transform group-hover:scale-110 duration-300"
-                        style={{ backgroundColor: `${category.color}20` }}
-                      >
-                        <div
-                          className="w-10 h-10 rounded-full"
-                          style={{ backgroundColor: category.color }}
-                        />
-                      </div>
-                      <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                        {category.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {category.postCount || 0} article{category.postCount !== 1 ? 's' : ''}
-                      </p>
+            {loading.categories ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto mb-8">
+                {[...Array(8)].map((_, index) => (
+                  <Card key={index} className="animate-pulse">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4"></div>
+                      <div className="h-4 bg-muted rounded w-3/4 mx-auto mb-2"></div>
+                      <div className="h-3 bg-muted rounded w-1/2 mx-auto"></div>
                     </CardContent>
                   </Card>
-                </Link>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto mb-8">
+                {topCategories.slice(0, 8).map((category, index) => (
+                  <Link
+                    key={category._id}
+                    href={`/category/${category.slug}`}
+                    className="group"
+                  >
+                    <Card className="blog-card text-center h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                      <CardContent className="p-6">
+                        <div
+                          className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center transition-transform group-hover:scale-110 duration-300"
+                          style={{ backgroundColor: `${category.color}20` }}
+                        >
+                          <div
+                            className="w-10 h-10 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                        </div>
+                        <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                          {category.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {category.postCount || 0} article{category.postCount !== 1 ? 's' : ''}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
 
             <div className="text-center">
               <Button variant="outline" size="lg" asChild>
@@ -346,26 +503,67 @@ export default function HomePage() {
       <section className="py-20 md:py-28 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
-            {/* Stats */}
+            {/* Stats with Loading States */}
             <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto mb-16">
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-primary to-primary/60 mb-2">
-                  {stats.totalPosts > 0 ? `${stats.totalPosts}+` : '0'}
-                </div>
-                <div className="text-sm md:text-base text-muted-foreground font-medium">Articles</div>
+                {loading.posts ? (
+                  <div className="animate-pulse">
+                    <div className="h-12 bg-muted rounded w-20 mx-auto mb-2"></div>
+                    <div className="h-4 bg-muted rounded w-16 mx-auto"></div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-primary to-primary/60 mb-2">
+                      {stats.totalPosts > 0 ? `${stats.totalPosts}+` : '0'}
+                    </div>
+                    <div className="text-sm md:text-base text-muted-foreground font-medium">Articles</div>
+                  </>
+                )}
               </div>
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-primary to-primary/60 mb-2">
-                  {stats.totalCategories > 0 ? `${stats.totalCategories}+` : '0'}
-                </div>
-                <div className="text-sm md:text-base text-muted-foreground font-medium">Categories</div>
+                {loading.categories ? (
+                  <div className="animate-pulse">
+                    <div className="h-12 bg-muted rounded w-20 mx-auto mb-2"></div>
+                    <div className="h-4 bg-muted rounded w-16 mx-auto"></div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-primary to-primary/60 mb-2">
+                      {stats.totalCategories > 0 ? `${stats.totalCategories}+` : '0'}
+                    </div>
+                    <div className="text-sm md:text-base text-muted-foreground font-medium">Categories</div>
+                  </>
+                )}
               </div>
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-primary to-primary/60 mb-2">
-                  {stats.totalAuthors > 0 ? `${stats.totalAuthors}+` : '0'}
-                </div>
-                <div className="text-sm md:text-base text-muted-foreground font-medium">Authors</div>
+                {loading.authors ? (
+                  <div className="animate-pulse">
+                    <div className="h-12 bg-muted rounded w-20 mx-auto mb-2"></div>
+                    <div className="h-4 bg-muted rounded w-16 mx-auto"></div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-primary to-primary/60 mb-2">
+                      {stats.totalAuthors > 0 ? `${stats.totalAuthors}+` : '0'}
+                    </div>
+                    <div className="text-sm md:text-base text-muted-foreground font-medium">Authors</div>
+                  </>
+                )}
               </div>
+            </div>
+
+            {/* Refresh Button */}
+            <div className="mb-8">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={loading.posts || loading.categories || loading.authors}
+                className="text-muted-foreground hover:text-primary"
+              >
+                <RefreshCw className={`mr-2 h-4 w-4 ${(loading.posts || loading.categories || loading.authors) ? 'animate-spin' : ''}`} />
+                Refresh Stats
+              </Button>
             </div>
 
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
