@@ -24,14 +24,15 @@ export default function PostCard({ post, featured = false }) {
   return (
     <Link href={`/blog/${post.slug}`} className="block h-full">
       <Card className="blog-card overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-        {/* Featured Image */}
-        <div className="relative w-full overflow-hidden bg-muted" style={{ paddingBottom: '56.25%' }}>
+        {/* Featured Image - Fixed 16:9 Aspect Ratio */}
+        <div className="relative w-full" style={{ aspectRatio: '16 / 9' }}>
           {post.featuredImageUrl ? (
             <Image
               src={post.featuredImageUrl}
               alt={post.featuredImageAlt || post.title}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-110 absolute inset-0"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-110"
             />
           ) : (
             <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">

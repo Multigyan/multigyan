@@ -49,7 +49,7 @@ export default async function AuthorsPage() {
       _id: { $in: authorIds },
       isActive: true 
     })
-      .select('name email profilePictureUrl bio role createdAt')
+      .select('name email username profilePictureUrl bio role createdAt')
       .lean()
 
     const authorsWithStats = authors.map(author => {
@@ -165,7 +165,7 @@ export default async function AuthorsPage() {
                         <div className="flex-1 min-w-0">
                           <CardTitle className="text-lg mb-1 truncate">
                             <Link 
-                              href={`/author/${author._id}`}
+                              href={`/author/${author.username || author._id}`}
                               className="hover:text-primary transition-colors"
                             >
                               {author.name}
@@ -224,7 +224,7 @@ export default async function AuthorsPage() {
                         className="w-full"
                         asChild
                       >
-                        <Link href={`/author/${author._id}`}>
+                        <Link href={`/author/${author.username || author._id}`}>
                           View Profile
                           <ArrowRight className="ml-2 h-3 w-3" />
                         </Link>

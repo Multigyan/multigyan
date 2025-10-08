@@ -32,7 +32,7 @@ export async function GET(request) {
       }
     }
     
-    // Build query based on user role and filters
+    // ✅ BUILD QUERY BASED ON USER ROLE AND FILTERS
     let query = {}
     
     // Public access - only published posts
@@ -41,29 +41,12 @@ export async function GET(request) {
     } else {
       // Authenticated users
       if (session.user.role === 'admin') {
-        // Admins can see all posts
+        // ✅ ADMINS CAN SEE ALL POSTS FROM ALL AUTHORS
         if (status) query.status = status
       } else {
-        // Authors can see their own posts + published posts from others
-        if (status) {
-          if (status === 'published') {
-            query.status = 'published'
-          } else {
-            query = {
-              $or: [
-                { author: session.user.id, status },
-                { status: 'published' }
-              ]
-            }
-          }
-        } else {
-          query = {
-            $or: [
-              { author: session.user.id },
-              { status: 'published' }
-            ]
-          }
-        }
+        // ✅ AUTHORS CAN ONLY SEE THEIR OWN POSTS (any status)
+        query.author = session.user.id
+        if (status) query.status = status
       }
     }
 

@@ -358,7 +358,10 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
             {/* Posts Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent Posts ({stats.totalPosts})</CardTitle>
+                <CardTitle>Recent Posts</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Showing {posts.length} of {stats.totalPosts} published articles
+                </p>
               </CardHeader>
               <CardContent>
                 {posts.length > 0 ? (
@@ -370,10 +373,10 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                         className="block group"
                       >
                         <div className="flex gap-4">
-                          {post.featuredImage && (
+                          {post.featuredImageUrl && (
                             <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden">
                               <Image
-                                src={post.featuredImage}
+                                src={post.featuredImageUrl}
                                 alt={post.title}
                                 fill
                                 className="object-cover group-hover:scale-110 transition-transform"
@@ -400,7 +403,7 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                               </span>
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {post.readTime} min read
+                                {post.readingTime} min read
                               </span>
                               <span className="flex items-center gap-1">
                                 <Eye className="h-3 w-3" />

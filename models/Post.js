@@ -208,7 +208,40 @@ const PostSchema = new mongoose.Schema({
   seoKeywords: [{
     type: String,
     maxlength: [50, 'SEO keyword cannot be more than 50 characters']
-  }]
+  }],
+  // ✅ NEW: Revision Tracking for Author Edits
+  hasRevision: {
+    type: Boolean,
+    default: false
+  },
+  revision: {
+    title: String,
+    content: String,
+    excerpt: String,
+    featuredImageUrl: String,
+    featuredImageAlt: String,
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category'
+    },
+    tags: [String],
+    seoTitle: String,
+    seoDescription: String,
+    seoKeywords: [String],
+    submittedAt: Date,
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+    }
+  },
+  // ✅ NEW: Admin Edit Tracking
+  lastEditedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  lastEditedAt: Date,
+  editReason: String  // Admin must provide reason for editing author's post
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

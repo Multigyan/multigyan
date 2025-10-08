@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,7 +19,11 @@ import {
   Clock, 
   CheckCircle, 
   XCircle,
-  AlertCircle
+  AlertCircle,
+  ShieldAlert,
+  GitBranch,
+  Info,
+  ImageIcon
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatDate } from "@/lib/helpers"
@@ -38,6 +43,8 @@ export default function PostsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState(null)
+  
+  const isAdmin = session?.user?.role === 'admin'
 
   useEffect(() => {
     fetchPosts()
@@ -82,13 +89,19 @@ export default function PostsPage() {
     fetchPosts()
   }
 
-  const handleDelete = async (postId) => {
+  const handleDelete = async (post) => {
+    // ✅ Check if author can delete published post
+    if (!isAdmin && post.status === 'published') {
+      toast.error('Published posts cannot be deleted. Please contact an administrator.')
+      return
+    }
+
     if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       return
     }
 
     try {
-      const response = await fetch(`/api/posts/${postId}`, {
+      const response = await fetch(`/api/posts/${post._id}`, {
         method: 'DELETE',
       })
 
@@ -137,8 +150,14 @@ export default function PostsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Your Posts</h1>
-          <p className="text-muted-foreground">Manage and organize your blog posts</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {isAdmin ? 'All Posts' : 'Your Posts'}
+          </h1>
+          <p className="text-muted-foreground">
+            {isAdmin 
+              ? 'Manage all posts from all authors' 
+              : 'Manage and organize your blog posts'}
+          </p>
         </div>
         <Button asChild>
           <Link href="/dashboard/posts/new">
@@ -147,6 +166,28 @@ export default function PostsPage() {
           </Link>
         </Button>
       </div>
+
+      {/* ✅ Info Banner for Authors */}
+      {!isAdmin && (
+        <Card className="mb-6 bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-blue-900">
+                  Important: How Post Editing Works
+                </p>
+                <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                  <li>Published posts cannot be deleted by authors</li>
+                  <li>When you edit a published post, changes will be submitted for admin approval</li>
+                  <li>Your original post remains live until the revision is approved</li>
+                  <li>You can only edit drafts and pending posts directly</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card className="mb-6">
@@ -205,16 +246,59 @@ export default function PostsPage() {
           {posts.map((post) => (
             <Card key={post._id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                <div className="flex flex-col md:flex-row gap-4">
+                  {/* Featured Image */}
+                  <div className="flex-shrink-0">
+                    <div className="relative w-full md:w-40 h-40 rounded-lg overflow-hidden bg-muted">
+                      {post.featuredImageUrl ? (
+                        <Image
+                          src={post.featuredImageUrl}
+                          alt={post.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 160px"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                          <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
                       <h3 className="text-lg font-semibold text-foreground hover:text-primary">
                         <Link href={`/dashboard/posts/${post._id}`}>
                           {post.title}
                         </Link>
                       </h3>
                       {getStatusBadge(post.status)}
+                      
+                      {/* ✅ Show if post has pending revision */}
+                      {post.hasRevision && (
+                        <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                          <GitBranch className="w-3 h-3 mr-1" />
+                          Revision Pending
+                        </Badge>
+                      )}
+                      
+                      {/* ✅ Show if post was edited by admin */}
+                      {post.lastEditedBy && isAdmin && (
+                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                          <ShieldAlert className="w-3 h-3 mr-1" />
+                          Edited by Admin
+                        </Badge>
+                      )}
                     </div>
+                    
+                    {/* ✅ Show author name for admins */}
+                    {isAdmin && post.author && (
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Author: <span className="font-medium">{post.author.name}</span>
+                      </p>
+                    )}
                     
                     <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
                       {post.excerpt || 'No excerpt available'}
@@ -243,8 +327,10 @@ export default function PostsPage() {
                       )}
                     </div>
                   </div>
+                </div>
 
-                  <div className="flex items-center gap-2">
+                {/* Actions Row */}
+                <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t">
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/dashboard/posts/${post._id}/edit`}>
                         <Edit className="h-4 w-4" />
@@ -259,17 +345,20 @@ export default function PostsPage() {
                       </Button>
                     )}
                     
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleDelete(post._id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {/* ✅ Only show delete for non-published posts or admins */}
+                    {(isAdmin || post.status !== 'published') && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleDelete(post)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                </div>
 
+                {/* ✅ Show rejection reason */}
                 {post.status === 'rejected' && post.rejectionReason && (
                   <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
                     <div className="flex items-start gap-2">
@@ -277,6 +366,42 @@ export default function PostsPage() {
                       <div>
                         <p className="text-sm font-medium text-destructive">Rejection Reason:</p>
                         <p className="text-sm text-muted-foreground">{post.rejectionReason}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* ✅ Show admin edit reason */}
+                {post.lastEditedBy && post.editReason && !isAdmin && (
+                  <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <ShieldAlert className="h-4 w-4 text-purple-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-purple-900">
+                          Edited by Admin {post.lastEditedAt && `on ${formatDate(post.lastEditedAt)}`}
+                        </p>
+                        <p className="text-sm text-purple-700 mt-1">
+                          <span className="font-medium">Reason:</span> {post.editReason}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* ✅ Show revision info */}
+                {post.hasRevision && (
+                  <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <GitBranch className="h-4 w-4 text-orange-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-orange-900">
+                          Revision Pending Approval
+                        </p>
+                        <p className="text-sm text-orange-700 mt-1">
+                          {isAdmin 
+                            ? 'This post has pending changes that need your review.'
+                            : 'Your changes are pending admin approval. The original post remains published.'}
+                        </p>
                       </div>
                     </div>
                   </div>

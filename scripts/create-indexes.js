@@ -70,6 +70,13 @@ async function createIndexes() {
     await db.collection('comments').createIndex({ author: 1, createdAt: -1 })
     console.log('✓ Comments indexes created')
 
+    // Notifications collection indexes
+    console.log('Creating notifications indexes...')
+    await db.collection('notifications').createIndex({ recipient: 1, createdAt: -1 })
+    await db.collection('notifications').createIndex({ recipient: 1, isRead: 1, createdAt: -1 })
+    await db.collection('notifications').createIndex({ type: 1 })
+    console.log('✓ Notifications indexes created')
+
     console.log('\n✓ All indexes created successfully!')
     process.exit(0)
   } catch (error) {

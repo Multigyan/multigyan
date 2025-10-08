@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import Post from '@/models/Post'
+import Category from '@/models/Category' // ✅ FIX: Import Category to register schema
 import ProfileClient from './ProfileClient'
 
 async function getUserByUsername(username) {
@@ -31,7 +32,7 @@ async function getUserPosts(userId) {
       .sort({ publishedAt: -1 })
       .limit(5)
       .populate('category', 'name slug')
-      .select('title slug excerpt featuredImage publishedAt readTime views likes category')
+      .select('title slug excerpt featuredImageUrl publishedAt readingTime views likes category')
       .lean()
     
     return JSON.parse(JSON.stringify(posts))

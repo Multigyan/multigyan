@@ -26,7 +26,9 @@ const NotificationSchema = new mongoose.Schema({
       'reply_comment',    // Someone replied to your comment
       'follow',           // Someone followed you
       'mention',          // Someone mentioned you
-      'post_published'    // Your post was published (admin approval)
+      'post_published',   // Your post was published (admin approval)
+      'post_edited_by_admin',  // Admin edited your post
+      'post_revision_pending'  // Your edited post needs admin approval
     ],
     required: true
   },
@@ -52,6 +54,13 @@ const NotificationSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true
+  },
+  
+  // Additional metadata for notifications
+  metadata: {
+    editReason: String,      // Reason for editing (admin only)
+    changes: String,         // Description of changes made
+    postTitle: String        // Title of the post for context
   },
   
   // Read status

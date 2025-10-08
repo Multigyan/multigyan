@@ -55,6 +55,13 @@ async function verifyIndexes() {
       console.log(`  ✓ ${idx.name}`)
     })
 
+    // Check Notifications indexes
+    console.log('\n🔔 NOTIFICATIONS Collection Indexes:')
+    const notificationsIndexes = await db.collection('notifications').indexes()
+    notificationsIndexes.forEach(idx => {
+      console.log(`  ✓ ${idx.name}`)
+    })
+
     console.log('\n✅ All indexes verified successfully!\n')
 
     // Performance tips

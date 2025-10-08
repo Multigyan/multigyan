@@ -5,6 +5,7 @@ import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import Category from '@/models/Category'
 import Notification from '@/models/Notification'
+import { updateUserStats } from '@/lib/updateUserStats'
 
 // POST - Handle post actions (approve, reject, like, unlike, submit)
 export async function POST(request, { params }) {
@@ -67,6 +68,9 @@ export async function POST(request, { params }) {
         await post.approve(session.user.id)
         await Category.incrementPostCount(post.category._id)
 
+        // ✅ UPDATE AUTHOR STATS
+        await updateUserStats(post.author._id)
+
         // CREATE NOTIFICATION when post is approved
         try {
           await Notification.createNotification({
@@ -115,6 +119,9 @@ export async function POST(request, { params }) {
         }
 
         await post.reject(session.user.id, reason.trim())
+
+        // ✅ UPDATE AUTHOR STATS (in case post was previously published)
+        await updateUserStats(post.author._id)
 
         return NextResponse.json({
           message: 'Post rejected successfully',

@@ -13,7 +13,9 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { userId } = params
+    // ✅ FIX: Await params before using (Next.js 15+ requirement)
+    const resolvedParams = await params
+    const { userId } = resolvedParams
     const currentUserId = session.user.id
 
     // Can't follow yourself
@@ -108,7 +110,9 @@ export async function GET(request, { params }) {
       return NextResponse.json({ isFollowing: false })
     }
 
-    const { userId } = params
+    // ✅ FIX: Await params before using (Next.js 15+ requirement)
+    const resolvedParams = await params
+    const { userId } = resolvedParams
     const currentUserId = session.user.id
 
     await connectDB()
