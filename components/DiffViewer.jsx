@@ -71,7 +71,7 @@ export default function DiffViewer({ original, revised, title = "Content Compari
   }
   
   // Render diff for simple fields
-  const renderFieldDiff = (label, oldValue, newValue, icon: any) => {
+  const renderFieldDiff = (label, oldValue, newValue, icon) => {
     const Icon = icon
     const changed = hasChanges(oldValue, newValue)
     
