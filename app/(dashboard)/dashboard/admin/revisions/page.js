@@ -35,8 +35,7 @@ export default function AdminRevisionsPage() {
       return
     }
     fetchPostsWithRevisions()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, router])
+  }, [session, router, fetchPostsWithRevisions])
 
   const fetchPostsWithRevisions = async () => {
     try {
