@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "db:index": "node scripts/create-indexes.js",
-    "db:verify": "node scripts/verify-indexes.js"
+    "db:verify": "node scripts/verify-indexes.js",
+    "deploy:check": "node scripts/check-deployment.js",
+    "test:build": "npm run lint && npm run build",
+    "analyze": "ANALYZE=true npm run build",
+    "clean": "rm -rf .next node_modules/.cache"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -56,7 +60,8 @@
     "resend": "^6.1.1",
     "slugify": "^1.6.6",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "web-vitals": "^5.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

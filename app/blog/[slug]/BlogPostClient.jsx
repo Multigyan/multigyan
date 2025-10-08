@@ -195,6 +195,56 @@ export default function BlogPostClient({ post }) {
                   </div>
                 </header>
 
+                {/* Share Buttons - Above Featured Image */}
+                <div className="flex items-center gap-2 mb-4 sm:mb-6 flex-wrap">
+                  <span className="text-xs sm:text-sm text-muted-foreground mr-1 sm:mr-2">Share:</span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleShare('twitter')}
+                    title="Share on Twitter"
+                    className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600 min-h-[44px] min-w-[44px]"
+                  >
+                    <Twitter className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleShare('facebook')}
+                    title="Share on Facebook"
+                    className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700 min-h-[44px] min-w-[44px]"
+                  >
+                    <Facebook className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleShare('linkedin')}
+                    title="Share on LinkedIn"
+                    className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600 min-h-[44px] min-w-[44px]"
+                  >
+                    <Linkedin className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleShare('whatsapp')}
+                    title="Share on WhatsApp"
+                    className="hover:bg-green-50 hover:text-green-600 hover:border-green-600 min-h-[44px] min-w-[44px]"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleShare('copy')}
+                    title="Copy link"
+                    className="hover:bg-gray-50 min-h-[44px] min-w-[44px]"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+
                 {/* Featured Image - Mobile optimized */}
                 {post.featuredImageUrl && (
                   <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden bg-muted">

@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PenTool, Users, BarChart3, Settings, Plus, FileText, Folder } from "lucide-react"
@@ -11,24 +11,70 @@ import Link from "next/link"
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const [stats, setStats] = useState({
+    totalPosts: 0,
+    publishedPosts: 0,
+    draftPosts: 0,
+    totalUsers: 0
+  })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (status === "loading") return
     if (!session) router.push("/login")
+    else fetchStats()
   }, [session, status, router])
 
-  if (status === "loading") {
+  const fetchStats = async () => {
+    try {
+      setLoading(true)
+      
+      // Fetch user's posts stats
+      const postsResponse = await fetch('/api/posts?limit=1000')
+      const postsData = await postsResponse.json()
+      
+      if (postsResponse.ok && postsData.posts) {
+        const allPosts = postsData.posts
+        const published = allPosts.filter(p => p.status === 'published').length
+        const drafts = allPosts.filter(p => p.status === 'draft').length
+        
+        setStats(prev => ({
+          ...prev,
+          totalPosts: allPosts.length,
+          publishedPosts: published,
+          draftPosts: drafts
+        }))
+      }
+
+      // Fetch total users (admin only)
+      if (session?.user?.role === 'admin') {
+        const usersResponse = await fetch('/api/users')
+        const usersData = await usersResponse.json()
+        
+        if (usersResponse.ok && usersData.users) {
+          setStats(prev => ({
+            ...prev,
+            totalUsers: usersData.users.length
+          }))
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (status === "loading" || loading) {
     return (
       <div className="min-h-screen">
-        <div className="container mx-auto px-4 py-8">
-          {/* Header Skeleton */}
-          <div className="mb-8 fade-in">
-            <div className="skeleton-text h-10 w-96 mb-2"></div>
-            <div className="skeleton-text h-6 w-64"></div>
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="mb-6 sm:mb-8 fade-in">
+            <div className="skeleton-text h-8 sm:h-10 w-64 sm:w-96 mb-2"></div>
+            <div className="skeleton-text h-5 sm:h-6 w-48 sm:w-64"></div>
           </div>
 
-          {/* Stats Cards Skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {[...Array(4)].map((_, i) => (
               <Card key={i} className="scale-in" style={{ animationDelay: `${i * 100}ms` }}>
                 <CardHeader>
@@ -39,17 +85,16 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* Cards Skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {[...Array(2)].map((_, i) => (
               <Card key={i} className="fade-in" style={{ animationDelay: `${i * 150}ms` }}>
                 <CardHeader>
                   <div className="skeleton-text h-6 w-48 mb-2"></div>
                   <div className="skeleton-text h-4 w-64"></div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="skeleton h-10 w-full"></div>
-                  <div className="skeleton h-10 w-full"></div>
+                <CardContent className="space-y-3 sm:space-y-4">
+                  <div className="skeleton h-11 w-full"></div>
+                  <div className="skeleton h-11 w-full"></div>
                 </CardContent>
               </Card>
             ))}
@@ -66,17 +111,17 @@ export default function DashboardPage() {
   const isAdmin = session.user.role === 'admin'
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 fade-in">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8 fade-in">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
           Welcome back, <span className="text-gradient">{session.user.name}</span>
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           {isAdmin ? '🔑 Admin Dashboard' : '✍️ Author Dashboard'} - Manage your content and settings
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <Card className="fade-in hover:shadow-lg transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Your Posts</CardTitle>
@@ -85,7 +130,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{stats.totalPosts}</div>
             <p className="text-xs text-muted-foreground">Total posts created</p>
           </CardContent>
         </Card>
@@ -98,7 +143,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{stats.publishedPosts}</div>
             <p className="text-xs text-muted-foreground">Posts published</p>
           </CardContent>
         </Card>
@@ -111,7 +156,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{stats.draftPosts}</div>
             <p className="text-xs text-muted-foreground">Posts in draft</p>
           </CardContent>
         </Card>
@@ -125,37 +170,37 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
               <p className="text-xs text-muted-foreground">Registered users</p>
             </CardContent>
           </Card>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <Card className="fade-in hover:shadow-lg transition-all">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <PenTool className="h-5 w-5 text-primary" />
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <PenTool className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
               Content Management
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               Create and manage your blog posts
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Button className="w-full transition-all hover:scale-105 hover:shadow-lg" asChild>
+          <CardContent className="space-y-3 sm:space-y-4">
+            <Button className="w-full transition-all hover:scale-105 hover:shadow-lg min-h-[44px]" asChild>
               <Link href="/dashboard/posts/new">
                 <Plus className="mr-2 h-4 w-4" />
-                Create New Post
+                <span className="text-sm sm:text-base">Create New Post</span>
               </Link>
             </Button>
-            <Button variant="outline" className="w-full transition-all hover:scale-105" asChild>
+            <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
               <Link href="/dashboard/posts">
                 <FileText className="mr-2 h-4 w-4" />
-                Manage Posts
+                <span className="text-sm sm:text-base">Manage Posts</span>
               </Link>
             </Button>
           </CardContent>
@@ -163,62 +208,62 @@ export default function DashboardPage() {
 
         {isAdmin ? (
           <Card className="fade-in hover:shadow-lg transition-all" style={{ animationDelay: '150ms' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <Settings className="h-5 w-5 text-yellow-600" />
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
                 </div>
                 Admin Panel
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 Manage users, content, and platform settings
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full transition-all hover:scale-105" asChild>
+            <CardContent className="space-y-3 sm:space-y-4">
+              <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
                 <Link href="/dashboard/admin/users">
                   <Users className="mr-2 h-4 w-4" />
-                  Manage Users
+                  <span className="text-sm sm:text-base">Manage Users</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full transition-all hover:scale-105" asChild>
+              <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
                 <Link href="/dashboard/admin/categories">
                   <Folder className="mr-2 h-4 w-4" />
-                  Manage Categories
+                  <span className="text-sm sm:text-base">Manage Categories</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full transition-all hover:scale-105" asChild>
+              <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
                 <Link href="/dashboard/admin/review">
                   <FileText className="mr-2 h-4 w-4" />
-                  Review Posts
+                  <span className="text-sm sm:text-base">Review Posts</span>
                 </Link>
               </Button>
             </CardContent>
           </Card>
         ) : (
           <Card className="fade-in hover:shadow-lg transition-all" style={{ animationDelay: '150ms' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Settings className="h-5 w-5 text-primary" />
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
                 Account Settings
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 Manage your profile and preferences
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full transition-all hover:scale-105" asChild>
+            <CardContent className="space-y-3 sm:space-y-4">
+              <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
                 <Link href="/dashboard/profile">
                   <Users className="mr-2 h-4 w-4" />
-                  Edit Profile
+                  <span className="text-sm sm:text-base">Edit Profile</span>
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full transition-all hover:scale-105" asChild>
+              <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
                 <Link href="/dashboard/settings">
                   <Settings className="mr-2 h-4 w-4" />
-                  Settings
+                  <span className="text-sm sm:text-base">Settings</span>
                 </Link>
               </Button>
             </CardContent>
@@ -226,27 +271,27 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className="mt-8 fade-in" style={{ animationDelay: '200ms' }}>
+      <div className="mt-6 sm:mt-8 fade-in" style={{ animationDelay: '200ms' }}>
         <Card className="glass">
-          <CardHeader>
-            <CardTitle>Account Information</CardTitle>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">Account Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Role</p>
-                <p className="text-lg font-semibold">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Role</p>
+                <p className="text-base sm:text-lg font-semibold">
                   {isAdmin ? '🔑 Administrator' : '✍️ Author'}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Email</p>
-                <p className="text-lg">{session.user.email}</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Email</p>
+                <p className="text-base sm:text-lg truncate">{session.user.email}</p>
               </div>
             </div>
             {!isAdmin && (
-              <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border scale-in" style={{ animationDelay: '300ms' }}>
-                <p className="text-sm text-muted-foreground">
+              <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-muted/50 rounded-lg border border-border scale-in" style={{ animationDelay: '300ms' }}>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   <strong>Note:</strong> You&apos;re currently an Author. 
                   If you need admin access, please contact an existing administrator 
                   to promote your account.

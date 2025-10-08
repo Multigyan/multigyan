@@ -20,8 +20,9 @@ export default function TableOfContents({ content, readingTime }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [readingProgress, setReadingProgress] = useState(0)
+  const [isSticky, setIsSticky] = useState(true) // New state for sticky behavior
 
-  // Extract headings - runs once per content
+  // Extract headings
   useEffect(() => {
     let attempts = 0
     const maxAttempts = 10
@@ -49,24 +50,18 @@ export default function TableOfContents({ content, readingTime }) {
       const extractedHeadings = []
 
       headingElements.forEach((heading) => {
-        // Get clean text content
         const text = heading.textContent.trim()
-        
-        // Skip if empty
         if (!text) return
         
-        // Create ID: Keep structure intact, just convert spaces to hyphens
         const id = text
           .toLowerCase()
-          .replace(/[^\w\s-]/g, '') // Keep letters, numbers, spaces, and hyphens
-          .replace(/\s+/g, '-') // Replace spaces with single hyphen
-          .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-          .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-+|-+$/g, '')
         
-        // Skip if invalid ID
         if (!id) return
         
-        // Make ID unique if needed
         let finalId = id
         let counter = 1
         while (extractedHeadings.find(h => h.id === finalId)) {
@@ -74,7 +69,6 @@ export default function TableOfContents({ content, readingTime }) {
           counter++
         }
         
-        // Set the ID on the actual heading element
         heading.setAttribute('id', finalId)
         heading.setAttribute('data-toc-heading', 'true')
         
@@ -99,7 +93,7 @@ export default function TableOfContents({ content, readingTime }) {
     }
   }, [content])
 
-  // Track active section and reading progress - OPTIMIZED
+  // Track active section, reading progress, and sticky behavior
   useEffect(() => {
     if (headings.length === 0) return
 
@@ -114,6 +108,15 @@ export default function TableOfContents({ content, readingTime }) {
           const scrolled = window.scrollY
           const progress = documentHeight > 0 ? Math.min((scrolled / documentHeight) * 100, 100) : 0
           setReadingProgress(progress)
+
+          // Check if we should stop sticky behavior
+          const blogContent = document.querySelector('.blog-content')
+          if (blogContent) {
+            const rect = blogContent.getBoundingClientRect()
+            const bottomOfContent = rect.bottom
+            const shouldBeSticky = bottomOfContent > windowHeight * 0.3 // Stop being sticky when content is 30% from top
+            setIsSticky(shouldBeSticky)
+          }
 
           // Find active heading
           let currentActiveId = ""
@@ -150,12 +153,10 @@ export default function TableOfContents({ content, readingTime }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [headings, activeId])
 
-  // Smooth scroll to section
   const scrollToHeading = (id) => {
     const element = document.getElementById(id)
     
     if (!element) {
-      // Try to find by text content as fallback - silently
       const allHeadings = document.querySelectorAll('.blog-content h2, .blog-content h3')
       const found = Array.from(allHeadings).find(h => {
         const headingId = h.textContent.trim()
@@ -173,7 +174,6 @@ export default function TableOfContents({ content, readingTime }) {
         return
       }
       
-      // If still not found, just return silently
       return
     }
     
@@ -193,7 +193,6 @@ export default function TableOfContents({ content, readingTime }) {
     setIsOpen(false)
     setActiveId(id)
     
-    // Visual feedback
     element.style.transition = 'background-color 0.3s'
     element.style.backgroundColor = 'hsl(var(--primary) / 0.1)'
     setTimeout(() => {
@@ -209,9 +208,12 @@ export default function TableOfContents({ content, readingTime }) {
     setIsOpen(false)
   }
 
-  // Memoize desktop TOC to prevent unnecessary re-renders
+  // Desktop TOC with improved sticky behavior
   const DesktopTOC = useMemo(() => (
-    <div className="hidden lg:block sticky top-24 max-h-[calc(100vh-8rem)] overflow-auto custom-scrollbar fade-in">
+    <div className={cn(
+      "hidden lg:block max-h-[calc(100vh-8rem)] overflow-auto custom-scrollbar fade-in",
+      isSticky ? "sticky top-24" : "relative"
+    )}>
       <Card className="shadow-lg">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -230,7 +232,6 @@ export default function TableOfContents({ content, readingTime }) {
             </Button>
           </div>
           
-          {/* Reading Progress Bar */}
           <div className="mt-3">
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
               <span>Reading Progress</span>
@@ -273,7 +274,6 @@ export default function TableOfContents({ content, readingTime }) {
               ))}
             </nav>
 
-            {/* Quick Stats */}
             <div className="mt-4 pt-4 border-t">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{headings.length} sections</span>
@@ -286,12 +286,12 @@ export default function TableOfContents({ content, readingTime }) {
         )}
       </Card>
     </div>
-  ), [headings, activeId, isCollapsed, readingProgress, readingTime])
+  ), [headings, activeId, isCollapsed, readingProgress, readingTime, isSticky])
 
-  // Mobile TOC
+  // Mobile TOC - Always visible
   const MobileTOC = () => (
     <>
-      {/* Floating TOC Button */}
+      {/* Floating Button */}
       <div className="lg:hidden fixed bottom-6 right-6 z-40 scale-in">
         <div className="relative">
           <Button
@@ -303,7 +303,7 @@ export default function TableOfContents({ content, readingTime }) {
             <List className="h-6 w-6" />
           </Button>
           
-          {/* Reading Progress Circle */}
+          {/* Progress Circle */}
           <svg className="absolute inset-0 -z-10 pointer-events-none" width="60" height="60" viewBox="0 0 60 60">
             <circle
               cx="30"
@@ -335,7 +335,7 @@ export default function TableOfContents({ content, readingTime }) {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Drawer */}
       {isOpen && (
         <>
           <div 
@@ -359,7 +359,7 @@ export default function TableOfContents({ content, readingTime }) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(false)}
-                className="transition-all hover:scale-110"
+                className="transition-all hover:scale-110 min-h-[44px] min-w-[44px]"
                 aria-label="Close Table of Contents"
               >
                 <X className="h-5 w-5" />
@@ -383,7 +383,7 @@ export default function TableOfContents({ content, readingTime }) {
                     onClick={() => scrollToHeading(heading.id)}
                     type="button"
                     className={cn(
-                      "w-full text-left text-sm py-3 px-4 rounded-lg transition-all cursor-pointer",
+                      "w-full text-left text-sm py-3 px-4 rounded-lg transition-all cursor-pointer min-h-[44px]",
                       heading.level === 'h3' && "pl-10 text-xs",
                       activeId === heading.id 
                         ? "bg-primary text-primary-foreground font-medium shadow-md scale-[1.02]" 
@@ -408,7 +408,7 @@ export default function TableOfContents({ content, readingTime }) {
                 <Button
                   variant="outline"
                   onClick={scrollToTop}
-                  className="w-full transition-all hover:bg-primary hover:text-primary-foreground hover:scale-105"
+                  className="w-full transition-all hover:bg-primary hover:text-primary-foreground hover:scale-105 min-h-[44px]"
                 >
                   <ArrowUp className="h-4 w-4 mr-2" />
                   Back to Top
