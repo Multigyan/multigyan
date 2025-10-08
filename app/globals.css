@@ -767,3 +767,356 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ========================================
+   MOBILE-FIRST CSS IMPROVEMENTS
+   ======================================== */
+
+/* ✅ Extra Small Breakpoint for very small devices */
+@media (min-width: 475px) {
+  .xs\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .xs\:flex-row {
+    flex-direction: row;
+  }
+  
+  .xs\:inline {
+    display: inline;
+  }
+  
+  .xs\:hidden {
+    display: none;
+  }
+}
+
+/* ✅ Better mobile container padding */
+@layer utilities {
+  .container-mobile {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* Mobile-safe max width containers */
+  .max-w-mobile {
+    max-width: calc(100vw - 2rem);
+  }
+  
+  @media (min-width: 640px) {
+    .max-w-mobile {
+      max-width: calc(100vw - 3rem);
+    }
+  }
+}
+
+/* ✅ Prevent horizontal scroll on mobile */
+html {
+  overflow-x: hidden;
+  width: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ✅ Better mobile input styling */
+@layer components {
+  /* Mobile-optimized input fields - Prevents zoom on iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+  
+  @media (min-width: 768px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="url"],
+    textarea,
+    select {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+/* ✅ Mobile-friendly card spacing */
+@layer components {
+  .card-mobile {
+    @apply p-4 sm:p-5 md:p-6;
+  }
+  
+  .card-content-mobile {
+    @apply space-y-3 sm:space-y-4;
+  }
+}
+
+/* ✅ Better mobile typography utilities */
+@layer utilities {
+  .heading-1-responsive {
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
+  }
+  
+  .heading-2-responsive {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+  }
+  
+  .heading-3-responsive {
+    @apply text-xl sm:text-2xl md:text-3xl;
+  }
+  
+  .heading-4-responsive {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+  
+  .text-responsive {
+    @apply text-sm sm:text-base;
+  }
+  
+  .text-large-responsive {
+    @apply text-base sm:text-lg md:text-xl;
+  }
+}
+
+/* ✅ Mobile-safe spacing utilities */
+@layer utilities {
+  .section-padding {
+    @apply py-10 sm:py-12 md:py-16 lg:py-20;
+  }
+  
+  .section-padding-x {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  .component-spacing {
+    @apply space-y-6 sm:space-y-8 md:space-y-10;
+  }
+  
+  .gap-mobile {
+    @apply gap-4 sm:gap-6 md:gap-8;
+  }
+}
+
+/* ✅ Mobile navigation improvements */
+@layer components {
+  .mobile-nav-link {
+    @apply flex items-center py-3 px-4 min-h-[48px] text-base;
+    @apply hover:bg-accent rounded-md transition-all;
+  }
+  
+  .mobile-menu-button {
+    @apply h-12 w-12 flex items-center justify-center;
+    @apply hover:bg-accent rounded-md transition-all;
+  }
+}
+
+/* ✅ Mobile-friendly grid patterns */
+@layer utilities {
+  .grid-mobile-1-sm-2-lg-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  
+  .grid-mobile-1-sm-2-lg-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4;
+  }
+  
+  .grid-mobile-2-md-3-lg-4 {
+    @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+  }
+}
+
+/* ✅ Touch-friendly interactive elements */
+@layer components {
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  .touch-target-large {
+    @apply min-h-[48px] min-w-[48px];
+  }
+  
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ✅ Mobile modal/dialog improvements */
+@layer components {
+  .modal-mobile {
+    @apply w-[95vw] sm:w-full max-w-lg;
+    @apply max-h-[90vh] overflow-y-auto;
+    @apply p-4 sm:p-6;
+  }
+  
+  .dialog-mobile {
+    @apply rounded-lg sm:rounded-xl;
+  }
+}
+
+/* ✅ Mobile-friendly table wrapper */
+@layer components {
+  .table-mobile-wrapper {
+    @apply w-full overflow-x-auto;
+    @apply rounded-lg border;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table-mobile-wrapper table {
+    @apply min-w-full;
+  }
+}
+
+/* ✅ Better focus states for mobile */
+@layer base {
+  @media (max-width: 768px) {
+    *:focus-visible {
+      @apply outline-2 outline-offset-2 ring-2 ring-primary/30;
+    }
+  }
+}
+
+/* ✅ Mobile-friendly badges and pills */
+@layer components {
+  .badge-mobile {
+    @apply text-xs sm:text-sm px-2 py-1 sm:px-2.5 sm:py-1;
+  }
+  
+  .pill-mobile {
+    @apply text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2;
+    @apply rounded-full;
+  }
+}
+
+/* ✅ Responsive flex utilities */
+@layer utilities {
+  .flex-mobile-col {
+    @apply flex flex-col sm:flex-row;
+  }
+  
+  .flex-mobile-col-reverse {
+    @apply flex flex-col-reverse sm:flex-row;
+  }
+  
+  .flex-mobile-wrap {
+    @apply flex flex-wrap gap-2 sm:gap-3;
+  }
+}
+
+/* ✅ Mobile-friendly card hover effects */
+@layer components {
+  .card-mobile-hover {
+    @apply transition-all duration-300;
+  }
+  
+  @media (hover: none) {
+    .card-mobile-hover:hover {
+      @apply transform-none shadow-none;
+    }
+  }
+  
+  @media (hover: hover) {
+    .card-mobile-hover:hover {
+      @apply -translate-y-1 shadow-xl;
+    }
+  }
+}
+
+/* ✅ Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* ✅ Better mobile scrollbar */
+@layer base {
+  @media (max-width: 768px) {
+    ::-webkit-scrollbar {
+      width: 0;
+      background: transparent;
+    }
+    
+    * {
+      scrollbar-width: none;
+    }
+  }
+}
+
+/* ✅ Mobile-friendly form layouts */
+@layer components {
+  .form-mobile {
+    @apply space-y-4 sm:space-y-5;
+  }
+  
+  .form-field-mobile {
+    @apply space-y-2;
+  }
+  
+  .form-label-mobile {
+    @apply text-sm sm:text-base font-medium;
+  }
+  
+  .form-input-mobile {
+    @apply h-12 px-4 text-base;
+    @apply rounded-md border;
+  }
+  
+  .form-button-mobile {
+    @apply w-full sm:w-auto h-12 px-6;
+    @apply text-base font-medium;
+  }
+}
+
+/* ✅ Mobile-friendly avatar sizes */
+@layer components {
+  .avatar-xs-mobile {
+    @apply w-5 h-5 sm:w-6 sm:h-6;
+  }
+  
+  .avatar-sm-mobile {
+    @apply w-7 h-7 sm:w-8 sm:h-8;
+  }
+  
+  .avatar-md-mobile {
+    @apply w-10 h-10 sm:w-12 sm:h-12;
+  }
+  
+  .avatar-lg-mobile {
+    @apply w-14 h-14 sm:w-16 sm:h-16;
+  }
+}
+
+/* ✅ Prevent zoom on double-tap (iOS) */
+@media (max-width: 768px) {
+  a, button, input, select, textarea {
+    touch-action: manipulation;
+  }
+}
+
+/* ✅ Mobile-friendly transitions */
+@layer utilities {
+  .transition-mobile {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .transition-mobile-slow {
+    @apply transition-all duration-300 ease-in-out;
+  }
+}
