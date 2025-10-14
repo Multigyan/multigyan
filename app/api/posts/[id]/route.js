@@ -262,24 +262,32 @@ export async function PUT(request, { params }) {
       // Author cannot directly edit published post
       // Changes go to revision for admin approval
       
-      // ✅ FIX: Sanitize tags BEFORE creating revision to avoid validation errors
+      // ✅ FIX: Sanitize ALL fields BEFORE creating revision to avoid validation errors
       let revisionTags = tags || post.tags
       if (Array.isArray(revisionTags)) {
         revisionTags = revisionTags.filter(tag => tag && typeof tag === 'string' && tag.length > 0 && tag.length <= 30)
       }
       
+      let revisionSeoKeywords = seoKeywords || post.seoKeywords
+      if (Array.isArray(revisionSeoKeywords)) {
+        revisionSeoKeywords = revisionSeoKeywords
+          .filter(kw => kw && typeof kw === 'string')
+          .map(kw => kw.trim().slice(0, 50))
+          .filter(kw => kw.length > 0)
+      }
+      
       post.hasRevision = true
       post.revision = {
-        title: title || post.title,
+        title: (title || post.title).slice(0, 200),
         content: content || post.content,
-        excerpt: excerpt !== undefined ? excerpt : post.excerpt,
+        excerpt: excerpt !== undefined ? (excerpt ? excerpt.slice(0, 300) : undefined) : post.excerpt,
         featuredImageUrl: featuredImageUrl !== undefined ? featuredImageUrl : post.featuredImageUrl,
-        featuredImageAlt: featuredImageAlt !== undefined ? featuredImageAlt : post.featuredImageAlt,
+        featuredImageAlt: featuredImageAlt !== undefined ? (featuredImageAlt ? featuredImageAlt.slice(0, 100) : undefined) : post.featuredImageAlt,
         category: category || post.category,
         tags: revisionTags, // ✅ Use sanitized tags
-        seoTitle: seoTitle !== undefined ? seoTitle : post.seoTitle,
-        seoDescription: seoDescription !== undefined ? seoDescription : post.seoDescription,
-        seoKeywords: seoKeywords !== undefined ? seoKeywords : post.seoKeywords,
+        seoTitle: seoTitle !== undefined ? (seoTitle ? seoTitle.slice(0, 60) : undefined) : post.seoTitle,
+        seoDescription: seoDescription !== undefined ? (seoDescription ? seoDescription.slice(0, 160) : undefined) : post.seoDescription,
+        seoKeywords: revisionSeoKeywords, // ✅ Use sanitized keywords
         submittedAt: new Date(),
         status: 'pending'
       }
@@ -291,6 +299,22 @@ export async function PUT(request, { params }) {
           console.log('Backend: Sanitizing post.tags before save:', post.tags, '->', sanitizedMainTags)
           post.tags = sanitizedMainTags
         }
+      }
+      
+      // ✅ Sanitize all other fields in main post to avoid validation
+      if (post.featuredImageAlt && post.featuredImageAlt.length > 100) {
+        post.featuredImageAlt = post.featuredImageAlt.slice(0, 100)
+      }
+      if (post.seoTitle && post.seoTitle.length > 80) {
+        post.seoTitle = post.seoTitle.slice(0, 60)
+      }
+      if (post.seoDescription && post.seoDescription.length > 210) {
+        post.seoDescription = post.seoDescription.slice(0, 160)
+      }
+      if (Array.isArray(post.seoKeywords)) {
+        post.seoKeywords = post.seoKeywords
+          .filter(kw => kw && typeof kw === 'string')
+          .map(kw => kw.slice(0, 50))
       }
       
       await post.save()
@@ -340,46 +364,78 @@ export async function PUT(request, { params }) {
       post.editReason = editReason.trim()
     }
 
-    // Store old values
-    const oldStatus = post.status
-    const oldCategory = post.category.toString()
-
-    // ✅ CRITICAL: If tags are being updated, use direct MongoDB update to bypass validation
+    // ✅ SANITIZE ALL FIELDS: Ensure data meets validation requirements
+    const sanitizedData = {}
+    
+    // Basic text fields with truncation
+    if (title !== undefined) {
+      sanitizedData.title = title.trim().slice(0, 200) // Max 200 chars
+    }
+    if (content !== undefined) {
+      sanitizedData.content = content.trim()
+    }
+    if (excerpt !== undefined) {
+      sanitizedData.excerpt = excerpt ? excerpt.trim().slice(0, 300) : undefined // Max 300 chars
+    }
+    
+    // Image fields
+    if (featuredImageUrl !== undefined) {
+      sanitizedData.featuredImageUrl = featuredImageUrl
+    }
+    if (featuredImageAlt !== undefined) {
+      sanitizedData.featuredImageAlt = featuredImageAlt ? featuredImageAlt.trim().slice(0, 100) : undefined // Max 100 chars
+    }
+    
+    // SEO fields with proper truncation
+    if (seoTitle !== undefined) {
+      sanitizedData.seoTitle = seoTitle ? seoTitle.trim().slice(0, 60) : undefined // Max 60 chars (best practice)
+    }
+    if (seoDescription !== undefined) {
+      sanitizedData.seoDescription = seoDescription ? seoDescription.trim().slice(0, 160) : undefined // Max 160 chars (best practice)
+    }
+    if (seoKeywords !== undefined) {
+      // Sanitize SEO keywords - max 50 chars each
+      if (Array.isArray(seoKeywords)) {
+        sanitizedData.seoKeywords = seoKeywords
+          .filter(kw => kw && typeof kw === 'string')
+          .map(kw => kw.trim().slice(0, 50))
+          .filter(kw => kw.length > 0)
+      }
+    }
+    
+    // Tags - already sanitized above, just include here
     if (tags !== undefined) {
       const sanitizedTags = tags.filter(tag => tag && typeof tag === 'string' && tag.length > 0 && tag.length <= 30)
-      console.log('Backend: Updating tags directly in MongoDB')
-      console.log('Backend: Old tags in DB:', post.tags)
-      console.log('Backend: New sanitized tags:', sanitizedTags)
-      
-      // Direct MongoDB update - bypasses Mongoose validation completely
-      await Post.collection.updateOne(
-        { _id: post._id },
-        { $set: { tags: sanitizedTags } }
-      )
-      
-      // Update local post object
-      post.tags = sanitizedTags
+      console.log('Backend: Sanitizing tags:', tags, '->', sanitizedTags)
+      sanitizedData.tags = sanitizedTags
     }
-
-    // Update basic fields
-    if (title !== undefined) post.title = title.trim()
-    if (content !== undefined) post.content = content.trim()
-    if (excerpt !== undefined) post.excerpt = excerpt ? excerpt.trim() : undefined
-    if (featuredImageUrl !== undefined) post.featuredImageUrl = featuredImageUrl
-    if (featuredImageAlt !== undefined) post.featuredImageAlt = featuredImageAlt
     
-    if (allowComments !== undefined) post.allowComments = allowComments
-    if (seoTitle !== undefined) post.seoTitle = seoTitle
-    if (seoDescription !== undefined) post.seoDescription = seoDescription
-    if (seoKeywords !== undefined) post.seoKeywords = seoKeywords
-
-    // Handle category change
-    if (category && category !== oldCategory) {
-      if (oldStatus === 'published') {
-        await Category.decrementPostCount(oldCategory)
-      }
-      post.category = category
+    // Boolean and other fields
+    if (allowComments !== undefined) sanitizedData.allowComments = allowComments
+    if (category !== undefined) sanitizedData.category = category
+    if (author !== undefined) sanitizedData.author = author
+    if (status !== undefined) sanitizedData.status = status
+    if (isFeatured !== undefined && isAdmin) sanitizedData.isFeatured = isFeatured
+    if (editReason !== undefined) sanitizedData.editReason = editReason ? editReason.trim().slice(0, 500) : undefined
+    if (rejectionReason !== undefined) sanitizedData.rejectionReason = rejectionReason ? rejectionReason.trim().slice(0, 500) : undefined
+    
+    // Admin edit tracking
+    if (isAdmin && !isAuthor) {
+      sanitizedData.lastEditedBy = session.user.id
+      sanitizedData.lastEditedAt = new Date()
     }
+    
+    console.log('Backend: Sanitized data ready for update:', Object.keys(sanitizedData))
+    
+    // ✅ Use direct MongoDB update to bypass ALL validation
+    await Post.collection.updateOne(
+      { _id: post._id },
+      { $set: sanitizedData }
+    )
+
+    // Store old values for comparison
+    const oldStatus = post.status
+    const oldCategory = post.category.toString()
 
     // Handle status changes with role-based restrictions
     if (status !== undefined) {
@@ -467,72 +523,50 @@ export async function PUT(request, { params }) {
       post.isFeatured = isFeatured
     }
 
-    // ✅ Build update object for direct MongoDB update
-    const updateFields = {}
-    if (title !== undefined) updateFields.title = post.title
-    if (content !== undefined) updateFields.content = post.content
-    if (excerpt !== undefined) updateFields.excerpt = post.excerpt
-    if (featuredImageUrl !== undefined) updateFields.featuredImageUrl = post.featuredImageUrl
-    if (featuredImageAlt !== undefined) updateFields.featuredImageAlt = post.featuredImageAlt
-    if (category !== undefined) updateFields.category = post.category
-    if (allowComments !== undefined) updateFields.allowComments = post.allowComments
-    if (seoTitle !== undefined) updateFields.seoTitle = post.seoTitle
-    if (seoDescription !== undefined) updateFields.seoDescription = post.seoDescription
-    if (seoKeywords !== undefined) updateFields.seoKeywords = post.seoKeywords
-    if (status !== undefined) updateFields.status = post.status
-    if (isFeatured !== undefined && isAdmin) updateFields.isFeatured = post.isFeatured
-    if (author !== undefined) updateFields.author = post.author
-    if (isAdmin && !isAuthor) {
-      updateFields.lastEditedBy = post.lastEditedBy
-      updateFields.lastEditedAt = post.lastEditedAt
-      updateFields.editReason = post.editReason
-    }
-    if (post.reviewedBy) updateFields.reviewedBy = post.reviewedBy
-    if (post.reviewedAt) updateFields.reviewedAt = post.reviewedAt
-    if (post.rejectionReason !== undefined) updateFields.rejectionReason = post.rejectionReason
+    // Handle category post count updates based on status/category changes
+    const newStatus = sanitizedData.status || post.status
+    const newCategory = sanitizedData.category || post.category.toString()
     
-    // ✅ Direct MongoDB update to bypass ALL validation
-    console.log('Backend: Performing direct MongoDB update')
-    await Post.collection.updateOne(
-      { _id: post._id },
-      { $set: updateFields }
-    )
+    if (oldStatus !== newStatus || oldCategory !== newCategory) {
+      if (oldStatus === 'published' && newStatus !== 'published') {
+        await Category.decrementPostCount(oldCategory)
+      } else if (oldStatus !== 'published' && newStatus === 'published') {
+        await Category.incrementPostCount(newCategory)
+      } else if (oldStatus === 'published' && newStatus === 'published' && oldCategory !== newCategory) {
+        // Category changed while post was published
+        await Category.decrementPostCount(oldCategory)
+        await Category.incrementPostCount(newCategory)
+      }
+    }
 
     // ✅ Send notification if admin edited author's post
-    if (isAdmin && !isAuthor && post.lastEditedBy) {
+    if (isAdmin && !isAuthor && sanitizedData.editReason) {
       await Notification.createNotification({
         recipient: post.author._id,
         sender: session.user.id,
         type: 'post_edited_by_admin',
         post: post._id,
-        message: `Admin edited your post "${post.title}"`,
+        message: `Admin edited your post "${sanitizedData.title || post.title}"`,
         link: `/dashboard/posts/${post._id}`,
         metadata: {
-          editReason: editReason,
-          postTitle: post.title
+          editReason: sanitizedData.editReason,
+          postTitle: sanitizedData.title || post.title
         }
       })
     }
 
-    // Update category post counts based on status changes
-    const newStatus = post.status
-    if (oldStatus !== newStatus) {
-      if (oldStatus === 'published' && newStatus !== 'published') {
-        await Category.decrementPostCount(post.category)
-      } else if (oldStatus !== 'published' && newStatus === 'published') {
-        await Category.incrementPostCount(post.category)
-      }
-    }
-
+    // ✅ Reload post from database to get updated values
+    const updatedPost = await Post.findById(post._id)
+    
     // Populate for response
-    await post.populate('author', 'name email profilePictureUrl')
-    await post.populate('category', 'name slug color')
-    await post.populate('reviewedBy', 'name email')
-    await post.populate('lastEditedBy', 'name email')
+    await updatedPost.populate('author', 'name email profilePictureUrl')
+    await updatedPost.populate('category', 'name slug color')
+    await updatedPost.populate('reviewedBy', 'name email')
+    await updatedPost.populate('lastEditedBy', 'name email')
 
     return NextResponse.json({
       message: 'Post updated successfully',
-      post
+      post: updatedPost
     })
 
   } catch (error) {

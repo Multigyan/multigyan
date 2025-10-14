@@ -504,7 +504,7 @@ export default function EditPostPage({ params }) {
                 <CardHeader>
                   <CardTitle className="text-amber-900 dark:text-amber-100">Edit Reason Required</CardTitle>
                   <CardDescription className="text-amber-700 dark:text-amber-300">
-                    Provide a reason for editing this author's post
+                    Provide a reason for editing this author&apos;s post
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
