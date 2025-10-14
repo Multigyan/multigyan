@@ -43,7 +43,8 @@ export default function CategorySelector({
   const fetchCategories = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/categories')
+      // ✅ FIX: Add includeCounts=true to get accurate post counts
+      const response = await fetch('/api/categories?includeCounts=true')
       const data = await response.json()
       
       if (response.ok) {
@@ -167,13 +168,13 @@ export default function CategorySelector({
           <SelectTrigger className="flex-1">
             <SelectValue placeholder={loading ? "Loading categories..." : "Select a category"} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[300px] overflow-y-auto">
             {categories.map((category) => (
               <SelectItem key={category._id} value={category._id}>
                 <div className="flex items-center justify-between w-full">
                   <span>{category.name}</span>
                   <span className="text-xs text-muted-foreground ml-2">
-                    ({category.postsCount || 0} posts)
+                    ({category.postCount || category.postsCount || 0} posts)
                   </span>
                 </div>
               </SelectItem>

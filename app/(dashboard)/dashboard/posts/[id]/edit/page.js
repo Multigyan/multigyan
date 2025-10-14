@@ -61,7 +61,7 @@ export default function EditPostPage({ params }) {
     async function loadData() {
       try {
         const promises = [
-          fetch('/api/categories'),
+          fetch('/api/categories?includeCounts=true'), // ✅ Get accurate post counts
           fetch(`/api/posts/${postId}`)
         ]
 
@@ -474,7 +474,7 @@ export default function EditPostPage({ params }) {
                     <SelectTrigger>
                       <SelectValue placeholder="Select author" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
                       {authors.map((author) => (
                         <SelectItem key={author._id} value={author._id}>
                           <div className="flex items-center gap-2">
