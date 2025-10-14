@@ -116,7 +116,7 @@ export default function BlogPostClient({ post }) {
       <article className="py-6 sm:py-8 md:py-12">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
-            {/* Breadcrumb - Mobile optimized */}
+            {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 overflow-x-auto pb-2 scrollbar-thin">
               <Link href="/" className="hover:text-foreground whitespace-nowrap">Home</Link>
               <span>/</span>
@@ -129,20 +129,26 @@ export default function BlogPostClient({ post }) {
               <span className="text-foreground truncate hidden sm:inline">{post.title}</span>
             </nav>
 
-            {/* Two Column Layout - Mobile first */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-              {/* Main Content */}
-              <div className="lg:col-span-8">
-                <header className="mb-6 sm:mb-8">
-                  <div className="flex items-center gap-2 mb-3 sm:mb-4 flex-wrap">
-                    <Badge style={{ backgroundColor: post.category?.color }} className="text-xs sm:text-sm">
-                      {post.category?.name}
-                    </Badge>
-                    {post.isFeatured && (
-                      <Badge variant="secondary" className="text-xs sm:text-sm">Featured</Badge>
-                    )}
-                  </div>
+            {/* 
+              =====================================================================
+              MAIN LAYOUT WITH TOC - THIS SECTION CONTAINS ONLY THE MAIN CONTENT
+              =====================================================================
+            */}
+            <div className="lg:flex lg:gap-8 lg:items-start">
+              {/* Main Content Column - 2/3 width */}
+              <div className="lg:w-2/3 lg:flex-shrink-0">
+                {/* Category Badge */}
+                <div className="flex items-center gap-2 mb-3 sm:mb-4 flex-wrap">
+                  <Badge style={{ backgroundColor: post.category?.color }} className="text-xs sm:text-sm">
+                    {post.category?.name}
+                  </Badge>
+                  {post.isFeatured && (
+                    <Badge variant="secondary" className="text-xs sm:text-sm">Featured</Badge>
+                  )}
+                </div>
 
+                {/* Title Section - START OF TOC ALIGNMENT */}
+                <header className="mb-6 sm:mb-8">
                   <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4 sm:mb-6">
                     {post.title}
                   </h1>
@@ -153,7 +159,6 @@ export default function BlogPostClient({ post }) {
                     </p>
                   )}
 
-                  {/* Meta - Mobile Stack */}
                   <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2 min-h-[44px]">
                       {post.author?.profilePictureUrl ? (
@@ -195,7 +200,7 @@ export default function BlogPostClient({ post }) {
                   </div>
                 </header>
 
-                {/* Share Buttons - Above Featured Image */}
+                {/* Share Buttons */}
                 <div className="flex items-center gap-2 mb-4 sm:mb-6 flex-wrap">
                   <span className="text-xs sm:text-sm text-muted-foreground mr-1 sm:mr-2">Share:</span>
                   <Button
@@ -245,7 +250,7 @@ export default function BlogPostClient({ post }) {
                   </Button>
                 </div>
 
-                {/* Featured Image - Mobile optimized */}
+                {/* Featured Image */}
                 {post.featuredImageUrl && (
                   <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden bg-muted">
                     <img
@@ -258,7 +263,7 @@ export default function BlogPostClient({ post }) {
                   </div>
                 )}
 
-                {/* Content - Mobile optimized */}
+                {/* Blog Content */}
                 <div className="blog-content mb-8 sm:mb-12">
                   <style jsx global>{`
                     .blog-content {
@@ -600,7 +605,7 @@ export default function BlogPostClient({ post }) {
                   />
                 </div>
 
-                {/* Tags - Mobile optimized */}
+                {/* Tags */}
                 {post.tags && post.tags.length > 0 && (
                   <div className="mb-6 sm:mb-8">
                     <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Tags</h3>
@@ -620,7 +625,7 @@ export default function BlogPostClient({ post }) {
 
                 <Separator className="my-6 sm:my-8" />
 
-                {/* Actions - Mobile first */}
+                {/* Actions - LIKE, COMMENT, SHARE - END OF TOC SECTION */}
                 <div className="flex flex-col gap-4 mb-6 sm:mb-8">
                   <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
                     <PostLikeButton
@@ -687,127 +692,147 @@ export default function BlogPostClient({ post }) {
                     </Button>
                   </div>
                 </div>
-
-                {/* Comments */}
-                <section className="mb-8 sm:mb-12">
-                  <CommentSection 
-                    postId={post._id} 
-                    allowComments={post.allowComments}
-                    showStats={true}
-                  />
-                </section>
-
-                <Separator className="my-6 sm:my-8" />
-
-                {/* Author Bio - Mobile optimized */}
-                <Card className="mb-8 sm:mb-12 hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4 sm:p-6">
-                    <div className="flex flex-col sm:flex-row items-start gap-4">
-                      <div className="flex-shrink-0 mx-auto sm:mx-0">
-                        {post.author?.profilePictureUrl ? (
-                          <Image
-                            src={post.author.profilePictureUrl}
-                            alt={post.author.name}
-                            width={64}
-                            height={64}
-                            className="rounded-full ring-2 ring-primary/20 sm:w-20 sm:h-20"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/10 rounded-full flex items-center justify-center ring-2 ring-primary/20">
-                            <User className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 text-center sm:text-left">
-                        <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                          <Link href={`/author/${post.author?.username}`} className="hover:text-primary transition-colors">
-                            {post.author?.name}
-                          </Link>
-                        </h3>
-                        <p className="text-sm sm:text-base text-muted-foreground mb-3">
-                          {post.author?.bio || 'No bio available.'}
-                        </p>
-                        {post.author?.twitterHandle && (
-                          <Link 
-                            href={`https://twitter.com/${post.author.twitterHandle}`}
-                            target="_blank"
-                            className="text-xs sm:text-sm text-primary hover:underline inline-block min-h-[44px] flex items-center justify-center sm:justify-start"
-                          >
-                            @{post.author.twitterHandle}
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Related Posts - Mobile optimized */}
-                {relatedPosts.length > 0 && (
-                  <section className="mb-8 sm:mb-12">
-                    <h2 className="text-xl sm:text-2xl font-bold mb-2">
-                      More from {post.author?.name}
-                    </h2>
-                    <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
-                      Explore other articles by this author
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                      {relatedPosts.map((relatedPost) => (
-                        <Link key={relatedPost._id} href={`/blog/${relatedPost.slug}`} className="block min-h-[44px]">
-                          <Card className="blog-card hover:shadow-lg transition-all cursor-pointer group h-full">
-                            <div className="relative h-32 sm:h-40 overflow-hidden">
-                              {relatedPost.featuredImageUrl ? (
-                                <Image
-                                  src={relatedPost.featuredImageUrl}
-                                  alt={relatedPost.featuredImageAlt || relatedPost.title}
-                                  fill
-                                  className="object-cover rounded-t-lg transition-transform group-hover:scale-110"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded-t-lg">
-                                  <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary/60 transition-transform group-hover:scale-110" />
-                                </div>
-                              )}
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
-                            </div>
-                            <CardContent className="p-3 sm:p-4">
-                              <Badge size="sm" className="mb-2 text-xs" style={{ backgroundColor: relatedPost.category?.color }}>
-                                {relatedPost.category?.name}
-                              </Badge>
-                              <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                                {relatedPost.title}
-                              </h3>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                                <span className="truncate">{formatDate(relatedPost.publishedAt)}</span>
-                                <span>•</span>
-                                <span className="whitespace-nowrap">{relatedPost.readingTime} min</span>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </Link>
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {/* Back Button - Mobile optimized */}
-                <div className="text-center mt-8 sm:mt-12">
-                  <Button 
-                    variant="outline" 
-                    asChild 
-                    className="hover:bg-primary hover:text-primary-foreground transition-colors min-h-[44px] w-full sm:w-auto"
-                  >
-                    <Link href="/blog">
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Back to Blog
-                    </Link>
-                  </Button>
-                </div>
               </div>
 
-              {/* TOC Sidebar - Hidden on mobile */}
-              <aside className="hidden lg:block lg:col-span-4">
-                <TableOfContents content={post.content} readingTime={post.readingTime} />
-              </aside>
+              {/* 
+                ==================================================================
+                TOC SIDEBAR - STICKY POSITIONING, ALIGNS WITH TITLE
+                ==================================================================
+              */}
+              <div className="hidden lg:block lg:w-1/3 lg:flex-shrink-0">
+                <div 
+                  className="sticky custom-scrollbar"
+                  style={{
+                    top: '5rem',
+                    maxHeight: 'calc(100vh - 6rem)',
+                    overflowY: 'auto'
+                  }}
+                >
+                  <TableOfContents content={post.content} readingTime={post.readingTime} />
+                </div>
+              </div>
+            </div>
+
+            {/* 
+              =====================================================================
+              SECTIONS AFTER TOC - FULL WIDTH (Comments, Author, Related Posts)
+              =====================================================================
+            */}
+            <div className="max-w-7xl mx-auto mt-8 sm:mt-12">
+              {/* Comments Section */}
+              <section className="mb-8 sm:mb-12">
+                <CommentSection 
+                  postId={post._id} 
+                  allowComments={post.allowComments}
+                  showStats={true}
+                />
+              </section>
+
+              <Separator className="my-6 sm:my-8" />
+
+              {/* Author Bio */}
+              <Card className="mb-8 sm:mb-12 hover:shadow-lg transition-shadow">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
+                    <div className="flex-shrink-0 mx-auto sm:mx-0">
+                      {post.author?.profilePictureUrl ? (
+                        <Image
+                          src={post.author.profilePictureUrl}
+                          alt={post.author.name}
+                          width={64}
+                          height={64}
+                          className="rounded-full ring-2 ring-primary/20 sm:w-20 sm:h-20"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/10 rounded-full flex items-center justify-center ring-2 ring-primary/20">
+                          <User className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 text-center sm:text-left">
+                      <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                        <Link href={`/author/${post.author?.username}`} className="hover:text-primary transition-colors">
+                          {post.author?.name}
+                        </Link>
+                      </h3>
+                      <p className="text-sm sm:text-base text-muted-foreground mb-3">
+                        {post.author?.bio || 'No bio available.'}
+                      </p>
+                      {post.author?.twitterHandle && (
+                        <Link 
+                          href={`https://twitter.com/${post.author.twitterHandle}`}
+                          target="_blank"
+                          className="text-xs sm:text-sm text-primary hover:underline inline-block min-h-[44px] flex items-center justify-center sm:justify-start"
+                        >
+                          @{post.author.twitterHandle}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Related Posts */}
+              {relatedPosts.length > 0 && (
+                <section className="mb-8 sm:mb-12">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-2">
+                    More from {post.author?.name}
+                  </h2>
+                  <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
+                    Explore other articles by this author
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {relatedPosts.map((relatedPost) => (
+                      <Link key={relatedPost._id} href={`/blog/${relatedPost.slug}`} className="block min-h-[44px]">
+                        <Card className="blog-card hover:shadow-lg transition-all cursor-pointer group h-full">
+                          <div className="relative h-32 sm:h-40 overflow-hidden">
+                            {relatedPost.featuredImageUrl ? (
+                              <Image
+                                src={relatedPost.featuredImageUrl}
+                                alt={relatedPost.featuredImageAlt || relatedPost.title}
+                                fill
+                                className="object-cover rounded-t-lg transition-transform group-hover:scale-110"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded-t-lg">
+                                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary/60 transition-transform group-hover:scale-110" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+                          </div>
+                          <CardContent className="p-3 sm:p-4">
+                            <Badge size="sm" className="mb-2 text-xs" style={{ backgroundColor: relatedPost.category?.color }}>
+                              {relatedPost.category?.name}
+                            </Badge>
+                            <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                              {relatedPost.title}
+                            </h3>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+                              <span className="truncate">{formatDate(relatedPost.publishedAt)}</span>
+                              <span>•</span>
+                              <span className="whitespace-nowrap">{relatedPost.readingTime} min</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Back Button */}
+              <div className="text-center mt-8 sm:mt-12">
+                <Button 
+                  variant="outline" 
+                  asChild 
+                  className="hover:bg-primary hover:text-primary-foreground transition-colors min-h-[44px] w-full sm:w-auto"
+                >
+                  <Link href="/blog">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Blog
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

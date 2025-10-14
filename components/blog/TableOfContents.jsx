@@ -20,7 +20,6 @@ export default function TableOfContents({ content, readingTime }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [readingProgress, setReadingProgress] = useState(0)
-  const [isSticky, setIsSticky] = useState(true) // New state for sticky behavior
 
   // Extract headings
   useEffect(() => {
@@ -93,7 +92,7 @@ export default function TableOfContents({ content, readingTime }) {
     }
   }, [content])
 
-  // Track active section, reading progress, and sticky behavior
+  // Track active section and reading progress
   useEffect(() => {
     if (headings.length === 0) return
 
@@ -108,15 +107,6 @@ export default function TableOfContents({ content, readingTime }) {
           const scrolled = window.scrollY
           const progress = documentHeight > 0 ? Math.min((scrolled / documentHeight) * 100, 100) : 0
           setReadingProgress(progress)
-
-          // Check if we should stop sticky behavior
-          const blogContent = document.querySelector('.blog-content')
-          if (blogContent) {
-            const rect = blogContent.getBoundingClientRect()
-            const bottomOfContent = rect.bottom
-            const shouldBeSticky = bottomOfContent > windowHeight * 0.3 // Stop being sticky when content is 30% from top
-            setIsSticky(shouldBeSticky)
-          }
 
           // Find active heading
           let currentActiveId = ""
@@ -208,103 +198,112 @@ export default function TableOfContents({ content, readingTime }) {
     setIsOpen(false)
   }
 
-  // Desktop TOC with improved sticky behavior
-  const DesktopTOC = useMemo(() => (
-    <div className={cn(
-      "hidden lg:block max-h-[calc(100vh-8rem)] overflow-auto custom-scrollbar fade-in",
-      isSticky ? "sticky top-24" : "relative"
-    )}>
-      <Card className="shadow-lg">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-primary" />
-              Table of Contents
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="h-8 w-8 p-0 transition-all hover:scale-110"
-              aria-label={isCollapsed ? "Expand TOC" : "Collapse TOC"}
-            >
-              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-          </div>
-          
-          <div className="mt-3">
-            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-              <span>Reading Progress</span>
-              <span className="font-semibold">{Math.round(readingProgress)}%</span>
+  // Desktop TOC - Always sticky, self-contained
+  const DesktopTOC = useMemo(() => {
+    if (typeof window === 'undefined') return null
+    
+    return (
+      <Card className="shadow-xl border-2 border-primary/10">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-primary" />
+                Table of Contents
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="h-8 w-8 p-0 transition-all hover:scale-110"
+                aria-label={isCollapsed ? "Expand TOC" : "Collapse TOC"}
+              >
+                {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
             </div>
-            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-300 rounded-full"
-                style={{ width: `${readingProgress}%` }}
-              />
-            </div>
-          </div>
-        </CardHeader>
-
-        {!isCollapsed && (
-          <CardContent className="pt-0 pb-4">
-            <nav className="space-y-1">
-              {headings.map((heading, index) => (
-                <button
-                  key={heading.id}
-                  onClick={() => scrollToHeading(heading.id)}
-                  className={cn(
-                    "w-full text-left text-sm py-2 px-3 rounded-md transition-all hover:bg-muted hover:scale-105 group cursor-pointer",
-                    heading.level === 'h3' && "pl-6 text-xs",
-                    activeId === heading.id && "bg-primary/10 text-primary font-medium border-l-2 border-primary scale-105"
-                  )}
-                  type="button"
-                  aria-label={`Go to section: ${heading.text}`}
-                >
-                  <div className="flex items-start gap-2">
-                    <span className={cn(
-                      "text-muted-foreground font-mono text-xs mt-0.5 flex-shrink-0",
-                      activeId === heading.id && "text-primary font-semibold"
-                    )}>
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="line-clamp-2 leading-relaxed">{heading.text}</span>
-                  </div>
-                </button>
-              ))}
-            </nav>
-
-            <div className="mt-4 pt-4 border-t">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{headings.length} sections</span>
-                <Badge variant="outline" className="text-xs">
-                  {readingTime ? `${readingTime} min` : `${Math.ceil(headings.length * 0.5)} min`}
-                </Badge>
+            
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                <span>Reading Progress</span>
+                <span className="font-semibold">{Math.round(readingProgress)}%</span>
+              </div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-300 rounded-full"
+                  style={{ width: `${readingProgress}%` }}
+                />
               </div>
             </div>
-          </CardContent>
-        )}
-      </Card>
-    </div>
-  ), [headings, activeId, isCollapsed, readingProgress, readingTime, isSticky])
+          </CardHeader>
 
-  // Mobile TOC - Always visible
+          {!isCollapsed && (
+            <CardContent className="pt-0 pb-4">
+              <nav className="space-y-1">
+                {headings.map((heading, index) => (
+                  <button
+                    key={heading.id}
+                    onClick={() => scrollToHeading(heading.id)}
+                    className={cn(
+                      "w-full text-left text-sm py-2 px-3 rounded-md transition-all hover:bg-muted hover:scale-105 group cursor-pointer",
+                      heading.level === 'h3' && "pl-6 text-xs",
+                      activeId === heading.id && "bg-primary/10 text-primary font-medium border-l-2 border-primary scale-105"
+                    )}
+                    type="button"
+                    aria-label={`Go to section: ${heading.text}`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className={cn(
+                        "text-muted-foreground font-mono text-xs mt-0.5 flex-shrink-0",
+                        activeId === heading.id && "text-primary font-semibold"
+                      )}>
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span className="line-clamp-2 leading-relaxed">{heading.text}</span>
+                    </div>
+                  </button>
+                ))}
+              </nav>
+
+              <div className="mt-4 pt-4 border-t space-y-3">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{headings.length} sections</span>
+                  <Badge variant="outline" className="text-xs">
+                    {readingTime ? `${readingTime} min` : `${Math.ceil(headings.length * 0.5)} min`}
+                  </Badge>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={scrollToTop}
+                  className="w-full hover:bg-primary hover:text-primary-foreground transition-all"
+                >
+                  <ArrowUp className="h-3.5 w-3.5 mr-2" />
+                  Back to Top
+                </Button>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+    )
+  }, [headings, activeId, isCollapsed, readingProgress, readingTime])
+
+  // Mobile TOC - Floating button with drawer - Ultra high z-index
   const MobileTOC = () => (
     <>
-      {/* Floating Button */}
-      <div className="lg:hidden fixed bottom-6 right-6 z-40 scale-in">
+      {/* Floating Button - Ultra high z-index */}
+      <div className="lg:hidden fixed bottom-24 right-6" style={{ zIndex: 9999 }}>
         <div className="relative">
           <Button
             onClick={() => setIsOpen(true)}
             size="lg"
             className="rounded-full shadow-lg h-14 w-14 p-0 transition-all hover:scale-110 hover:shadow-xl"
+            style={{ zIndex: 9999 }}
             aria-label="Open Table of Contents"
           >
             <List className="h-6 w-6" />
           </Button>
           
           {/* Progress Circle */}
-          <svg className="absolute inset-0 -z-10 pointer-events-none" width="60" height="60" viewBox="0 0 60 60">
+          <svg className="absolute inset-0 pointer-events-none" width="60" height="60" viewBox="0 0 60 60" style={{ zIndex: 9998 }}>
             <circle
               cx="30"
               cy="30"
@@ -335,16 +334,17 @@ export default function TableOfContents({ content, readingTime }) {
         </div>
       </div>
 
-      {/* Drawer */}
+      {/* Drawer - Ultra high z-index */}
       {isOpen && (
         <>
           <div 
-            className="lg:hidden fixed inset-0 bg-black/60 z-50 fade-in backdrop-blur-sm"
+            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm"
+            style={{ zIndex: 10000 }}
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
 
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-2xl shadow-2xl slide-in max-h-[85vh] overflow-hidden">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background rounded-t-2xl shadow-2xl max-h-[85vh] overflow-hidden" style={{ zIndex: 10001 }}>
             <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-primary/5 to-transparent">
               <div>
                 <h3 className="font-semibold flex items-center gap-2">

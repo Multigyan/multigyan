@@ -65,6 +65,7 @@ export default function FlexibleTagInput({
     parsedTags = parsedTags
       .map(tag => tag.replace(/[^\w\s-]/g, '').trim()) // Remove special chars except hyphens
       .filter(tag => tag.length > 0) // Remove empty strings
+      .filter(tag => tag.length <= 30) // Limit to 30 characters
       .filter((tag, index, self) => self.indexOf(tag) === index) // Remove duplicates
 
     return parsedTags
@@ -74,6 +75,14 @@ export default function FlexibleTagInput({
    * Add tags from input
    */
   const addTags = useCallback(() => {
+    const allParsedTags = inputValue.trim().split(/[,\s]+/).filter(t => t.length > 0)
+    const longTags = allParsedTags.filter(tag => tag.length > 30)
+    
+    if (longTags.length > 0) {
+      toast.error(`Tags cannot be more than 30 characters: ${longTags.join(', ')}`)
+      return
+    }
+
     const newTags = parseTagsFromInput(inputValue)
     
     if (newTags.length === 0) return
