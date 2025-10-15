@@ -81,16 +81,7 @@ export default function PostPreviewPage({ params }) {
    * STEP 2: Fetch post data from the backend
    * Once we have the post ID, we load the post details
    */
-  useEffect(() => {
-    if (postId) {
-      fetchPost()
-    }
-  }, [postId, fetchPost])
-
-  /**
-   * FUNCTION: Fetch post data from API
-   * This sends a request to the backend to get post details
-   */
+  // ✅ FIX: Moved fetchPost definition BEFORE this useEffect
   const fetchPost = useCallback(async () => {
     try {
       setLoading(true)
@@ -114,6 +105,12 @@ export default function PostPreviewPage({ params }) {
       setLoading(false)
     }
   }, [postId, router])
+
+  useEffect(() => {
+    if (postId) {
+      fetchPost()
+    }
+  }, [postId, fetchPost])
 
   /**
    * FUNCTION: Approve a post (Admin only)
