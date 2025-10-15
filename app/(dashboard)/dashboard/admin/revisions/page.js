@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -29,15 +29,7 @@ export default function AdminRevisionsPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [selectedPost, setSelectedPost] = useState(null)
 
-  useEffect(() => {
-    if (session?.user?.role !== 'admin') {
-      router.push('/dashboard')
-      return
-    }
-    fetchPostsWithRevisions()
-  }, [session, router, fetchPostsWithRevisions])
-
-  const fetchPostsWithRevisions = async () => {
+  const fetchPostsWithRevisions = useCallback(async () => {
     try {
       setLoading(true)
       // Fetch all published posts to check for revisions
@@ -56,7 +48,15 @@ export default function AdminRevisionsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])  // Empty dependency array - function won't change
+
+  useEffect(() => {
+    if (session?.user?.role !== 'admin') {
+      router.push('/dashboard')
+      return
+    }
+    fetchPostsWithRevisions()
+  }, [session, router, fetchPostsWithRevisions])
 
   const handleApproveRevision = async (postId) => {
     try {

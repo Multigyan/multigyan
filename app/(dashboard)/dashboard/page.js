@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PenTool, Users, BarChart3, Settings, Plus, FileText, Folder } from "lucide-react"
@@ -19,13 +19,7 @@ export default function DashboardPage() {
   })
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (status === "loading") return
-    if (!session) router.push("/login")
-    else fetchStats()
-  }, [session, status, router])
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -63,7 +57,13 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session])  // Depends on session to check role
+
+  useEffect(() => {
+    if (status === "loading") return
+    if (!session) router.push("/login")
+    else fetchStats()
+  }, [session, status, router, fetchStats])
 
   if (status === "loading" || loading) {
     return (
