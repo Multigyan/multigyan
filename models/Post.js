@@ -281,19 +281,22 @@ PostSchema.virtual('estimatedReadingTime').get(function() {
 })
 
 // Generate slug and reading time before saving
-PostSchema.pre('save', function(next) {
-  // Generate slug from title
+PostSchema.pre('save', async function(next) {
   if (this.isModified('title')) {
-    this.slug = slugify(this.title, {
+    let baseSlug = slugify(this.title, {
       lower: true,
-      strict: true,
-      remove: /[*+~.()'"!:@]/g
+      strict: false,  // ✅ Allow Unicode
+      locale: 'hi'    // ✅ Hindi support
     })
     
-    // Ensure uniqueness by appending timestamp if needed
     if (this.isNew) {
-      const timestamp = Date.now().toString().slice(-6)
-      this.slug = `${this.slug}-${timestamp}`
+      let slug = baseSlug
+      let counter = 1
+      while (await this.constructor.findOne({ slug })) {
+        counter++
+        slug = `${baseSlug}-${counter}`  // ✅ GOOD
+      }
+      this.slug = slug
     }
   }
   
