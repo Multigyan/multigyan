@@ -283,10 +283,12 @@ PostSchema.virtual('estimatedReadingTime').get(function() {
 // Generate slug and reading time before saving
 PostSchema.pre('save', async function(next) {
   if (this.isModified('title')) {
+    // ✅ IMPROVED: Use transliteration for better URL compatibility
+    // Convert Hindi text to English characters for SEO-friendly URLs
     let baseSlug = slugify(this.title, {
       lower: true,
-      strict: false,  // ✅ Allow Unicode
-      locale: 'hi'    // ✅ Hindi support
+      strict: true,   // ✅ CHANGED: Use strict mode to remove special characters
+      locale: 'en'    // ✅ CHANGED: Use English locale for better compatibility
     })
     
     if (this.isNew) {

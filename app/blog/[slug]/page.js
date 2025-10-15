@@ -8,6 +8,38 @@ import { generateSEOMetadata, generateStructuredData } from "@/lib/seo"
 import StructuredData from "@/components/seo/StructuredData"
 
 // ========================================
+// DYNAMIC RENDERING CONFIGURATION
+// ========================================
+// This tells Next.js to use dynamic rendering (fetch data on each request)
+// and revalidate the page every 60 seconds
+export const dynamic = 'force-dynamic'
+export const revalidate = 60 // Revalidate every 60 seconds
+
+// ========================================
+// GENERATE STATIC PARAMS FOR BUILD TIME
+// ========================================
+// This function pre-generates static pages for all published posts during build
+export async function generateStaticParams() {
+  try {
+    await connectDB()
+    
+    // Get all published posts
+    const posts = await Post.find({ status: 'published' })
+      .select('slug')
+      .lean()
+    
+    // Return array of slugs for static generation
+    return posts.map((post) => ({
+      slug: post.slug,
+    }))
+  } catch (error) {
+    console.error('Error generating static params:', error)
+    // Return empty array if error occurs (pages will be generated on-demand)
+    return []
+  }
+}
+
+// ========================================
 // HELPER FUNCTION: Convert to Date safely
 // ========================================
 // This function handles dates that might be strings or Date objects
