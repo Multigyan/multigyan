@@ -22,7 +22,7 @@ export default function NotFound() {
             Page Not Found
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400">
-            Sorry, we couldn't find the page you're looking for.
+            Sorry, we couldn&#39;t find the page you&#39;re looking for.
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500">
             The page might have been moved, deleted, or never existed.
