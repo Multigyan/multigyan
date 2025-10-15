@@ -29,12 +29,27 @@ export default function BlogPostPreview({
   // Calculate reading time (rough estimate: 200 words per minute)
   const calculateReadingTime = (content) => {
     if (!content) return 0
-    const text = content.replace(/<[^>]*>/g, '') // Remove HTML tags
-    const wordCount = text.split(/\s+/).length
-    return Math.ceil(wordCount / 200)
+    try {
+      const text = content.replace(/<[^>]*>/g, '') // Remove HTML tags
+      const wordCount = text.split(/\s+/).length
+      return Math.ceil(wordCount / 200)
+    } catch (error) {
+      console.error('Error calculating reading time:', error)
+      return 0
+    }
   }
 
   const readingTime = calculateReadingTime(postData?.content)
+  
+  // Safe date formatting
+  const formatDate = () => {
+    try {
+      return format(new Date(), 'MMM dd, yyyy')
+    } catch (error) {
+      console.error('Error formatting date:', error)
+      return new Date().toLocaleDateString()
+    }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -59,13 +74,17 @@ export default function BlogPostPreview({
         <div className="px-6 pb-6">
           {/* Featured Image */}
           {postData?.featuredImageUrl && (
-            <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-8 border border-border">
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-8 border border-border bg-muted">
               <Image
                 src={postData.featuredImageUrl}
                 alt={postData.featuredImageAlt || 'Featured image'}
                 fill
                 className="object-cover"
                 priority
+                onError={(e) => {
+                  console.error('Error loading featured image:', postData.featuredImageUrl)
+                  e.target.style.display = 'none'
+                }}
               />
             </div>
           )}
@@ -104,7 +123,7 @@ export default function BlogPostPreview({
             {/* Date */}
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              <span>{format(new Date(), 'MMM dd, yyyy')}</span>
+              <span>{formatDate()}</span>
             </div>
 
             {/* Reading Time */}
@@ -134,7 +153,10 @@ export default function BlogPostPreview({
               prose-blockquote:border-l-primary prose-blockquote:bg-muted/30 prose-blockquote:py-2 prose-blockquote:px-4
               prose-ul:text-foreground prose-ol:text-foreground
               prose-li:text-foreground"
-            dangerouslySetInnerHTML={{ __html: postData?.content || '<p>No content yet. Start writing!</p>' }}
+            dangerouslySetInnerHTML={{ 
+              __html: postData?.content || '<p>No content yet. Start writing!</p>' 
+            }}
+            suppressHydrationWarning
           />
 
           {/* Tags */}
