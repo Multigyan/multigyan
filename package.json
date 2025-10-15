@@ -10,6 +10,7 @@
     "db:index": "node scripts/create-indexes.js",
     "db:verify": "node scripts/verify-indexes.js",
     "db:update-slug": "node scripts/update-hindi-slug.js",
+    "db:check-links": "node scripts/check-blog-links.js",
     "deploy:check": "node scripts/check-deployment.js",
     "test:build": "npm run lint && npm run build",
     "analyze": "ANALYZE=true npm run build",
