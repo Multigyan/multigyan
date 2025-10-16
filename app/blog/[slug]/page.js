@@ -167,22 +167,41 @@ export default async function BlogPostPage({ params }) {
       readingTime: post.readingTime
     })
     
-    // Serialize the post for client component
+    // Serialize the post for client component (NO SPREAD OPERATOR!)
     const serializedPost = {
-      ...post,
+      // Basic fields
       _id: post._id.toString(),
-      // ✅ FIX: Handle null author (some posts might not have author after migration)
+      title: post.title,
+      content: post.content,
+      excerpt: post.excerpt,
+      slug: post.slug,
+      featuredImageUrl: post.featuredImageUrl,
+      featuredImageAlt: post.featuredImageAlt,
+      
+      // Serialized author
       author: post.author ? {
-        ...post.author,
-        _id: post.author._id.toString()
+        _id: post.author._id.toString(),
+        name: post.author.name,
+        email: post.author.email,
+        username: post.author.username,
+        profilePictureUrl: post.author.profilePictureUrl,
+        bio: post.author.bio,
+        twitterHandle: post.author.twitterHandle
       } : null,
-      category: post.category ?{
-        ...post.category,
-        _id: post.category._id.toString()
+      
+      // Serialized category
+      category: post.category ? {
+        _id: post.category._id.toString(),
+        name: post.category.name,
+        slug: post.category.slug,
+        color: post.category.color
       } : null,
-      // ✅ FIX: Serialize the post's likes array
+      
+      // Arrays
+      tags: post.tags || [],
       likes: post.likes?.map(like => like.toString()) || [],
-      // ✅ FIX 3: Use safe date conversion helper for all dates
+      
+      // Dates
       publishedAt: toISOStringSafe(post.publishedAt),
       updatedAt: toISOStringSafe(post.updatedAt),
       createdAt: toISOStringSafe(post.createdAt),
@@ -214,11 +233,25 @@ export default async function BlogPostPage({ params }) {
         isEdited: comment.isEdited || false,
         replies: [] // Replies will be structured by CommentSection component
       })) || [],
-      // ✅ FIX: Properly serialize reviewedBy
+      // Serialized reviewedBy
       reviewedBy: post.reviewedBy ? {
         _id: post.reviewedBy._id.toString(),
         name: post.reviewedBy.name
-      } : null
+      } : null,
+      
+      // Metadata
+      status: post.status,
+      views: post.views || 0,
+      readingTime: post.readingTime || 0,
+      isFeatured: post.isFeatured || false,
+      allowComments: post.allowComments !== false, // Default to true
+      
+      // SEO fields
+      seoTitle: post.seoTitle || post.title,
+      seoDescription: post.seoDescription || post.excerpt,
+      seoKeywords: post.seoKeywords || post.tags || [],
+      
+      // DO NOT include revision, hasRevision, or other MongoDB internal fields!
     }
     
     return (
