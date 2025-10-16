@@ -725,6 +725,48 @@ const MenuBar = ({ editor }) => {
 }
 
 export default function EnhancedRichTextEditor({ content, onChange, placeholder = "Start writing..." }) {
+  // ✅ Upload pasted/dropped images to Cloudinary
+  const uploadPastedImage = useCallback(async (file) => {
+    try {
+      // Convert to WebP first
+      let processedFile = file
+      if (file.type !== 'image/webp') {
+        try {
+          processedFile = await convertToWebP(file, 0.85)
+        } catch (error) {
+          console.error('WebP conversion failed, using original:', error)
+          processedFile = file
+        }
+      }
+
+      const formData = new FormData()
+      formData.append('file', processedFile)
+      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'multigyan_uploads')
+      formData.append('folder', 'multigyan/posts/content')
+      
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+      
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
+      
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+      
+      const data = await response.json()
+      return data.secure_url
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error('Failed to upload pasted image')
+      return null
+    }
+  }, [])
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -740,7 +782,7 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
         HTMLAttributes: {
           class: 'max-w-full h-auto rounded-lg border my-4',
         },
-        allowBase64: true,
+        allowBase64: false, // ✅ Disable base64 to force upload
       }),
       Link.configure({
         openOnClick: false,
@@ -771,11 +813,274 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px] max-w-none p-4',
       },
+      // ✅ Handle pasted content with multiple images and formatting
+      handlePaste: async (view, event, slice) => {
+        const items = Array.from(event.clipboardData?.items || [])
+        let hasImages = false
+        const imageFiles = []
+        
+        // Step 1: Check if there are any images in the clipboard
+        for (const item of items) {
+          if (item.type.startsWith('image/')) {
+            hasImages = true
+            const file = item.getAsFile()
+            if (file) imageFiles.push(file)
+          }
+        }
+        
+        // Step 2: If there are direct image files (screenshot paste), upload them
+        if (hasImages && imageFiles.length > 0) {
+          event.preventDefault()
+          
+          console.log(`Found ${imageFiles.length} direct image(s) to upload`)
+          
+          // Upload all images sequentially with proper toast management
+          for (let i = 0; i < imageFiles.length; i++) {
+            const file = imageFiles[i]
+            const loadingToast = toast.loading(`Uploading image ${i + 1}/${imageFiles.length}...`)
+            
+            try {
+              const url = await uploadPastedImage(file)
+              if (url) {
+                editor.chain().focus().setImage({ src: url, alt: `Pasted image ${i + 1}` }).run()
+                toast.success(`Image ${i + 1} uploaded!`, { id: loadingToast, duration: 2000 })
+              } else {
+                toast.error(`Failed to upload image ${i + 1}`, { id: loadingToast })
+              }
+            } catch (error) {
+              toast.error(`Error uploading image ${i + 1}`, { id: loadingToast })
+            }
+          }
+          
+          return true
+        }
+        
+        // Step 3: Handle HTML content from Word/Google Docs
+        const htmlContent = event.clipboardData?.getData('text/html')
+        
+        if (htmlContent) {
+          // Check if HTML contains base64 images
+          const hasBase64Images = htmlContent.includes('data:image')
+          
+          if (hasBase64Images) {
+            event.preventDefault()
+            
+            console.log('Found Word/Docs content with images, processing...')
+            
+            // Extract base64 images using regex
+            const base64Regex = /<img[^>]+src="data:image\/([^;]+);base64,([^"]+)"[^>]*>/g
+            const base64Images = []
+            let match
+            
+            while ((match = base64Regex.exec(htmlContent)) !== null) {
+              base64Images.push({
+                fullMatch: match[0],
+                format: match[1],
+                data: match[2]
+              })
+            }
+            
+            console.log(`Found ${base64Images.length} image(s) in content`)
+            
+            // Show initial toast
+            const mainToast = toast.loading(`Processing content with ${base64Images.length} image(s)...`)
+            
+            // Convert base64 to files and upload
+            let processedHtml = htmlContent
+            
+            for (let i = 0; i < base64Images.length; i++) {
+              const img = base64Images[i]
+              
+              // Update progress
+              toast.loading(`Uploading image ${i + 1}/${base64Images.length}...`, { id: mainToast })
+              
+              try {
+                // Convert base64 to blob
+                const byteCharacters = atob(img.data)
+                const byteNumbers = new Array(byteCharacters.length)
+                for (let j = 0; j < byteCharacters.length; j++) {
+                  byteNumbers[j] = byteCharacters.charCodeAt(j)
+                }
+                const byteArray = new Uint8Array(byteNumbers)
+                const blob = new Blob([byteArray], { type: `image/${img.format}` })
+                const file = new File([blob], `pasted-image-${i + 1}.${img.format}`, { type: `image/${img.format}` })
+                
+                // Upload to Cloudinary
+                const cloudinaryUrl = await uploadPastedImage(file)
+                
+                if (cloudinaryUrl) {
+                  // Replace base64 with Cloudinary URL in HTML
+                  processedHtml = processedHtml.replace(
+                    img.fullMatch,
+                    `<img src="${cloudinaryUrl}" alt="Image ${i + 1}" />`
+                  )
+                }
+              } catch (error) {
+                console.error(`Failed to process image ${i + 1}:`, error)
+              }
+            }
+            
+            // ✅ Clean and format the HTML properly
+            let cleanedHtml = processedHtml
+            
+            // Remove Word-specific tags and attributes
+            cleanedHtml = cleanedHtml
+              // Remove style attributes
+              .replace(/style="[^"]*"/g, '')
+              // Remove class attributes from Word
+              .replace(/class="[^"]*Mso[^"]*"/g, '')
+              // Remove Word namespace tags
+              .replace(/<\/?o:[^>]*>/g, '')
+              .replace(/<\/?w:[^>]*>/g, '')
+              // Remove empty spans
+              .replace(/<span[^>]*>\s*<\/span>/g, '')
+              // Remove Word comments
+              .replace(/<!--\[if[^\]]*\]>.*?<!\[endif\]-->/g, '')
+              // Clean up multiple spaces
+              .replace(/&nbsp;/g, ' ')
+              .replace(/\s+/g, ' ')
+            
+            // ✅ Convert Word formatting to proper HTML
+            // Convert <p class="MsoNormal"> to simple <p>
+            cleanedHtml = cleanedHtml.replace(/<p[^>]*class="[^"]*MsoNormal[^"]*"[^>]*>/g, '<p>')
+            
+            // Convert Word headings to proper HTML headings
+            cleanedHtml = cleanedHtml
+              .replace(/<p[^>]*>\s*<b>\s*<span[^>]*>([^<]+)<\/span>\s*<\/b>\s*<\/p>/g, '<h3>$1</h3>')
+              .replace(/<p[^>]*><b>([^<]+)<\/b><\/p>/g, '<h3>$1</h3>')
+            
+            // Convert Word bullet lists properly
+            cleanedHtml = cleanedHtml
+              .replace(/<p[^>]*>\s*·\s*([^<]+)<\/p>/g, '<li>$1</li>')
+              .replace(/<p[^>]*>\s*•\s*([^<]+)<\/p>/g, '<li>$1</li>')
+              .replace(/<p[^>]*>\s*-\s*([^<]+)<\/p>/g, '<li>$1</li>')
+            
+            // Wrap consecutive <li> in <ul>
+            cleanedHtml = cleanedHtml.replace(/(<li>.*?<\/li>)+/g, (match) => `<ul>${match}</ul>`)
+            
+            // Convert numbered lists
+            cleanedHtml = cleanedHtml
+              .replace(/<p[^>]*>\s*\d+\.\s*([^<]+)<\/p>/g, '<li>$1</li>')
+              .replace(/<p[^>]*>\s*\d+\)\s*([^<]+)<\/p>/g, '<li>$1</li>')
+            
+            // Wrap consecutive numbered <li> in <ol>
+            cleanedHtml = cleanedHtml.replace(/(<li>.*?<\/li>){2,}/g, (match) => {
+              if (!match.includes('<ul>')) {
+                return `<ol>${match}</ol>`
+              }
+              return match
+            })
+            
+            // ✅ Remove excessive line breaks and spacing
+            cleanedHtml = cleanedHtml
+              .replace(/<p>\s*<\/p>/g, '') // Remove empty paragraphs
+              .replace(/<br>\s*<br>/g, '<br>') // Remove double line breaks
+              .replace(/<p>\s*<br>\s*<\/p>/g, '') // Remove paragraphs with just br
+              .replace(/(<\/p>)\s*(<p>)/g, '$1$2') // Remove space between paragraphs
+            
+            // Insert the cleaned HTML
+            editor.chain().focus().insertContent(cleanedHtml).run()
+            
+            // Dismiss the main toast and show success
+            toast.success(`✅ Content pasted! ${base64Images.length} image(s) uploaded`, { 
+              id: mainToast,
+              duration: 3000 
+            })
+            
+            return true
+          }
+        }
+        
+        // Step 4: For plain text or normal HTML (no images), allow default paste
+        return false
+      },
+      // ✅ Handle dropped images - upload to Cloudinary
+      handleDrop: (view, event, slice, moved) => {
+        if (!moved && event.dataTransfer?.files?.length) {
+          const files = Array.from(event.dataTransfer.files)
+          
+          for (const file of files) {
+            if (file.type.startsWith('image/')) {
+              event.preventDefault()
+              
+              toast.promise(
+                uploadPastedImage(file),
+                {
+                  loading: 'Converting to WebP and uploading image...',
+                  success: (url) => {
+                    if (url) {
+                      const { schema } = view.state
+                      const coordinates = view.posAtCoords({
+                        left: event.clientX,
+                        top: event.clientY,
+                      })
+                      
+                      const node = schema.nodes.image.create({ src: url })
+                      const transaction = view.state.tr.insert(coordinates.pos, node)
+                      view.dispatch(transaction)
+                      
+                      return 'Image uploaded successfully!'
+                    }
+                    return 'Upload completed'
+                  },
+                  error: 'Failed to upload image'
+                }
+              )
+              
+              return true
+            }
+          }
+        }
+        return false
+      },
     },
   })
 
   return (
     <div className="border border-border rounded-md overflow-hidden bg-background">
+      <style jsx global>{`
+        /* ✅ Fix spacing issues in editor */
+        .ProseMirror p {
+          margin-bottom: 0.5rem;
+          line-height: 1.6;
+        }
+        
+        .ProseMirror h1,
+        .ProseMirror h2,
+        .ProseMirror h3,
+        .ProseMirror h4,
+        .ProseMirror h5,
+        .ProseMirror h6 {
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+          line-height: 1.3;
+        }
+        
+        .ProseMirror ul,
+        .ProseMirror ol {
+          margin-top: 0.5rem;
+          margin-bottom: 0.5rem;
+          padding-left: 1.5rem;
+        }
+        
+        .ProseMirror li {
+          margin-bottom: 0.25rem;
+        }
+        
+        /* Remove extra spacing from first/last elements */
+        .ProseMirror > *:first-child {
+          margin-top: 0;
+        }
+        
+        .ProseMirror > *:last-child {
+          margin-bottom: 0;
+        }
+        
+        /* Tighter spacing for consecutive paragraphs */
+        .ProseMirror p + p {
+          margin-top: 0.5rem;
+        }
+      `}</style>
       <MenuBar editor={editor} />
       <EditorContent 
         editor={editor} 

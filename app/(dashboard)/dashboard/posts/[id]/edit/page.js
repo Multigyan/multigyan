@@ -155,6 +155,12 @@ export default function EditPostPage({ params }) {
       return
     }
 
+    // ✅ Validate featured image URL if provided
+    if (formData.featuredImageUrl && !formData.featuredImageUrl.startsWith('http')) {
+      toast.error('Featured image URL must be a valid HTTP/HTTPS URL')
+      return
+    }
+
     // Check if admin is editing another author's post
     const isEditingOtherAuthor = session?.user?.role === 'admin' && 
                                   formData.author && 
@@ -226,7 +232,25 @@ export default function EditPostPage({ params }) {
       console.log('Response OK?', response.ok)
 
       if (response.ok) {
-        toast.success('Post updated successfully')
+        // ✅ Show detailed success message
+        const updatedFields = []
+        if (sanitizedData.title) updatedFields.push('title')
+        if (sanitizedData.featuredImageUrl) updatedFields.push('featured image')
+        if (sanitizedData.content) updatedFields.push('content')
+        
+        toast.success(`Post updated successfully!${updatedFields.length > 0 ? ` Updated: ${updatedFields.join(', ')}` : ''}`, {
+          description: formData.featuredImageUrl ? 'Featured image has been updated ✅' : undefined
+        })
+        
+        // ✅ Optional: Show the new featured image in a toast
+        if (formData.featuredImageUrl && formData.featuredImageUrl !== data.post?.featuredImageUrl) {
+          setTimeout(() => {
+            toast.info('Featured image successfully updated! View it on the published post.', {
+              duration: 5000
+            })
+          }, 1000)
+        }
+        
         router.push('/dashboard/posts')
       } else {
         console.error('API Error Response:', {
@@ -332,14 +356,38 @@ export default function EditPostPage({ params }) {
             <Card>
               <CardHeader>
                 <CardTitle>Featured Image</CardTitle>
+                {formData.featuredImageUrl && (
+                  <CardDescription className="mt-2">
+                    ✅ Image uploaded successfully! Save your changes to update the post.
+                  </CardDescription>
+                )}
               </CardHeader>
               <CardContent>
                 <FeaturedImageUploader
                   value={formData.featuredImageUrl}
-                  onChange={(url) => setFormData(prev => ({ ...prev, featuredImageUrl: url }))}
+                  onChange={(url) => {
+                    setFormData(prev => ({ ...prev, featuredImageUrl: url }))
+                    // Show immediate feedback
+                    toast.success('Featured image updated! Click "Update" to save changes.', {
+                      duration: 3000
+                    })
+                  }}
                   onAltTextChange={(alt) => setFormData(prev => ({ ...prev, featuredImageAlt: alt }))}
                   altText={formData.featuredImageAlt}
                 />
+                
+                {/* ✅ Show current image preview */}
+                {formData.featuredImageUrl && (
+                  <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p className="text-sm text-green-800 dark:text-green-200 font-medium flex items-center gap-2">
+                      <span className="text-lg">✅</span>
+                      Featured image is ready
+                    </p>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                      Click "Update" button to save this image to your post
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
