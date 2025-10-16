@@ -53,7 +53,7 @@ export default function BlogPostPreview({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="max-w-[90vh] max-h-[90vh] overflow-y-auto p-0 lg:max-w-7xl">
         {/* Header */}
         <DialogHeader className="sticky top-0 z-10 bg-background border-b px-6 py-4">
           <div className="flex items-center justify-between">
