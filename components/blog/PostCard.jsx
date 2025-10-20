@@ -16,6 +16,9 @@ import {
 import { formatDate } from "@/lib/helpers"
 
 export default function PostCard({ post, featured = false }) {
+  // ✅ FALLBACK: Handle both old (imageUrl) and new (featuredImageUrl) field names
+  const imageUrl = post.featuredImageUrl || post.imageUrl;
+  
   // Get counts
   const likesCount = post.likes?.length || 0
   const commentsCount = post.comments?.filter(c => c.isApproved).length || 0
@@ -26,9 +29,9 @@ export default function PostCard({ post, featured = false }) {
       <Card className="blog-card overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 h-full flex flex-col">
         {/* ✅ IMPROVED: Featured Image - Consistent 16:9 Aspect Ratio */}
         <div className="relative w-full" style={{ aspectRatio: '16 / 9' }}>
-          {post.featuredImageUrl ? (
+          {imageUrl ? (
             <Image
-              src={post.featuredImageUrl}
+              src={imageUrl}
               alt={post.featuredImageAlt || post.title}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

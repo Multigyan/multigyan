@@ -10,6 +10,9 @@ import StructuredData from "@/components/seo/StructuredData"
 import FloatingSocialSidebar from "@/components/layout/FloatingSocialSidebar"
 import BackToTop from "@/components/ui/BackToTop"
 import { generateStructuredData } from "@/lib/seo"
+import Script from 'next/script'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,6 +26,10 @@ export const metadata = {
   keywords: ['blog', 'nextjs', 'mongodb', 'multi-author', 'cms', 'multigyan'],
   authors: [{ name: 'Multigyan Team' }],
   creator: 'Multigyan',
+  // ✅ Google AdSense Verification
+  verification: {
+    google: 'pub-1982960683340318',
+  },
   icons: {
     icon: [
       { url: '/Multigyan_Logo.ico', sizes: '16x16', type: 'image/x-icon' },
@@ -103,6 +110,32 @@ export default function RootLayout({ children }) {
         className="min-h-screen bg-background font-sans antialiased"
         suppressHydrationWarning={true}
       >
+        {/* Google Analytics */}
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-1L0YJCZV0W"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-1L0YJCZV0W');
+            `,
+          }}
+        />
+        
+        {/* Google AdSense */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1982960683340318"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+        
         <AuthProvider>
           <LoadingBar />
           <div className="relative flex min-h-screen flex-col">
@@ -114,6 +147,10 @@ export default function RootLayout({ children }) {
           <BackToTop />
           <Toaster />
         </AuthProvider>
+        
+        {/* Vercel Analytics */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
