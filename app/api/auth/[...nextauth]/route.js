@@ -120,6 +120,20 @@ export const authOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // ✅ Cookie configuration for custom domain
+  cookies: {
+    sessionToken: {
+      name: `__Secure-next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: true,
+        domain: process.env.NODE_ENV === 'production' ? '.multigyan.in' : undefined
+      }
+    }
+  },
+  useSecureCookies: true,
 }
 
 const handler = NextAuth(authOptions)
