@@ -68,7 +68,7 @@ export default function FeedsPage() {
         <CardContent>
           <p className="text-gray-700 mb-4">
             RSS (Really Simple Syndication) allows you to stay updated with your favorite websites without visiting them individually. 
-            Subscribe to our feed using any RSS reader, and you'll get notified whenever we publish new content.
+            Subscribe to our feed using any RSS reader, and you&apos;ll get notified whenever we publish new content.
           </p>
           <div className="grid md:grid-cols-3 gap-4 mt-6">
             <div className="flex items-start space-x-3">
@@ -168,7 +168,7 @@ export default function FeedsPage() {
       <div className="mb-12">
         <h2 className="text-3xl font-bold mb-6">Popular RSS Readers</h2>
         <p className="text-gray-600 mb-6">
-          Don't have an RSS reader yet? Here are some popular options to get started:
+          Don&apos;t have an RSS reader yet? Here are some popular options to get started:
         </p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {popularReaders.map((reader, index) => (
@@ -231,7 +231,7 @@ export default function FeedsPage() {
       <div className="mt-12 p-6 bg-gray-50 rounded-lg border border-gray-200">
         <h3 className="text-xl font-semibold mb-3">Need Help?</h3>
         <p className="text-gray-600 mb-4">
-          Having trouble subscribing to our feeds? We're here to help!
+          Having trouble subscribing to our feeds? We&apos;re here to help!
         </p>
         <a
           href="/contact"
