@@ -83,6 +83,17 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
+  alternates: {
+    types: {
+      'application/rss+xml': [
+        { url: '/rss.xml', title: 'Multigyan RSS Feed' },
+        { url: '/api/feed/rss', title: 'Multigyan RSS Feed (API)' },
+      ],
+      'application/atom+xml': [
+        { url: '/api/feed/atom', title: 'Multigyan Atom Feed' },
+      ],
+    },
+  },
 }
 
 export default function RootLayout({ children }) {
@@ -106,9 +117,6 @@ export default function RootLayout({ children }) {
       <head>
         <StructuredData data={websiteStructuredData} />
         <StructuredData data={organizationStructuredData} />
-        <link rel="alternate" type="application/rss+xml" title="Multigyan RSS Feed" href="/api/feed/rss" />
-        <link rel="alternate" type="application/atom+xml" title="Multigyan Atom Feed" href="/api/feed/atom" />
-        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
         {/* Google AdSense - Added directly to head to avoid data-noscript warning */}
         <script
           async
