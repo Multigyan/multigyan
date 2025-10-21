@@ -920,63 +920,116 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
               }
             }
             
-            // ✅ Clean and format the HTML properly
+            // ✅ Clean and format the HTML properly for Word/Google Docs
             let cleanedHtml = processedHtml
             
-            // Remove Word-specific tags and attributes
+            // Step 1: Remove Word-specific junk
             cleanedHtml = cleanedHtml
-              // Remove style attributes
-              .replace(/style="[^"]*"/g, '')
-              // Remove class attributes from Word
-              .replace(/class="[^"]*Mso[^"]*"/g, '')
-              // Remove Word namespace tags
-              .replace(/<\/?o:[^>]*>/g, '')
-              .replace(/<\/?w:[^>]*>/g, '')
-              // Remove empty spans
-              .replace(/<span[^>]*>\s*<\/span>/g, '')
+              // Remove Microsoft Office namespace tags
+              .replace(/<\/?o:[^>]*>/gi, '')
+              .replace(/<\/?w:[^>]*>/gi, '')
+              .replace(/<\/?v:[^>]*>/gi, '')
+              .replace(/<\/?m:[^>]*>/gi, '')
               // Remove Word comments
-              .replace(/<!--\[if[^\]]*\]>.*?<!\[endif\]-->/g, '')
-              // Clean up multiple spaces
+              .replace(/<!--\[if[^\]]*\]>.*?<!\[endif\]-->/gi, '')
+              .replace(/<!--.*?-->/g, '')
+              // Remove Word style definitions
+              .replace(/<style[^>]*>.*?<\/style>/gi, '')
+              // Remove Word XML data
+              .replace(/<xml>.*?<\/xml>/gi, '')
+              // Remove meta tags
+              .replace(/<meta[^>]*>/gi, '')
+              // Remove link tags
+              .replace(/<link[^>]*>/gi, '')
+            
+            // Step 2: Clean attributes
+            cleanedHtml = cleanedHtml
+              // Remove all style attributes
+              .replace(/\s+style="[^"]*"/gi, '')
+              // Remove Word-specific classes
+              .replace(/\s+class="[^"]*Mso[^"]*"/gi, '')
+              .replace(/\s+class="[^"]*Word[^"]*"/gi, '')
+              // Remove Word-specific attributes
+              .replace(/\s+lang="[^"]*"/gi, '')
+              .replace(/\s+xml:lang="[^"]*"/gi, '')
+              
+            // Step 3: Clean spacing and special characters
+            cleanedHtml = cleanedHtml
               .replace(/&nbsp;/g, ' ')
-              .replace(/\s+/g, ' ')
+              .replace(/\u00A0/g, ' ')
+              .replace(/\s{2,}/g, ' ')
+              .replace(/<p>\s+/g, '<p>')
+              .replace(/\s+<\/p>/g, '</p>')
             
-            // ✅ Convert Word formatting to proper HTML
-            // Convert <p class="MsoNormal"> to simple <p>
-            cleanedHtml = cleanedHtml.replace(/<p[^>]*class="[^"]*MsoNormal[^"]*"[^>]*>/g, '<p>')
-            
-            // Convert Word headings to proper HTML headings
+            // Step 4: Convert Word headings to proper HTML headings
+            // Detect bold text at start of paragraphs as headings
             cleanedHtml = cleanedHtml
-              .replace(/<p[^>]*>\s*<b>\s*<span[^>]*>([^<]+)<\/span>\s*<\/b>\s*<\/p>/g, '<h3>$1</h3>')
-              .replace(/<p[^>]*><b>([^<]+)<\/b><\/p>/g, '<h3>$1</h3>')
+              // H2: Bold + larger text
+              .replace(/<p[^>]*>\s*<b>\s*<span[^>]*font-size:\s*2[0-9]pt[^>]*>([^<]+)<\/span>\s*<\/b>\s*<\/p>/gi, '<h2>$1</h2>')
+              // H3: Bold + medium text
+              .replace(/<p[^>]*>\s*<b>\s*<span[^>]*font-size:\s*1[5-9]pt[^>]*>([^<]+)<\/span>\s*<\/b>\s*<\/p>/gi, '<h3>$1</h3>')
+              // H3: Just bold paragraphs (common in docs)
+              .replace(/<p[^>]*>\s*<(?:b|strong)>\s*([^<]+)\s*<\/(?:b|strong)>\s*<\/p>/gi, '<h3>$1</h3>')
+              // H3: Bold span inside paragraph
+              .replace(/<p[^>]*>\s*<span[^>]*>\s*<(?:b|strong)>([^<]+)<\/(?:b|strong)>\s*<\/span>\s*<\/p>/gi, '<h3>$1</h3>')
             
-            // Convert Word bullet lists properly
+            // Step 5: Handle lists properly
+            // Convert bullet points
             cleanedHtml = cleanedHtml
-              .replace(/<p[^>]*>\s*·\s*([^<]+)<\/p>/g, '<li>$1</li>')
-              .replace(/<p[^>]*>\s*•\s*([^<]+)<\/p>/g, '<li>$1</li>')
-              .replace(/<p[^>]*>\s*-\s*([^<]+)<\/p>/g, '<li>$1</li>')
+              .replace(/<p[^>]*>\s*[·•●○■▪▫]\s+([^<]+)<\/p>/gi, '<li>$1</li>')
+              .replace(/<p[^>]*>\s*<span[^>]*>[·•●○■▪▫]<\/span>\s+([^<]+)<\/p>/gi, '<li>$1</li>')
+              // Convert numbered items
+              .replace(/<p[^>]*>\s*\d+[\.):]\s+([^<]+)<\/p>/gi, '<li data-numbered="true">$1</li>')
+              .replace(/<p[^>]*>\s*<span[^>]*>\d+[\.):]<\/span>\s+([^<]+)<\/p>/gi, '<li data-numbered="true">$1</li>')
+              // Handle indented lists (Word uses mso-list)
+              .replace(/<p[^>]*mso-list[^>]*>\s*(?:<span[^>]*>)?[^<]*(?:<\/span>)?\s*([^<]+)<\/p>/gi, '<li>$1</li>')
             
-            // Wrap consecutive <li> in <ul>
-            cleanedHtml = cleanedHtml.replace(/(<li>.*?<\/li>)+/g, (match) => `<ul>${match}</ul>`)
-            
-            // Convert numbered lists
-            cleanedHtml = cleanedHtml
-              .replace(/<p[^>]*>\s*\d+\.\s*([^<]+)<\/p>/g, '<li>$1</li>')
-              .replace(/<p[^>]*>\s*\d+\)\s*([^<]+)<\/p>/g, '<li>$1</li>')
-            
-            // Wrap consecutive numbered <li> in <ol>
-            cleanedHtml = cleanedHtml.replace(/(<li>.*?<\/li>){2,}/g, (match) => {
-              if (!match.includes('<ul>')) {
-                return `<ol>${match}</ol>`
+            // Wrap consecutive list items in ul/ol
+            cleanedHtml = cleanedHtml.replace(/(<li(?:(?! data-numbered)[^>])*>.*?<\/li>\s*)+/g, (match) => {
+              if (!match.includes('<ul>') && !match.includes('<ol>')) {
+                return `<ul>${match}</ul>`
               }
               return match
             })
             
-            // ✅ Remove excessive line breaks and spacing
+            cleanedHtml = cleanedHtml.replace(/(<li data-numbered="true">.*?<\/li>\s*)+/g, (match) => {
+              const items = match.replace(/ data-numbered="true"/g, '')
+              return `<ol>${items}</ol>`
+            })
+            
+            // Step 6: Clean up empty elements and fix formatting
             cleanedHtml = cleanedHtml
-              .replace(/<p>\s*<\/p>/g, '') // Remove empty paragraphs
-              .replace(/<br>\s*<br>/g, '<br>') // Remove double line breaks
-              .replace(/<p>\s*<br>\s*<\/p>/g, '') // Remove paragraphs with just br
-              .replace(/(<\/p>)\s*(<p>)/g, '$1$2') // Remove space between paragraphs
+              // Remove empty paragraphs
+              .replace(/<p[^>]*>\s*<\/p>/gi, '')
+              .replace(/<p[^>]*>\s*<br[^>]*>\s*<\/p>/gi, '')
+              // Remove empty spans
+              .replace(/<span[^>]*>\s*<\/span>/gi, '')
+              // Remove multiple consecutive br tags
+              .replace(/(<br[^>]*>\s*){2,}/gi, '<br>')
+              // Clean up paragraph spacing
+              .replace(/(<\/p>)\s*(<p>)/gi, '$1$2')
+              // Remove attributes from basic tags
+              .replace(/<p[^>]*>/gi, '<p>')
+              .replace(/<span[^>]*>([^<]+)<\/span>/gi, '$1')
+            
+            // Step 7: Preserve basic formatting (bold, italic, underline)
+            cleanedHtml = cleanedHtml
+              // Keep strong/b tags
+              .replace(/<strong>/gi, '<b>')
+              .replace(/<\/strong>/gi, '</b>')
+              // Keep em/i tags
+              .replace(/<em>/gi, '<i>')
+              .replace(/<\/em>/gi, '</i>')
+              // Keep u tags for underline
+              .replace(/<span[^>]*text-decoration:\s*underline[^>]*>([^<]+)<\/span>/gi, '<u>$1</u>')
+            
+            // Step 8: Fix heading nesting and cleanup
+            cleanedHtml = cleanedHtml
+              // Remove any remaining empty elements
+              .replace(/<([a-z][a-z0-9]*)\b[^>]*>\s*<\/\1>/gi, '')
+              // Trim content inside tags
+              .replace(/>\s+</g, '><')
+              .trim()
             
             // Insert the cleaned HTML
             editor.chain().focus().insertContent(cleanedHtml).run()
