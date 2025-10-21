@@ -784,7 +784,8 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
         HTMLAttributes: {
           class: 'max-w-full h-auto rounded-lg border my-4',
         },
-        allowBase64: false, // ✅ Disable base64 to force upload
+        allowBase64: false, // ✅ CRITICAL: Never allow base64 - always upload
+        inline: false, // Images are block elements
       }),
       Link.configure({
         openOnClick: false,
@@ -860,14 +861,25 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
         // Step 3: Handle HTML content from Word/Google Docs
         const htmlContent = event.clipboardData?.getData('text/html')
         
-        if (htmlContent) {
-          // Check if HTML contains base64 images
+        // Check if it's Word/Docs content (look for Microsoft or Google Docs markers)
+        const isWordOrDocs = htmlContent && (
+          htmlContent.includes('data:image') || 
+          htmlContent.includes('Mso') || 
+          htmlContent.includes('docs-internal') ||
+          htmlContent.includes('MsoNormal') ||
+          htmlContent.includes('mso-list')
+        )
+        
+        if (isWordOrDocs) {
+          event.preventDefault()
+          console.log('Found Word/Docs content, processing...')
+          
+          let processedHtml = htmlContent
+          
+          // Check if HTML contains base64 images that need uploading
           const hasBase64Images = htmlContent.includes('data:image')
           
           if (hasBase64Images) {
-            event.preventDefault()
-            
-            console.log('Found Word/Docs content with images, processing...')
             
             // Extract base64 images using regex
             const base64Regex = /<img[^>]+src="data:image\/([^;]+);base64,([^"]+)"[^>]*>/g
@@ -882,14 +894,10 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
               })
             }
             
-            console.log(`Found ${base64Images.length} image(s) in content`)
-            
             // Show initial toast
             const mainToast = toast.loading(`Processing content with ${base64Images.length} image(s)...`)
             
             // Convert base64 to files and upload
-            let processedHtml = htmlContent
-            
             for (let i = 0; i < base64Images.length; i++) {
               const img = base64Images[i]
               
@@ -922,11 +930,12 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
               }
             }
             
-            // ✅ Clean and format the HTML properly for Word/Google Docs
-            let cleanedHtml = processedHtml
-            
-            // Step 1: Remove Word-specific junk
-            cleanedHtml = cleanedHtml
+            // Dismiss the main toast
+            toast.dismiss(mainToast)
+          }
+          
+          // NOW clean the HTML for both cases (with or without images)
+          let cleanedHtml = processedHtml
               // Remove Microsoft Office namespace tags
               .replace(/<\/?o:[^>]*>/gi, '')
               .replace(/<\/?w:[^>]*>/gi, '')
@@ -1032,21 +1041,84 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
               // Trim content inside tags
               .replace(/>\s+</g, '><')
               .trim()
-            
-            // Insert the cleaned HTML
-            editor.chain().focus().insertContent(cleanedHtml).run()
-            
-            // Dismiss the main toast and show success
-            toast.success(`✅ Content pasted! ${base64Images.length} image(s) uploaded`, { 
-              id: mainToast,
-              duration: 3000 
+          
+          // Insert the cleaned HTML
+          editor.chain().focus().insertContent(cleanedHtml).run()
+          
+          // Show success message
+          if (hasBase64Images) {
+            toast.success(`✅ Content pasted with formatting preserved!`, { 
+              duration: 2000 
             })
+          } else {
+            toast.success('Content pasted successfully!', { duration: 2000 })
+          }
+          
+          return true
+        }
+        
+        // Step 4: Catch any remaining base64 images and upload them
+        // This is a safety net in case any base64 images weren't caught earlier
+        if (htmlContent && htmlContent.includes('data:image') && !isWordOrDocs) {
+          event.preventDefault()
+          console.log('Found base64 image in regular HTML paste, uploading...')
+          
+          const base64Regex = /<img[^>]+src="data:image\/([^;]+);base64,([^"]+)"[^>]*>/g
+          const base64Images = []
+          let match
+          
+          while ((match = base64Regex.exec(htmlContent)) !== null) {
+            base64Images.push({
+              fullMatch: match[0],
+              format: match[1],
+              data: match[2]
+            })
+          }
+          
+          if (base64Images.length > 0) {
+            let processedHtml = htmlContent
             
+            for (let i = 0; i < base64Images.length; i++) {
+              const img = base64Images[i]
+              const loadingToast = toast.loading(`Uploading image ${i + 1}/${base64Images.length}...`)
+              
+              try {
+                // Convert base64 to blob
+                const byteCharacters = atob(img.data)
+                const byteNumbers = new Array(byteCharacters.length)
+                for (let j = 0; j < byteCharacters.length; j++) {
+                  byteNumbers[j] = byteCharacters.charCodeAt(j)
+                }
+                const byteArray = new Uint8Array(byteNumbers)
+                const blob = new Blob([byteArray], { type: `image/${img.format}` })
+                const file = new File([blob], `pasted-image-${i + 1}.${img.format}`, { type: `image/${img.format}` })
+                
+                // Upload to Cloudinary
+                const cloudinaryUrl = await uploadPastedImage(file)
+                
+                if (cloudinaryUrl) {
+                  // Replace base64 with Cloudinary URL
+                  processedHtml = processedHtml.replace(
+                    img.fullMatch,
+                    `<img src="${cloudinaryUrl}" alt="Image ${i + 1}" />`
+                  )
+                  toast.success(`Image ${i + 1} uploaded!`, { id: loadingToast, duration: 2000 })
+                } else {
+                  toast.error(`Failed to upload image ${i + 1}`, { id: loadingToast })
+                }
+              } catch (error) {
+                console.error(`Failed to process image ${i + 1}:`, error)
+                toast.error(`Error uploading image ${i + 1}`, { id: loadingToast })
+              }
+            }
+            
+            // Insert the processed HTML
+            editor.chain().focus().insertContent(processedHtml).run()
             return true
           }
         }
         
-        // Step 4: For plain text or normal HTML (no images), allow default paste
+        // Step 5: For plain text or normal HTML (no images), allow default paste
         return false
       },
       // ✅ Handle dropped images - upload to Cloudinary
