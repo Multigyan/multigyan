@@ -105,6 +105,12 @@ export default function RootLayout({ children }) {
         <link rel="alternate" type="application/rss+xml" title="Multigyan RSS Feed" href="/api/feed/rss" />
         <link rel="alternate" type="application/atom+xml" title="Multigyan Atom Feed" href="/api/feed/atom" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+        {/* Google AdSense - Added directly to head to avoid data-noscript warning */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1982960683340318"
+          crossOrigin="anonymous"
+        />
       </head>
       <body 
         className="min-h-screen bg-background font-sans antialiased"
@@ -126,13 +132,6 @@ export default function RootLayout({ children }) {
               gtag('config', 'G-1L0YJCZV0W');
             `,
           }}
-        />
-        
-        {/* Google AdSense */}
-        <Script
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1982960683340318"
-          strategy="lazyOnload"
-          crossOrigin="anonymous"
         />
         
         <AuthProvider>
