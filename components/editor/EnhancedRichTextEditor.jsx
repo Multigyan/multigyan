@@ -773,6 +773,8 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
         },
+        // Disable code block from StarterKit since we're using CodeBlockLowlight
+        codeBlock: false,
       }),
       Underline,
       TextAlign.configure({
