@@ -57,14 +57,16 @@ export default function LoginPage() {
 
       if (result?.error) {
         toast.error(result.error)
-      } else {
+        setIsLoading(false)
+      } else if (result?.ok) {
         toast.success("Signed in successfully!")
-        router.push('/dashboard')
+        
+        // ✅ FIX: Use window.location for hard redirect to ensure session is loaded
+        window.location.href = '/dashboard'
       }
       
     } catch (error) {
       toast.error("An error occurred during sign in")
-    } finally {
       setIsLoading(false)
     }
   }
