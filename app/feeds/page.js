@@ -1,17 +1,24 @@
+'use client'
+
 import { Rss, Check, Copy, ExternalLink } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
-export const metadata = {
-  title: 'Subscribe to Our Feeds',
-  description: 'Get updates about new articles via RSS or Atom feeds. Never miss a post from Multigyan.',
-  openGraph: {
-    title: 'Subscribe to Multigyan Feeds',
-    description: 'Get updates about new articles via RSS or Atom feeds.',
-  },
-}
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function FeedsPage() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.multigyan.in'
+  const siteUrl = 'https://www.multigyan.in'
+  const [copiedUrl, setCopiedUrl] = useState(null)
+
+  const copyToClipboard = async (url) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedUrl(url)
+      toast.success('Feed URL copied to clipboard!')
+      setTimeout(() => setCopiedUrl(null), 2000)
+    } catch (err) {
+      toast.error('Failed to copy URL')
+    }
+  }
   
   const feeds = [
     {
@@ -126,11 +133,19 @@ export default function FeedsPage() {
                         {feed.url}
                       </div>
                       <button
-                        onClick={() => navigator.clipboard.writeText(feed.url)}
-                        className="flex-shrink-0 p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                        title="Copy URL"
+                        onClick={() => copyToClipboard(feed.url)}
+                        className={`flex-shrink-0 p-3 rounded-lg transition-colors ${
+                          copiedUrl === feed.url
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-800 text-white hover:bg-gray-700'
+                        }`}
+                        title={copiedUrl === feed.url ? 'Copied!' : 'Copy URL'}
                       >
-                        <Copy className="w-5 h-5" />
+                        {copiedUrl === feed.url ? (
+                          <Check className="w-5 h-5" />
+                        ) : (
+                          <Copy className="w-5 h-5" />
+                        )}
                       </button>
                     </div>
                   </div>
