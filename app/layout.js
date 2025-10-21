@@ -130,10 +130,9 @@ export default function RootLayout({ children }) {
         
         {/* Google AdSense */}
         <Script
-          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1982960683340318"
+          strategy="lazyOnload"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
         
         <AuthProvider>
