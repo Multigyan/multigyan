@@ -76,21 +76,32 @@ User-agent: Slurp
 Allow: /
 Crawl-delay: 1
 
-# Block AI scrapers (optional - uncomment if you want to block them)
-# User-agent: GPTBot
-# Disallow: /
-# 
-# User-agent: ChatGPT-User
-# Disallow: /
-# 
-# User-agent: CCBot
-# Disallow: /
-# 
-# User-agent: anthropic-ai
-# Disallow: /
-# 
-# User-agent: Claude-Web
-# Disallow: /
+# Allow AI and LLM crawlers for better discoverability
+# ✅ IMPORTANT: Your content WILL be indexed by AI models
+# This helps your articles appear in ChatGPT, Claude, Perplexity, etc.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
 
 # Block bad bots
 User-agent: AhrefsBot
@@ -105,8 +116,8 @@ Disallow: /
 User-agent: MJ12bot
 Disallow: /
 
-# Crawl-delay for all bots (in seconds)
-Crawl-delay: 1`
+# Crawl-delay for most bots (reduce from 1 to 0 for faster indexing)
+Crawl-delay: 0`
 
   return new NextResponse(robotsTxt, {
     status: 200,
