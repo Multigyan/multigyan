@@ -46,23 +46,35 @@ async function getUserStats(userId) {
   try {
     await connectDB()
     
-    const user = await User.findById(userId).select('stats')
+    // ✅ FIX: Calculate stats in real-time from actual posts
+    const [user, publishedPosts] = await Promise.all([
+      User.findById(userId).select('followers following'),
+      Post.find({ author: userId, status: 'published' }).select('views likes')
+    ])
     
-    return user ? {
-      totalPosts: user.stats?.totalPosts || 0,
-      totalViews: user.stats?.totalViews || 0,
-      totalLikes: user.stats?.totalLikes || 0,
-      followersCount: user.stats?.followersCount || 0,
-      followingCount: user.stats?.followingCount || 0
-    } : {
-      totalPosts: 0,
-      totalViews: 0,
-      totalLikes: 0,
-      followersCount: 0,
-      followingCount: 0
+    if (!user) {
+      return {
+        totalPosts: 0,
+        totalViews: 0,
+        totalLikes: 0,
+        followersCount: 0,
+        followingCount: 0
+      }
+    }
+    
+    // Calculate totals from actual posts
+    const totalViews = publishedPosts.reduce((sum, post) => sum + (post.views || 0), 0)
+    const totalLikes = publishedPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0)
+    
+    return {
+      totalPosts: publishedPosts.length,
+      totalViews: totalViews,
+      totalLikes: totalLikes,
+      followersCount: user.followers?.length || 0,
+      followingCount: user.following?.length || 0
     }
   } catch (error) {
-    console.error('Error fetching stats:', error)
+    console.error('Error fetching user stats:', error)
     return {
       totalPosts: 0,
       totalViews: 0,

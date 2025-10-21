@@ -27,48 +27,41 @@ export default function HomePage() {
 
   const fetchHomeData = async () => {
     try {
-      // Fetch latest posts
+      // ✅ FIX: Fetch stats from dedicated public endpoint
+      try {
+        const statsResponse = await fetch('/api/stats/public')
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json()
+          setStats({
+            totalPosts: statsData.totalPosts,
+            totalAuthors: statsData.totalAuthors,
+            totalCategories: statsData.totalCategories
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error)
+      }
+
+      // Fetch latest posts (separate from stats)
       try {
         const latestResponse = await fetch('/api/posts?status=published&limit=7')
         if (latestResponse.ok) {
           const latestData = await latestResponse.json()
           setLatestPosts(latestData.posts || [])
-          setStats(prev => ({
-            ...prev,
-            totalPosts: latestData.pagination?.total || 0
-          }))
         }
       } catch (error) {
         console.error('Error fetching latest posts:', error)
       }
       
-      // Fetch top 8 categories with actual post counts
+      // Fetch top 8 categories for display
       try {
         const categoriesResponse = await fetch('/api/categories/top?limit=8')
         if (categoriesResponse.ok) {
           const categoriesData = await categoriesResponse.json()
           setTopCategories(categoriesData.categories || [])
-          setStats(prev => ({
-            ...prev,
-            totalCategories: categoriesData.total || 0
-          }))
         }
       } catch (error) {
         console.error('Error fetching categories:', error)
-      }
-
-      // Fetch authors count
-      try {
-        const authorsResponse = await fetch('/api/users/authors')
-        if (authorsResponse.ok) {
-          const authorsData = await authorsResponse.json()
-          setStats(prev => ({
-            ...prev,
-            totalAuthors: authorsData.total || 0
-          }))
-        }
-      } catch (error) {
-        console.error('Error fetching authors:', error)
       }
       
     } catch (error) {

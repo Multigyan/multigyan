@@ -48,71 +48,23 @@ export default function AdminDashboardPage() {
     try {
       setLoading(true)
       
-      // Fetch all the admin data
-      const [usersRes, postsRes, categoriesRes, pendingRes] = await Promise.all([
-        fetch('/api/admin/users'),
-        fetch('/api/posts'),
-        fetch('/api/categories'),
+      // ✅ FIX: Use dedicated admin stats endpoint for platform-wide data
+      const [statsRes, pendingRes] = await Promise.all([
+        fetch('/api/admin/stats'),
         fetch('/api/posts/pending?limit=5')
       ])
 
-      const [usersData, postsData, categoriesData, pendingData] = await Promise.all([
-        usersRes.json(),
-        postsRes.json(),
-        categoriesRes.json(),
+      const [statsData, pendingData] = await Promise.all([
+        statsRes.json(),
         pendingRes.json()
       ])
 
-      // Process users data
-      if (usersRes.ok && usersData.users) {
-        const users = usersData.users
-        setStats(prev => ({
-          ...prev,
-          users: {
-            total: users.length,
-            admins: users.filter(u => u.role === 'admin').length,
-            authors: users.filter(u => u.role === 'author').length,
-            inactive: users.filter(u => !u.isActive).length
-          }
-        }))
+      // Update stats from admin endpoint
+      if (statsRes.ok && statsData) {
+        setStats(statsData)
       }
 
-      // Process posts data
-      if (postsRes.ok && postsData.posts) {
-        const posts = postsData.posts
-        const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0)
-        const totalLikes = posts.reduce((sum, post) => sum + (post.likes?.length || 0), 0)
-        
-        setStats(prev => ({
-          ...prev,
-          posts: {
-            total: postsData.pagination?.total || posts.length,
-            published: posts.filter(p => p.status === 'published').length,
-            pending: posts.filter(p => p.status === 'pending_review').length,
-            draft: posts.filter(p => p.status === 'draft').length,
-            rejected: posts.filter(p => p.status === 'rejected').length
-          },
-          engagement: {
-            totalViews,
-            totalLikes,
-            totalComments: posts.reduce((sum, post) => sum + (post.comments?.length || 0), 0)
-          }
-        }))
-      }
-
-      // Process categories data
-      if (categoriesRes.ok && categoriesData.categories) {
-        const categories = categoriesData.categories
-        setStats(prev => ({
-          ...prev,
-          categories: {
-            total: categories.length,
-            active: categories.filter(c => c.isActive).length
-          }
-        }))
-      }
-
-      // Process pending posts
+      // Update pending posts
       if (pendingRes.ok && pendingData.posts) {
         setPendingPosts(pendingData.posts)
       }

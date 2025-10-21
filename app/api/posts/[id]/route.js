@@ -7,6 +7,7 @@ import Category from '@/models/Category'
 import User from '@/models/User'
 import Notification from '@/models/Notification'
 import { updateUserStats } from '@/lib/updateUserStats'
+import { invalidatePostCaches } from '@/lib/cache'
 
 // GET single post
 export async function GET(request, { params }) {
@@ -564,6 +565,9 @@ export async function PUT(request, { params }) {
     await updatedPost.populate('reviewedBy', 'name email')
     await updatedPost.populate('lastEditedBy', 'name email')
 
+    // ✅ Invalidate caches after updating post
+    invalidatePostCaches()
+
     return NextResponse.json({
       message: 'Post updated successfully',
       post: updatedPost
@@ -644,6 +648,9 @@ export async function DELETE(request, { params }) {
 
     // ✅ UPDATE AUTHOR STATS
     await updateUserStats(authorId)
+
+    // ✅ Invalidate caches after deleting post
+    invalidatePostCaches()
 
     return NextResponse.json({
       message: 'Post deleted successfully'

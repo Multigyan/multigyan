@@ -4,7 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import Category from '@/models/Category'
-import { apiCache } from '@/lib/cache'
+import { apiCache, invalidatePostCaches } from '@/lib/cache'
 
 // GET posts with filters and pagination
 export async function GET(request) {
@@ -209,6 +209,9 @@ export async function POST(request) {
     })
 
     await newPost.save()
+
+    // ✅ Invalidate caches after creating post
+    invalidatePostCaches()
 
     // Increment category post count if published
     if (postStatus === 'published') {
