@@ -30,6 +30,10 @@ export const metadata = {
   verification: {
     google: 'pub-1982960683340318',
   },
+  // ✅ Google Analytics
+  other: {
+    'google-analytics': 'G-HEPC56C10C',
+  },
   icons: {
     icon: [
       { url: '/Multigyan_Logo.ico', sizes: '16x16', type: 'image/x-icon' },
@@ -116,10 +120,10 @@ export default function RootLayout({ children }) {
         className="min-h-screen bg-background font-sans antialiased"
         suppressHydrationWarning={true}
       >
-        {/* Google Analytics */}
+        {/* Google Analytics 4 */}
         <Script
           strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtag/js?id=G-1L0YJCZV0W"
+          src="https://www.googletagmanager.com/gtag/js?id=G-HEPC56C10C"
         />
         <Script
           id="google-analytics"
@@ -129,7 +133,9 @@ export default function RootLayout({ children }) {
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-1L0YJCZV0W');
+              gtag('config', 'G-HEPC56C10C', {
+                page_path: window.location.pathname,
+              });
             `,
           }}
         />
