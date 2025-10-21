@@ -6,7 +6,7 @@ export async function GET() {
   try {
     await connectDB()
     
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://multigyan.in'
     const siteName = 'Multigyan'
     const siteDescription = 'Multi-author blogging platform for knowledge sharing and content creation'
     
@@ -24,7 +24,9 @@ export async function GET() {
     
     // Generate RSS XML
     const rssXml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" 
+     xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+     xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>${siteName}</title>
     <link>${siteUrl}</link>
@@ -33,8 +35,8 @@ export async function GET() {
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <atom:link href="${siteUrl}/api/feed/rss" rel="self" type="application/rss+xml" />
     <generator>Multigyan RSS Generator</generator>
-    <webMaster>admin@multigyan.com (Multigyan Team)</webMaster>
-    <managingEditor>admin@multigyan.com (Multigyan Team)</managingEditor>
+    <webMaster>admin@multigyan.in (Multigyan Team)</webMaster>
+    <managingEditor>admin@multigyan.in (Multigyan Team)</managingEditor>
     <copyright>Copyright ${new Date().getFullYear()} ${siteName}</copyright>
     <category>Technology</category>
     <category>Education</category>
@@ -43,6 +45,13 @@ export async function GET() {
     
 ${posts.map(post => {
   const postUrl = `${siteUrl}/blog/${post.slug}`
+  
+  // Clean content - convert relative URLs to absolute
+  let cleanContent = post.content || ''
+  cleanContent = cleanContent.replace(/src="\/([^"]+)"/g, `src="${siteUrl}/$1"`)
+  cleanContent = cleanContent.replace(/href="\/([^"]+)"/g, `href="${siteUrl}/$1"`)
+  
+  // Clean description
   const plainTextContent = post.content.replace(/<[^>]*>/g, '').substring(0, 500)
   const excerpt = post.excerpt || plainTextContent + '...'
   
@@ -51,7 +60,7 @@ ${posts.map(post => {
       <link>${postUrl}</link>
       <guid isPermaLink="true">${postUrl}</guid>
       <description><![CDATA[${excerpt}]]></description>
-      <content:encoded><![CDATA[${post.content}]]></content:encoded>
+      <content:encoded><![CDATA[${cleanContent}]]></content:encoded>
       <pubDate>${post.publishedAt.toUTCString()}</pubDate>
       <author>${post.author.email} (${post.author.name})</author>
       <category><![CDATA[${post.category.name}]]></category>

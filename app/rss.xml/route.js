@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
-import User from '@/models/User' // ✅ FIX: Import User model
-import Category from '@/models/Category' // ✅ FIX: Import Category model
+import User from '@/models/User'
+import Category from '@/models/Category'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://multigyan.com'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://multigyan.in'
 const SITE_NAME = 'Multigyan'
 const SITE_DESCRIPTION = 'Discover insightful articles from talented authors on technology, programming, design, and more.'
 
@@ -25,10 +25,23 @@ export async function GET() {
       const postUrl = `${SITE_URL}/blog/${post.slug}`
       const publishDate = new Date(post.publishedAt).toUTCString()
       
-      // Clean content for RSS (remove HTML tags for description)
+      // Clean content for RSS - convert relative URLs to absolute URLs
+      let cleanContent = post.content || ''
+      // Replace relative image URLs with absolute URLs
+      cleanContent = cleanContent.replace(/src="\/([^"]+)"/g, `src="${SITE_URL}/$1"`)
+      cleanContent = cleanContent.replace(/href="\/([^"]+)"/g, `href="${SITE_URL}/$1"`)
+      
+      // Clean description (remove HTML tags)
       const description = post.excerpt || post.content
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
+        .replace(/<[^>]*>/g, '')
         .substring(0, 300) + '...'
+
+      // Build enclosure for featured image if exists
+      let enclosureTag = ''
+      if (post.featuredImageUrl) {
+        // Use a default length for enclosure (required by RSS spec)
+        enclosureTag = `<enclosure url="${post.featuredImageUrl}" length="0" type="image/jpeg" />`
+      }
 
       return `
     <item>
@@ -37,10 +50,10 @@ export async function GET() {
       <guid isPermaLink="true">${postUrl}</guid>
       <description><![CDATA[${description}]]></description>
       <pubDate>${publishDate}</pubDate>
-      <author>${post.author?.email || 'noreply@multigyan.com'} (${post.author?.name || 'Multigyan Author'})</author>
+      <author>${post.author?.email || 'noreply@multigyan.in'} (${post.author?.name || 'Multigyan Author'})</author>
       <category>${post.category?.name || 'Uncategorized'}</category>
-      ${post.featuredImageUrl ? `<enclosure url="${post.featuredImageUrl}" type="image/jpeg" />` : ''}
-      <content:encoded><![CDATA[${post.content}]]></content:encoded>
+      ${enclosureTag}
+      <content:encoded><![CDATA[${cleanContent}]]></content:encoded>
     </item>`
     }).join('')
 
@@ -53,26 +66,25 @@ export async function GET() {
     <link>${SITE_URL}</link>
     <description><![CDATA[${SITE_DESCRIPTION}]]></description>
     <language>en</language>
-    <managingEditor>hello@multigyan.com (Multigyan Team)</managingEditor>
-    <webMaster>tech@multigyan.com (Multigyan Tech)</webMaster>
+    <managingEditor>hello@multigyan.in (Multigyan Team)</managingEditor>
+    <webMaster>tech@multigyan.in (Multigyan Tech)</webMaster>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <pubDate>${posts.length > 0 ? new Date(posts[0].publishedAt).toUTCString() : new Date().toUTCString()}</pubDate>
     <ttl>1440</ttl>
     <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml" />
     <image>
-      <url>${SITE_URL}/images/logo.png</url>
+      <url>${SITE_URL}/Multigyan_Logo_bg.png</url>
       <title>${SITE_NAME}</title>
       <link>${SITE_URL}</link>
       <width>144</width>
       <height>144</height>
-    </image>
-    ${rssItems}
+    </image>${rssItems}
   </channel>
 </rss>`
 
     return new NextResponse(rssXml, {
       headers: {
-        'Content-Type': 'application/rss+xml',
+        'Content-Type': 'application/rss+xml; charset=utf-8',
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=1800'
       }
     })
