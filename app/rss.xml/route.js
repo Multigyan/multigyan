@@ -171,20 +171,32 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error('❌ Error generating RSS feed:', error)
-    console.error('Error details:', {
+    console.error('❌ RSS Feed Generation Error:', {
+      name: error.name,
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
+      timestamp: new Date().toISOString()
     })
+    
+    // Return error as XML comment for debugging (visible in page source)
+    const errorDetails = `
+<!-- RSS Error Debug Info:
+Error: ${error.message}
+Type: ${error.name}
+Time: ${new Date().toISOString()}
+-->`
     
     return new NextResponse(
       `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Error</title>
-    <description>Failed to generate RSS feed</description>
+    <title>Multigyan - Error</title>
+    <link>${SITE_URL}/</link>
+    <description>RSS feed temporarily unavailable. Please try again later.</description>
+    <language>en</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
   </channel>
-</rss>`,
+</rss>${errorDetails}`,
       { 
         status: 500,
         headers: {
