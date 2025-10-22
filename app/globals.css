@@ -394,8 +394,31 @@
     @apply text-sm font-semibold mb-2 mt-3 text-foreground;
   }
 
+  /* ✅ FIXED: Reduced paragraph spacing */
   .ProseMirror p {
-    @apply mb-3 text-muted-foreground leading-relaxed;
+    @apply mb-2 mt-1 text-muted-foreground leading-[1.6];
+  }
+  
+  .ProseMirror p:first-child {
+    @apply mt-0;
+  }
+  
+  .ProseMirror p:last-child {
+    @apply mb-0;
+  }
+  
+  /* Also apply to prose class for blog display */
+  .prose p {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .prose p:first-child {
+    margin-top: 0;
+  }
+  
+  .prose p:last-child {
+    margin-bottom: 0;
   }
 
   .ProseMirror ul,
@@ -441,6 +464,11 @@
 
   .ProseMirror img {
     @apply max-w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700 my-4;
+  }
+  
+  /* ✅ Image with alt text - add empty alt attribute support */
+  .ProseMirror img:not([alt]) {
+    @apply after:content-[''] after:block;
   }
 
   .ProseMirror hr {
@@ -1048,6 +1076,39 @@
   
   .prose h3 {
     @apply text-lg;
+  }
+}
+
+/* ✅ FIXED: Table of Contents Mobile View */
+@media (max-width: 768px) {
+  .table-of-contents,
+  [class*="toc"],
+  [class*="TableOfContents"] {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 2rem !important;
+    padding: 1rem !important;
+    background: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 0.5rem !important;
+  }
+  
+  .toc-title,
+  .table-of-contents-title,
+  [class*="toc"] h2,
+  [class*="toc"] h3 {
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .toc-list,
+  .table-of-contents-list {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
 

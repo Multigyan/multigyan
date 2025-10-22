@@ -49,7 +49,7 @@ import {
   Upload,
   Zap
 } from 'lucide-react'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
@@ -725,6 +725,72 @@ const MenuBar = ({ editor }) => {
 }
 
 export default function EnhancedRichTextEditor({ content, onChange, placeholder = "Start writing..." }) {
+  const [isProcessingImages, setIsProcessingImages] = useState(false)
+
+  // Helper function to convert base64 to blob
+  const base64ToBlob = (base64String) => {
+    try {
+      const parts = base64String.split(';base64,')
+      const contentType = parts[0].split(':')[1]
+      const raw = window.atob(parts[1])
+      const rawLength = raw.length
+      const uInt8Array = new Uint8Array(rawLength)
+      
+      for (let i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i)
+      }
+      
+      return new Blob([uInt8Array], { type: contentType })
+    } catch (error) {
+      console.error('Failed to convert base64 to blob:', error)
+      return null
+    }
+  }
+
+  // Function to upload base64 image to Cloudinary
+  const uploadBase64Image = async (base64String) => {
+    try {
+      const blob = base64ToBlob(base64String)
+      if (!blob) return null
+      
+      const file = new File([blob], 'pasted-image.png', { type: blob.type })
+      
+      // Convert to WebP
+      let processedFile = file
+      try {
+        processedFile = await convertToWebP(file, 0.85)
+      } catch (error) {
+        console.error('WebP conversion failed, using original:', error)
+        processedFile = file
+      }
+      
+      const formData = new FormData()
+      formData.append('file', processedFile)
+      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'multigyan_uploads')
+      formData.append('folder', 'multigyan/posts/content')
+      
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+      
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
+      
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+      
+      const data = await response.json()
+      return data.secure_url
+    } catch (error) {
+      console.error('Failed to upload base64 image:', error)
+      return null
+    }
+  }
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -773,6 +839,67 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       },
     },
   })
+
+  // ✅ Detect and upload base64 images after paste
+  useEffect(() => {
+    if (!editor) return
+
+    const checkAndUploadBase64Images = async () => {
+      const html = editor.getHTML()
+      
+      // Check if there are any base64 images
+      const base64ImageRegex = /<img[^>]+src="data:image\/[^;]+;base64,[^"]+"/g
+      const matches = html.match(base64ImageRegex)
+      
+      if (!matches || matches.length === 0) return
+      if (isProcessingImages) return // Prevent multiple simultaneous uploads
+      
+      setIsProcessingImages(true)
+      const loadingToast = toast.loading(`Uploading ${matches.length} image(s) to Cloudinary...`)
+      
+      try {
+        let updatedHtml = html
+        let uploadedCount = 0
+        
+        for (const match of matches) {
+          // Extract base64 src
+          const srcMatch = match.match(/src="([^"]+)"/)
+          if (!srcMatch) continue
+          
+          const base64Src = srcMatch[1]
+          
+          // Upload to Cloudinary
+          const cloudinaryUrl = await uploadBase64Image(base64Src)
+          
+          if (cloudinaryUrl) {
+            // Replace base64 with Cloudinary URL
+            updatedHtml = updatedHtml.replace(base64Src, cloudinaryUrl)
+            uploadedCount++
+          }
+        }
+        
+        if (uploadedCount > 0) {
+          // Update editor content with new URLs
+          editor.commands.setContent(updatedHtml)
+          toast.success(`${uploadedCount} image(s) uploaded successfully!`, { id: loadingToast })
+        } else {
+          toast.error('Failed to upload images', { id: loadingToast })
+        }
+      } catch (error) {
+        console.error('Error processing base64 images:', error)
+        toast.error('Failed to process images', { id: loadingToast })
+      } finally {
+        setIsProcessingImages(false)
+      }
+    }
+
+    // Add a small delay to allow paste to complete
+    const timeoutId = setTimeout(() => {
+      checkAndUploadBase64Images()
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [editor?.state.doc.content])
 
   return (
     <div className="border border-border rounded-md overflow-hidden bg-background">
