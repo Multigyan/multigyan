@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
+import User from '@/models/User' // ✅ Import User model
+import Category from '@/models/Category' // ✅ Import Category model
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.multigyan.in'
 const SITE_NAME = 'Multigyan'
