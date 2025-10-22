@@ -1,7 +1,10 @@
-"use client"
+'use client'
 
 export default function StructuredData({ data }) {
-  if (!data) return null
+  // Only render on client to avoid hydration mismatch
+  if (typeof window === 'undefined') {
+    return null
+  }
 
   return (
     <script
