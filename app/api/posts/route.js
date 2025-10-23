@@ -102,7 +102,14 @@ export async function GET(request) {
       apiCache.set(cacheKey, response, 300) // 5 minutes
     }
 
-    return NextResponse.json(response)
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+      }
+    })
 
   } catch (error) {
     console.error('Error fetching posts:', error)

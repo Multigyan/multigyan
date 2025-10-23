@@ -38,19 +38,40 @@ export default function BlogPage() {
     try {
       setLoading(true)
       
-      const postsResponse = await fetch(`/api/posts?status=published&page=${currentPage}&limit=12`)
+      const postsResponse = await fetch(`/api/posts?status=published&page=${currentPage}&limit=12`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       if (!postsResponse.ok) {
         throw new Error('Failed to fetch posts')
       }
       const postsData = await postsResponse.json()
       
-      const featuredResponse = await fetch('/api/posts?status=published&featured=true&limit=3')
+      const featuredResponse = await fetch('/api/posts?status=published&featured=true&limit=3', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       if (!featuredResponse.ok) {
         throw new Error('Failed to fetch featured posts')
       }
       const featuredData = await featuredResponse.json()
       
-      const categoriesResponse = await fetch('/api/categories?includeCounts=true')
+      const categoriesResponse = await fetch('/api/categories?includeCounts=true', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       if (!categoriesResponse.ok) {
         throw new Error('Failed to fetch categories')
       }
@@ -81,7 +102,14 @@ export default function BlogPage() {
     if (!searchTerm.trim()) return
 
     try {
-      const response = await fetch(`/api/posts?status=published&search=${encodeURIComponent(searchTerm)}&limit=12`)
+      const response = await fetch(`/api/posts?status=published&search=${encodeURIComponent(searchTerm)}&limit=12`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       const data = await response.json()
       
       if (response.ok) {

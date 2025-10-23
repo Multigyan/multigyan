@@ -29,7 +29,14 @@ export default function HomePage() {
     try {
       // ✅ FIX: Fetch stats from dedicated public endpoint
       try {
-        const statsResponse = await fetch('/api/stats/public')
+        const statsResponse = await fetch('/api/stats/public', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
         if (statsResponse.ok) {
           const statsData = await statsResponse.json()
           setStats({
@@ -44,7 +51,14 @@ export default function HomePage() {
 
       // Fetch latest posts (separate from stats)
       try {
-        const latestResponse = await fetch('/api/posts?status=published&limit=7')
+        const latestResponse = await fetch('/api/posts?status=published&limit=7', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
         if (latestResponse.ok) {
           const latestData = await latestResponse.json()
           setLatestPosts(latestData.posts || [])
@@ -55,7 +69,14 @@ export default function HomePage() {
       
       // Fetch top 8 categories for display
       try {
-        const categoriesResponse = await fetch('/api/categories/top?limit=8')
+        const categoriesResponse = await fetch('/api/categories/top?limit=8', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
         if (categoriesResponse.ok) {
           const categoriesData = await categoriesResponse.json()
           setTopCategories(categoriesData.categories || [])

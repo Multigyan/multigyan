@@ -47,12 +47,26 @@ export async function GET(request) {
       return NextResponse.json({
         categories: enrichedCategories,
         total: enrichedCategories.length
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'Surrogate-Control': 'no-store'
+        }
       })
     }
 
     return NextResponse.json({
       categories,
       total: categories.length
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+      }
     })
 
   } catch (error) {

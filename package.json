@@ -15,7 +15,10 @@
     "deploy:check": "node scripts/check-deployment.js",
     "test:build": "npm run lint && npm run build",
     "analyze": "ANALYZE=true npm run build",
-    "clean": "rm -rf .next node_modules/.cache"
+    "clean": "rm -rf .next node_modules/.cache",
+    "recategorize": "node scripts/recategorize-articles.js",
+    "cleanup-categories": "node scripts/cleanup-categories.js",
+    "restructure": "node scripts/restructure-complete.js"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -48,6 +51,7 @@
     "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
     "highlight.js": "^11.11.1",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.544.0",
