@@ -209,6 +209,19 @@ const PostSchema = new mongoose.Schema({
     type: String,
     maxlength: [50, 'SEO keyword cannot be more than 50 characters']
   }],
+  // ✅ NEW: Language Support for Bilingual SEO
+  // Using 'lang' instead of 'language' to avoid MongoDB text index conflict
+  lang: {
+    type: String,
+    enum: ['en', 'hi'], // English and Hindi
+    default: 'en',
+    required: true
+  },
+  translationOf: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post',
+    default: null // Link to the original post if this is a translation
+  },
   // ✅ NEW: Revision Tracking for Author Edits
   hasRevision: {
     type: Boolean,
