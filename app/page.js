@@ -10,9 +10,6 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/helpers"
 import { Calendar, Clock, Eye, User } from "lucide-react"
-import { generateWebsiteSchema, generateOrganizationSchema } from "@/lib/seo-enhanced"
-import EnhancedSchema from "@/components/seo/EnhancedSchema"
-import { useEffect as useSchemaEffect } from "react"
 
 export default function HomePage() {
   const [latestPosts, setLatestPosts] = useState([])
@@ -98,10 +95,6 @@ export default function HomePage() {
   const featuredPost = latestPosts[0]
   const remainingPosts = latestPosts.slice(1, 7)
 
-  // Generate schemas for SEO
-  const websiteSchema = generateWebsiteSchema()
-  const organizationSchema = generateOrganizationSchema()
-
   if (loading) {
     return (
       <div className="min-h-screen">
@@ -119,12 +112,8 @@ export default function HomePage() {
   }
 
   return (
-    <>
-      {/* SEO Schema Markup */}
-      <EnhancedSchema schemas={[websiteSchema, organizationSchema]} />
-      
-      <div className="min-h-screen">
-      {/* ✅ IMPROVED: Hero Section with Better Mobile Spacing */}
+    <div className="min-h-screen">
+      {/* ✅ Hero Section with Better Mobile Spacing */}
       <section className="relative overflow-hidden py-10 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-background via-primary/5 to-background">
         {/* Decorative Elements */}
         <div className="absolute inset-0 -z-10">
@@ -134,14 +123,14 @@ export default function HomePage() {
 
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-6xl mx-auto">
-            {/* ✅ IMPROVED: Hero Text with Better Mobile Typography */}
+            {/* ✅ Hero Text with Better Mobile Typography */}
             <div className="text-center mb-8 sm:mb-10 md:mb-12">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/10 rounded-full mb-4 sm:mb-6 border border-primary/20 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                 <span className="text-xs sm:text-sm font-semibold text-primary">Explore Knowledge, Share Ideas</span>
               </div>
               
-              {/* ✅ IMPROVED: Better responsive text sizes */}
+              {/* ✅ Better responsive text sizes */}
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-3 sm:mb-4 leading-tight tracking-tight animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150 px-4">
                 Discover Insights.{" "}
                 <br className="hidden sm:block" />
@@ -150,13 +139,13 @@ export default function HomePage() {
                 </span>
               </h1>
               
-              {/* ✅ IMPROVED: Better mobile text sizing */}
+              {/* ✅ Better mobile text sizing */}
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 px-4">
                 Join our community of expert writers and curious readers. 
                 Explore articles across technology, business, lifestyle, and more.
               </p>
 
-              {/* ✅ IMPROVED: Better mobile button layout */}
+              {/* ✅ Better mobile button layout */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-10 md:mb-12 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-450 px-4">
                 <Button size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-2xl hover:shadow-xl transition-all hover:scale-105 w-full sm:w-auto" asChild>
                   <Link href="/blog">
@@ -173,7 +162,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* ✅ IMPROVED: Featured Latest Post with Better Mobile Layout */}
+            {/* ✅ Featured Latest Post with Better Mobile Layout */}
             {featuredPost && (
               <div className="animate-in fade-in slide-in-from-bottom-12 duration-700 delay-600">
                 <div className="flex items-center gap-2 mb-3 sm:mb-4 px-4 sm:px-0">
@@ -183,7 +172,7 @@ export default function HomePage() {
                 
                 <Link href={`/blog/${featuredPost.slug}`} className="block group">
                   <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-primary/20 mx-4 sm:mx-0">
-                    {/* ✅ IMPROVED: Better mobile card layout - stack on mobile, side-by-side on tablet+ */}
+                    {/* ✅ Better mobile card layout - stack on mobile, side-by-side on tablet+ */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
                       {/* Image */}
                       <div className="relative h-56 sm:h-64 md:h-full overflow-hidden bg-muted">
@@ -202,7 +191,7 @@ export default function HomePage() {
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
                       </div>
 
-                      {/* ✅ IMPROVED: Content with better mobile padding */}
+                      {/* ✅ Content with better mobile padding */}
                       <CardContent className="p-5 sm:p-6 md:p-8 flex flex-col justify-center">
                         <Badge 
                           className="w-fit mb-2 sm:mb-3 text-xs sm:text-sm" 
@@ -211,7 +200,7 @@ export default function HomePage() {
                           {featuredPost.category?.name}
                         </Badge>
                         
-                        {/* ✅ IMPROVED: Better mobile title sizing */}
+                        {/* ✅ Better mobile title sizing */}
                         <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 line-clamp-2 group-hover:text-primary transition-colors">
                           {featuredPost.title}
                         </h3>
@@ -222,7 +211,7 @@ export default function HomePage() {
                           </p>
                         )}
 
-                        {/* ✅ IMPROVED: Better mobile meta layout - stack on very small screens */}
+                        {/* ✅ Better mobile meta layout - stack on very small screens */}
                         <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
                             {featuredPost.author?.profilePictureUrl ? (
@@ -270,7 +259,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ✅ IMPROVED: Latest 6 Posts Section with Better Mobile Spacing */}
+      {/* ✅ Latest 6 Posts Section with Better Mobile Spacing */}
       {remainingPosts.length > 0 && (
         <section className="py-12 sm:py-14 md:py-16 lg:py-20">
           <div className="container mx-auto px-4 sm:px-6">
@@ -295,7 +284,7 @@ export default function HomePage() {
               </Button>
             </div>
 
-            {/* ✅ IMPROVED: Better responsive grid - 1 col mobile, 2 col tablet, 3 col desktop */}
+            {/* ✅ Better responsive grid - 1 col mobile, 2 col tablet, 3 col desktop */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-6 md:gap-8">
               {remainingPosts.map((post, index) => (
                 <div key={post._id} className="animate-in fade-in slide-in-from-bottom-6 duration-500" style={{ animationDelay: `${index * 50}ms` }}>
@@ -316,7 +305,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ✅ IMPROVED: Category Section with Better Mobile Grid */}
+      {/* ✅ Category Section with Better Mobile Grid */}
       {topCategories.length > 0 && (
         <section className="py-12 sm:py-14 md:py-16 lg:py-20 bg-muted/30">
           <div className="container mx-auto px-4 sm:px-6">
@@ -333,7 +322,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* ✅ IMPROVED: Better responsive grid - 1 col mobile (360px), 2 col sm, 3 col md, 4 col lg */}
+            {/* ✅ Better responsive grid - 1 col mobile (360px), 2 col sm, 3 col md, 4 col lg */}
             <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 max-w-6xl mx-auto mb-6 sm:mb-8">
               {topCategories.slice(0, 8).map((category, index) => (
                 <Link
@@ -341,7 +330,7 @@ export default function HomePage() {
                   href={`/category/${category.slug}`}
                   className="group"
                 >
-                  {/* ✅ IMPROVED: Better mobile card sizing and touch targets */}
+                  {/* ✅ Better mobile card sizing and touch targets */}
                   <Card className="blog-card text-center h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer min-h-[140px] sm:min-h-[160px]">
                     <CardContent className="p-4 sm:p-5 md:p-6">
                       <div
@@ -377,11 +366,11 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ✅ IMPROVED: CTA Section with Better Mobile Stats */}
+      {/* ✅ CTA Section with Better Mobile Stats */}
       <section className="py-16 sm:py-20 md:py-24 lg:py-28 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5">
         <div className="container mx-auto px-4 sm:px-6 text-center">
           <div className="max-w-4xl mx-auto">
-            {/* ✅ IMPROVED: Better mobile stats grid */}
+            {/* ✅ Better mobile stats grid */}
             <div className="grid grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-3xl mx-auto mb-12 sm:mb-14 md:mb-16">
               <div className="text-center">
                 <div className="text-3xl sm:text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-primary to-primary/60 mb-1 sm:mb-2">
@@ -429,6 +418,5 @@ export default function HomePage() {
         </div>
       </section>
     </div>
-    </>
   )
 }

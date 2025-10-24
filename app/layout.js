@@ -6,10 +6,8 @@ import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
 import AuthProvider from "@/components/AuthProvider"
 import LoadingBar from "@/components/LoadingBar"
-import StructuredData from "@/components/seo/StructuredData"
 import FloatingSocialSidebar from "@/components/layout/FloatingSocialSidebar"
 import BackToTop from "@/components/ui/BackToTop"
-import { generateStructuredData } from "@/lib/seo"
 import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
@@ -26,11 +24,9 @@ export const metadata = {
   keywords: ['blog', 'nextjs', 'mongodb', 'multi-author', 'cms', 'multigyan'],
   authors: [{ name: 'Multigyan Team' }],
   creator: 'Multigyan',
-  // ✅ Google AdSense Verification
   verification: {
     google: 'pub-1982960683340318',
   },
-  // ✅ Google Analytics
   other: {
     'google-analytics': 'G-HEPC56C10C',
   },
@@ -97,27 +93,77 @@ export const metadata = {
 }
 
 export default function RootLayout({ children }) {
-  // Generate website structured data
-  const websiteStructuredData = generateStructuredData({
-    type: 'website',
-    title: 'Multigyan - Multi-Author Blogging Platform',
-    description: 'A secure, high-performance, and SEO-optimized multi-author blogging platform built with Next.js, MongoDB, and Cloudinary.',
-    siteName: 'Multigyan'
-  })
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://multigyan.in'
+  
+  // ✅ ENHANCED: Website Schema with proper structure
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Multigyan",
+    "alternateName": "Multigyan Blog",
+    "url": baseUrl,
+    "description": "A secure, high-performance, and SEO-optimized multi-author blogging platform for sharing knowledge and insights.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": `${baseUrl}/search?q={search_term_string}`
+      },
+      "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Multigyan",
+      "url": baseUrl
+    }
+  }
 
-  const organizationStructuredData = generateStructuredData({
-    type: 'organization',
-    title: 'Multigyan',
-    description: 'Multi-author blogging platform for knowledge sharing and content creation.',
-    siteName: 'Multigyan'
-  })
+  // ✅ ENHANCED: Organization Schema with social profiles
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Multigyan",
+    "alternateName": "Multigyan Blog Platform",
+    "url": baseUrl,
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${baseUrl}/Multigyan_Logo_bg.png`,
+      "width": 512,
+      "height": 512
+    },
+    "description": "Multi-author blogging platform for knowledge sharing and content creation.",
+    "foundingDate": "2024",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Customer Service",
+      "email": "support@multigyan.in",
+      "url": `${baseUrl}/contact`
+    },
+    "sameAs": [
+      "https://twitter.com/multigyan",
+      "https://linkedin.com/company/multigyan",
+      "https://facebook.com/multigyan"
+    ]
+  }
 
   return (
     <html lang="en" className={inter.className}>
       <head>
-        <StructuredData data={websiteStructuredData} />
-        <StructuredData data={organizationStructuredData} />
-        {/* Google AdSense - Added directly to head to avoid data-noscript warning */}
+        {/* ✅ CRITICAL: Schema markup MUST be in <head> for Google */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema)
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema)
+          }}
+        />
+        
+        {/* Google AdSense */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1982960683340318"
