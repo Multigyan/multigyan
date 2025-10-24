@@ -10,6 +10,9 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/helpers"
 import { Calendar, Clock, Eye, User } from "lucide-react"
+import { generateWebsiteSchema, generateOrganizationSchema } from "@/lib/seo-enhanced"
+import EnhancedSchema from "@/components/seo/EnhancedSchema"
+import { useEffect as useSchemaEffect } from "react"
 
 export default function HomePage() {
   const [latestPosts, setLatestPosts] = useState([])
@@ -95,6 +98,10 @@ export default function HomePage() {
   const featuredPost = latestPosts[0]
   const remainingPosts = latestPosts.slice(1, 7)
 
+  // Generate schemas for SEO
+  const websiteSchema = generateWebsiteSchema()
+  const organizationSchema = generateOrganizationSchema()
+
   if (loading) {
     return (
       <div className="min-h-screen">
@@ -112,7 +119,11 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <>
+      {/* SEO Schema Markup */}
+      <EnhancedSchema schemas={[websiteSchema, organizationSchema]} />
+      
+      <div className="min-h-screen">
       {/* ✅ IMPROVED: Hero Section with Better Mobile Spacing */}
       <section className="relative overflow-hidden py-10 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-background via-primary/5 to-background">
         {/* Decorative Elements */}
@@ -418,5 +429,6 @@ export default function HomePage() {
         </div>
       </section>
     </div>
+    </>
   )
 }
