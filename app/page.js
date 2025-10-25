@@ -10,6 +10,7 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/helpers"
 import { Calendar, Clock, Eye, User } from "lucide-react"
+import HomeSchemas from "@/components/seo/HomeSchemas"
 
 export default function HomePage() {
   const [latestPosts, setLatestPosts] = useState([])
@@ -112,7 +113,11 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <>
+      {/* ✅ Schema Markup for SEO */}
+      <HomeSchemas />
+      
+      <div className="min-h-screen">
       {/* ✅ Hero Section with Better Mobile Spacing */}
       <section className="relative overflow-hidden py-10 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-background via-primary/5 to-background">
         {/* Decorative Elements */}
@@ -418,5 +423,6 @@ export default function HomePage() {
         </div>
       </section>
     </div>
+    </>
   )
 }
