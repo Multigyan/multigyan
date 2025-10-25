@@ -95,7 +95,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://multigyan.in'
   
-  // ✅ ENHANCED: Website Schema with proper structure
+  // ✅ Schema markup for WebSite
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -118,7 +118,7 @@ export default function RootLayout({ children }) {
     }
   }
 
-  // ✅ ENHANCED: Organization Schema with social profiles
+  // ✅ Schema markup for Organization
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -148,32 +148,26 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en" className={inter.className}>
-      <head>
-        {/* ✅ CRITICAL: Schema markup MUST be in <head> for Google */}
-        <script
+      <body 
+        className="min-h-screen bg-background font-sans antialiased"
+        suppressHydrationWarning={true}
+      >
+        {/* ✅ FIXED: Schema scripts in body, not head */}
+        <Script
+          id="website-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(websiteSchema)
           }}
         />
-        <script
+        <Script
+          id="organization-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationSchema)
           }}
         />
         
-        {/* Google AdSense */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1982960683340318"
-          crossOrigin="anonymous"
-        />
-      </head>
-      <body 
-        className="min-h-screen bg-background font-sans antialiased"
-        suppressHydrationWarning={true}
-      >
         {/* Google Analytics 4 */}
         <Script
           strategy="afterInteractive"
@@ -192,6 +186,14 @@ export default function RootLayout({ children }) {
               });
             `,
           }}
+        />
+        
+        {/* Google AdSense */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1982960683340318"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
         />
         
         <AuthProvider>
