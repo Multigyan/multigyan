@@ -4,9 +4,8 @@ import connectDB from "@/lib/mongodb"
 import Post from "@/models/Post"
 import Category from "@/models/Category" // ✅ FIX: Import Category model for populate()
 import User from "@/models/User" // ✅ FIX: Import User model for populate()
-import { generateSEOMetadata, generateStructuredData } from "@/lib/seo"
-import StructuredData from "@/components/seo/StructuredData"
-// ✅ NEW: Import bilingual SEO utilities
+import { generateSEOMetadata } from "@/lib/seo"
+// ✅ Import bilingual SEO utilities
 import { 
   generateArticleSchema, 
   generateBreadcrumbSchema 
@@ -177,27 +176,11 @@ export default async function BlogPostPage({ params }) {
       ? await Post.findById(post.translationOf).select('slug lang').lean()
       : await Post.findOne({ translationOf: post._id }).select('slug lang').lean()
     
-    // Generate structured data
+    // Generate structured data - Using Enhanced Schema Only
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const postUrl = `${siteUrl}/blog/${post.slug}`
     
-    const articleStructuredData = generateStructuredData({
-      type: 'article',
-      title: post.title,
-      description: post.excerpt,
-      author: post.author,
-      // ✅ FIX 3: Use safe date conversion helper
-      publishedTime: toISOStringSafe(post.publishedAt),
-      modifiedTime: toISOStringSafe(post.updatedAt),
-      canonicalUrl: postUrl,
-      imageUrl: post.featuredImageUrl,
-      imageAlt: post.featuredImageAlt,
-      category: post.category?.name,
-      tags: post.tags,
-      readingTime: post.readingTime
-    })
-    
-    // ✅ NEW: Generate enhanced schemas for bilingual SEO
+    // ✅ Generate enhanced schemas for bilingual SEO (includes author URL)
     const enhancedArticleSchema = generateArticleSchema(post)
     const breadcrumbSchema = generateBreadcrumbSchema([
       { name: 'Home', url: siteUrl },
@@ -302,8 +285,7 @@ export default async function BlogPostPage({ params }) {
     
     return (
       <>
-        <StructuredData data={articleStructuredData} />
-        {/* ✅ NEW: Add enhanced schemas for bilingual SEO */}
+        {/* ✅ Using Enhanced Schema with author URL */}
         <EnhancedSchema schemas={[enhancedArticleSchema, breadcrumbSchema]} />
         <BlogPostClient post={serializedPost} />
       </>
