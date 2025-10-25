@@ -12,6 +12,7 @@
     "db:update-slug": "node scripts/update-hindi-slug.js",
     "db:check-links": "node scripts/check-blog-links.js",
     "db:fix-stats": "node scripts/fixUserStats.js",
+    "db:fix-authors": "node --no-warnings scripts/fix-author-usernames.mjs",
     "deploy:check": "node scripts/check-deployment.js",
     "test:build": "npm run lint && npm run build",
     "analyze": "ANALYZE=true npm run build",
