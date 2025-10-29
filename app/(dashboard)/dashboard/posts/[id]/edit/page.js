@@ -787,7 +787,7 @@ export default function EditPostPage({ params }) {
               {session?.user?.role === 'admin' ? (
                 <>
                   <p>This will make your post visible to all readers immediately.</p>
-                  <p className="text-sm font-medium">Make sure you've reviewed all content before publishing.</p>
+                  <p className="text-sm font-medium">Make sure you&#39;ve reviewed all content before publishing.</p>
                 </>
               ) : (
                 <>
@@ -798,8 +798,8 @@ export default function EditPostPage({ params }) {
                     </p>
                     <ul className="text-sm text-blue-800 dark:text-blue-200 mt-2 space-y-1 list-disc list-inside">
                       <li>Admin review typically takes up to 24 hours</li>
-                      <li>You'll be notified when your post is approved</li>
-                      <li>You can continue editing until it's approved</li>
+                      <li>You&#39;ll be notified when your post is approved</li>
+                      <li>You can continue editing until it&#39;s approved</li>
                     </ul>
                   </div>
                 </>

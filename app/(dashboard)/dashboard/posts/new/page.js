@@ -971,7 +971,7 @@ export default function NewPostPage() {
                 />
                 {(formData.contentType === 'diy' || formData.contentType === 'recipe') && (
                   <p className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded">
-                    ℹ️ The "{formData.contentType}" tag is automatically added for {formData.contentType === 'diy' ? 'DIY tutorials' : 'recipes'}
+                    ℹ️ The &#34;{formData.contentType}&#34; tag is automatically added for {formData.contentType === 'diy' ? 'DIY tutorials' : 'recipes'}
                   </p>
                 )}
               </CardContent>

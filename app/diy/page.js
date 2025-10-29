@@ -191,7 +191,7 @@ export default async function DIYPage() {
             Oops! Something went wrong
           </h1>
           <p className="text-gray-600 mb-6">
-            We couldn't load the DIY tutorials. Please try again later.
+            We couldn&#39;t load the DIY tutorials. Please try again later.
           </p>
           <Link
             href="/"
