@@ -230,6 +230,13 @@ export default async function DIYPostPage({ params }) {
       
       lang: post.lang || 'en',
       translation: null, // DIY posts might not have translations initially
+      
+      // ✨ DIY-specific fields (Phase 2)
+      diyDifficulty: post.diyDifficulty || null,
+      diyMaterials: post.diyMaterials || [],
+      diyTools: post.diyTools || [],
+      diyEstimatedTime: post.diyEstimatedTime || null,
+      affiliateLinks: post.affiliateLinks || [],
     }
     
     return (

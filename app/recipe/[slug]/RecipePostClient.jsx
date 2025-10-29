@@ -21,12 +21,21 @@ import {
   Linkedin,
   Copy,
   Share2,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Timer,
+  Users,
+  CookingPot,
+  ExternalLink,
+  ShoppingCart,
+  Printer,
+  CheckCircle2
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
 import CommentSection from "@/components/comments/CommentSection"
 import { PostLikeButton } from "@/components/interactions/LikeButton"
+import InteractiveCheckList from "@/components/blog/InteractiveCheckList"
+import PrintRecipeButton from "@/components/blog/PrintRecipeButton"
 
 export default function RecipePostClient({ post }) {
   const { data: session } = useSession()
@@ -242,6 +251,155 @@ export default function RecipePostClient({ post }) {
                   className="w-full h-auto"
                   loading="eager"
                 />
+              </div>
+            )}
+
+            {/* ✨ RECIPE DETAILS (PHASE 2 FIELDS) */}
+            {(post.recipePrepTime || post.recipeCookTime || post.recipeServings || (post.recipeIngredients && post.recipeIngredients.length > 0) || post.recipeCuisine || (post.recipeDiet && post.recipeDiet.length > 0) || (post.affiliateLinks && post.affiliateLinks.length > 0)) && (
+              <div className="mb-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <ChefHat className="h-6 w-6 text-green-700" />
+                    Recipe Information
+                  </h2>
+                  <PrintRecipeButton className="hidden md:flex" />
+                </div>
+
+                {/* Quick Info Grid */}
+                {(post.recipePrepTime || post.recipeCookTime || post.recipeServings) && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Prep Time */}
+                    {post.recipePrepTime && (
+                      <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-3 bg-green-100 rounded-lg">
+                              <Timer className="h-6 w-6 text-green-700" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Prep Time</p>
+                              <p className="font-semibold text-lg">{post.recipePrepTime}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Cook Time */}
+                    {post.recipeCookTime && (
+                      <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-3 bg-green-100 rounded-lg">
+                              <CookingPot className="h-6 w-6 text-green-700" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Cook Time</p>
+                              <p className="font-semibold text-lg">{post.recipeCookTime}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Servings */}
+                    {post.recipeServings && (
+                      <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-3 bg-green-100 rounded-lg">
+                              <Users className="h-6 w-6 text-green-700" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Servings</p>
+                              <p className="font-semibold text-lg">{post.recipeServings}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                )}
+
+                {/* Cuisine and Diet Tags */}
+                {(post.recipeCuisine || (post.recipeDiet && post.recipeDiet.length > 0)) && (
+                  <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white">
+                    <CardContent className="p-4 space-y-3">
+                      {post.recipeCuisine && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">Cuisine</p>
+                          <Badge className="bg-green-600 text-white">
+                            {post.recipeCuisine.charAt(0).toUpperCase() + post.recipeCuisine.slice(1)}
+                          </Badge>
+                        </div>
+                      )}
+                      {post.recipeDiet && post.recipeDiet.length > 0 && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">Dietary Information</p>
+                          <div className="flex flex-wrap gap-2">
+                            {post.recipeDiet.map((diet, index) => (
+                              <Badge key={index} variant="outline" className="border-green-300 text-green-800">
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                {diet.replace('-', ' ').charAt(0).toUpperCase() + diet.replace('-', ' ').slice(1)}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Ingredients List */}
+                {post.recipeIngredients && post.recipeIngredients.length > 0 && (
+                  <InteractiveCheckList
+                    title="Ingredients"
+                    items={post.recipeIngredients}
+                    icon={UtensilsCrossed}
+                    storageKey={`recipe-ingredients-${post._id}`}
+                    className="border-green-200"
+                  />
+                )}
+
+                {/* Affiliate Links */}
+                {post.affiliateLinks && post.affiliateLinks.length > 0 && (
+                  <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <ShoppingCart className="h-5 w-5 text-green-700" />
+                        Recommended Products
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        These are products the author recommends for this recipe
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {post.affiliateLinks.map((link, index) => (
+                        <a
+                          key={index}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer sponsored"
+                          className="block p-4 rounded-lg border border-green-200 hover:border-green-400 hover:shadow-md transition-all group"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-green-900 group-hover:text-green-700 transition-colors flex items-center gap-2">
+                                {link.name}
+                                <ExternalLink className="h-4 w-4" />
+                              </h4>
+                              {link.description && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {link.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
 

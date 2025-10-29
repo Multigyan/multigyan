@@ -230,6 +230,15 @@ export default async function RecipePostPage({ params }) {
       
       lang: post.lang || 'en',
       translation: null,
+      
+      // ✨ Recipe-specific fields (Phase 2)
+      recipePrepTime: post.recipePrepTime || null,
+      recipeCookTime: post.recipeCookTime || null,
+      recipeServings: post.recipeServings || null,
+      recipeIngredients: post.recipeIngredients || [],
+      recipeCuisine: post.recipeCuisine || null,
+      recipeDiet: post.recipeDiet || [],
+      affiliateLinks: post.affiliateLinks || [],
     }
     
     return (

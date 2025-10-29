@@ -22,6 +22,16 @@ const nextConfig = {
   // ============================================
   async headers() {
     return [
+      // Dashboard pages - NO CACHING (always fresh)
+      {
+        source: '/dashboard/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
       // Blog posts - cache for 1 hour, serve stale for 24 hours
       {
         source: '/blog/:slug',

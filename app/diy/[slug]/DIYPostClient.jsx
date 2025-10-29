@@ -22,17 +22,47 @@ import {
   Linkedin,
   Copy,
   Share2,
-  Lightbulb
+  Lightbulb,
+  Timer,
+  Package,
+  Hammer,
+  ExternalLink,
+  ShoppingCart
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
 import CommentSection from "@/components/comments/CommentSection"
 import { PostLikeButton } from "@/components/interactions/LikeButton"
+import InteractiveCheckList from "@/components/blog/InteractiveCheckList"
 
 export default function DIYPostClient({ post }) {
   const { data: session } = useSession()
   const [relatedPosts, setRelatedPosts] = useState([])
   const [loading, setLoading] = useState(true)
+
+  // Helper function to get difficulty badge styling
+  const getDifficultyBadge = (difficulty) => {
+    const styles = {
+      easy: 'bg-green-100 text-green-800 border-green-300',
+      medium: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      hard: 'bg-red-100 text-red-800 border-red-300'
+    }
+    const icons = {
+      easy: '🟢',
+      medium: '🟡',
+      hard: '🔴'
+    }
+    const labels = {
+      easy: 'Easy - Beginner Friendly',
+      medium: 'Medium - Some Experience Needed',
+      hard: 'Hard - Advanced Skills Required'
+    }
+    return {
+      style: styles[difficulty] || styles.medium,
+      icon: icons[difficulty] || icons.medium,
+      label: labels[difficulty] || 'Medium'
+    }
+  }
 
   useEffect(() => {
     if (post) {
@@ -242,6 +272,122 @@ export default function DIYPostClient({ post }) {
                   className="w-full h-auto"
                   loading="eager"
                 />
+              </div>
+            )}
+
+            {/* ✨ DIY PROJECT DETAILS (PHASE 2 FIELDS) */}
+            {(post.diyDifficulty || post.diyEstimatedTime || (post.diyMaterials && post.diyMaterials.length > 0) || (post.diyTools && post.diyTools.length > 0) || (post.affiliateLinks && post.affiliateLinks.length > 0)) && (
+              <div className="mb-8 space-y-6">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Wrench className="h-6 w-6 text-orange-600" />
+                  Project Details
+                </h2>
+
+                {/* Quick Info Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Difficulty Level */}
+                  {post.diyDifficulty && (
+                    <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-white">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-3 bg-orange-100 rounded-lg">
+                            <Timer className="h-6 w-6 text-orange-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Difficulty</p>
+                            <Badge className={`mt-1 ${getDifficultyBadge(post.diyDifficulty).style}`}>
+                              {getDifficultyBadge(post.diyDifficulty).icon} {getDifficultyBadge(post.diyDifficulty).label}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Estimated Time */}
+                  {post.diyEstimatedTime && (
+                    <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-white">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-3 bg-orange-100 rounded-lg">
+                            <Clock className="h-6 w-6 text-orange-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Estimated Time</p>
+                            <p className="font-semibold text-lg">{post.diyEstimatedTime}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
+                {/* Materials and Tools */}
+                {((post.diyMaterials && post.diyMaterials.length > 0) || (post.diyTools && post.diyTools.length > 0)) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Materials List */}
+                    {post.diyMaterials && post.diyMaterials.length > 0 && (
+                      <InteractiveCheckList
+                        title="Materials Needed"
+                        items={post.diyMaterials}
+                        icon={Package}
+                        storageKey={`diy-materials-${post._id}`}
+                        className="border-orange-200"
+                      />
+                    )}
+
+                    {/* Tools List */}
+                    {post.diyTools && post.diyTools.length > 0 && (
+                      <InteractiveCheckList
+                        title="Tools Required"
+                        items={post.diyTools}
+                        icon={Hammer}
+                        storageKey={`diy-tools-${post._id}`}
+                        className="border-orange-200"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* Affiliate Links */}
+                {post.affiliateLinks && post.affiliateLinks.length > 0 && (
+                  <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-white">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <ShoppingCart className="h-5 w-5 text-orange-600" />
+                        Recommended Products
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        These are products the author recommends for this project
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {post.affiliateLinks.map((link, index) => (
+                        <a
+                          key={index}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer sponsored"
+                          className="block p-4 rounded-lg border border-orange-200 hover:border-orange-400 hover:shadow-md transition-all group"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-orange-900 group-hover:text-orange-600 transition-colors flex items-center gap-2">
+                                {link.name}
+                                <ExternalLink className="h-4 w-4" />
+                              </h4>
+                              {link.description && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {link.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
 
