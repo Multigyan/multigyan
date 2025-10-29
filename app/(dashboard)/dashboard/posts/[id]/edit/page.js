@@ -16,8 +16,18 @@ import FeaturedImageUploader from "@/components/blog/FeaturedImageUploader"
 import FlexibleTagInput from "@/components/blog/FlexibleTagInput"
 import CategorySelector from "@/components/blog/CategorySelector"
 import BlogPostPreview from "@/components/blog/BlogPostPreview"
-import { ArrowLeft, Save, Loader2, Eye, User, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Save, Loader2, Eye, User, AlertTriangle, FileText, Send, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function EditPostPage({ params }) {
   const { data: session } = useSession()
@@ -29,6 +39,8 @@ export default function EditPostPage({ params }) {
   const [authors, setAuthors] = useState([]) // ✅ NEW: Store all authors
   const [postId, setPostId] = useState(null)
   const [originalAuthor, setOriginalAuthor] = useState(null) // ✅ NEW: Track original author
+  const [postStatus, setPostStatus] = useState("") // ✅ NEW: Track post status
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false) // ✅ NEW: Confirmation dialog
   const [formData, setFormData] = useState({
     title: "",
     excerpt: "",
@@ -89,6 +101,7 @@ export default function EditPostPage({ params }) {
         if (postRes.ok) {
           const post = postData.post || postData
           setOriginalAuthor(post.author?._id || post.author)
+          setPostStatus(post.status || "published") // ✅ NEW: Set the post status
           
           // Filter out tags longer than 30 characters
           const allTags = post.tags || []
@@ -139,7 +152,7 @@ export default function EditPostPage({ params }) {
     }))
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(newStatus = null) { // ✅ NEW: Accept optional status parameter
     if (!formData.title.trim()) {
       toast.error('Post title is required')
       return
@@ -185,8 +198,16 @@ export default function EditPostPage({ params }) {
       setFormData(prev => ({ ...prev, tags: sanitizedTags }))
     }
 
+    // ✅ NEW: Determine the status to use
+    // If newStatus is provided (from Publish button), use it
+    // Otherwise keep the current status
+    const statusToSubmit = newStatus || postStatus
+
     // Prepare sanitized data
     const sanitizedData = {}
+    
+    // ✅ NEW: Include status in the update
+    sanitizedData.status = statusToSubmit
     
     // Only include fields that have values
     if (formData.title) sanitizedData.title = formData.title.trim()
@@ -232,15 +253,36 @@ export default function EditPostPage({ params }) {
       console.log('Response OK?', response.ok)
 
       if (response.ok) {
-        // ✅ Show detailed success message
-        const updatedFields = []
-        if (sanitizedData.title) updatedFields.push('title')
-        if (sanitizedData.featuredImageUrl) updatedFields.push('featured image')
-        if (sanitizedData.content) updatedFields.push('content')
+        // ✅ Show detailed success message based on status change
+        const wasPublished = newStatus === 'published' || newStatus === 'pending_review'
         
-        toast.success(`Post updated successfully!${updatedFields.length > 0 ? ` Updated: ${updatedFields.join(', ')}` : ''}`, {
-          description: formData.featuredImageUrl ? 'Featured image has been updated ✅' : undefined
-        })
+        // Different messages for admin vs regular users
+        if (wasPublished) {
+          if (session?.user?.role === 'admin') {
+            // Admin: Direct publish
+            toast.success('Post published successfully! 🎉', {
+              description: 'Your post is now live and visible to all readers.',
+              duration: 4000
+            })
+          } else {
+            // Regular user: Pending review
+            toast.success('Post submitted successfully! 📝', {
+              description: 'Your post is now waiting for admin review and approval. This typically takes up to 24 hours. You\'ll be notified once it\'s approved.',
+              duration: 6000
+            })
+          }
+        } else {
+          // Just an update
+          const updatedFields = []
+          if (sanitizedData.title) updatedFields.push('title')
+          if (sanitizedData.featuredImageUrl) updatedFields.push('featured image')
+          if (sanitizedData.content) updatedFields.push('content')
+          
+          toast.success(`Post updated successfully!${updatedFields.length > 0 ? ` Updated: ${updatedFields.join(', ')}` : ''}`, {
+            description: formData.featuredImageUrl ? 'Featured image has been updated ✅' : undefined,
+            duration: 4000
+          })
+        }
         
         // ✅ Optional: Show the new featured image in a toast
         if (formData.featuredImageUrl && formData.featuredImageUrl !== data.post?.featuredImageUrl) {
@@ -308,7 +350,28 @@ export default function EditPostPage({ params }) {
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold">Edit Post</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold">Edit Post</h1>
+                {/* ✅ NEW: Status Badge */}
+                {postStatus === 'draft' && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                    <FileText className="h-3 w-3" />
+                    Draft
+                  </span>
+                )}
+                {postStatus === 'published' && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Published
+                  </span>
+                )}
+                {postStatus === 'pending_review' && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    <Send className="h-3 w-3" />
+                    Pending Review
+                  </span>
+                )}
+              </div>
               <p className="text-muted-foreground">Update your blog post</p>
             </div>
           </div>
@@ -479,26 +542,78 @@ export default function EditPostPage({ params }) {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Update Post</CardTitle>
+                <CardTitle>
+                  {postStatus === 'draft' ? 'Publish Post' : 'Update Post'}
+                </CardTitle>
+                <CardDescription>
+                  {postStatus === 'draft' 
+                    ? 'Your post is currently a draft. Publish it to make it visible.' 
+                    : 'Save changes to your published post'}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={handleSubmit} 
-                  className="w-full"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Update
-                    </>
-                  )}
-                </Button>
+              <CardContent className="space-y-3">
+                {/* ✅ Show different buttons based on post status */}
+                {postStatus === 'draft' ? (
+                  <>
+                    {/* Publish Button for Drafts */}
+                    <Button 
+                      onClick={() => setShowPublishConfirm(true)} 
+                      className="w-full"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Publishing...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          {session?.user?.role === 'admin' ? 'Publish Now' : 'Submit for Review'}
+                        </>
+                      )}
+                    </Button>
+                    
+                    {/* Update as Draft Button */}
+                    <Button 
+                      onClick={() => handleSubmit('draft')} 
+                      variant="outline"
+                      className="w-full"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save as Draft
+                        </>
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  /* Update Button for Published Posts */
+                  <Button 
+                    onClick={() => handleSubmit()} 
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Update
+                      </>
+                    )}
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -660,6 +775,50 @@ export default function EditPostPage({ params }) {
         postData={previewData}
         author={{ name: getAuthorName() }}
       />
+
+      {/* ✅ NEW: Publish Confirmation Dialog */}
+      <AlertDialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {session?.user?.role === 'admin' ? 'Publish this post?' : 'Submit post for review?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              {session?.user?.role === 'admin' ? (
+                <>
+                  <p>This will make your post visible to all readers immediately.</p>
+                  <p className="text-sm font-medium">Make sure you've reviewed all content before publishing.</p>
+                </>
+              ) : (
+                <>
+                  <p>Your post will be submitted to the admin team for review and approval.</p>
+                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-md border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                      ⏱️ Review Process:
+                    </p>
+                    <ul className="text-sm text-blue-800 dark:text-blue-200 mt-2 space-y-1 list-disc list-inside">
+                      <li>Admin review typically takes up to 24 hours</li>
+                      <li>You'll be notified when your post is approved</li>
+                      <li>You can continue editing until it's approved</li>
+                    </ul>
+                  </div>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowPublishConfirm(false)
+                handleSubmit(session?.user?.role === 'admin' ? 'published' : 'pending_review')
+              }}
+            >
+              {session?.user?.role === 'admin' ? 'Yes, Publish Now' : 'Yes, Submit for Review'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

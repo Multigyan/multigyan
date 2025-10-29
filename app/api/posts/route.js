@@ -145,7 +145,10 @@ export async function POST(request) {
       allowComments,
       seoTitle,
       seoDescription,
-      seoKeywords
+      seoKeywords,
+      // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
+      lang,
+      translationOf
     } = await request.json()
 
     // Validation
@@ -212,7 +215,10 @@ export async function POST(request) {
       allowComments: allowComments !== undefined ? allowComments : true,
       seoTitle: seoTitle || '',
       seoDescription: seoDescription || '',
-      seoKeywords: seoKeywords || []
+      seoKeywords: seoKeywords || [],
+      // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
+      lang: lang || 'en',
+      translationOf: translationOf || null
     })
 
     await newPost.save()

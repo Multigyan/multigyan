@@ -254,7 +254,161 @@ const PostSchema = new mongoose.Schema({
     ref: 'User'
   },
   lastEditedAt: Date,
-  editReason: String  // Admin must provide reason for editing author's post
+  editReason: String,  // Admin must provide reason for editing author's post
+  
+  // ========================================
+  // ✨ NEW: DIY-SPECIFIC FIELDS
+  // ========================================
+  difficulty: {
+    type: String,
+    enum: ['Easy', 'Medium', 'Hard'],
+    default: 'Medium'
+  },
+  materials: [{
+    name: { type: String, maxlength: 100 },
+    quantity: { type: String, maxlength: 50 },
+    optional: { type: Boolean, default: false }
+  }],
+  tools: [{
+    name: { type: String, maxlength: 100 },
+    optional: { type: Boolean, default: false }
+  }],
+  estimatedTime: {
+    type: Number, // in minutes
+    default: 0
+  },
+  
+  // ========================================
+  // ✨ NEW: RECIPE-SPECIFIC FIELDS
+  // ========================================
+  prepTime: {
+    type: Number, // in minutes
+    default: 0
+  },
+  cookTime: {
+    type: Number, // in minutes
+    default: 0
+  },
+  servings: {
+    type: Number,
+    default: 4
+  },
+  servingUnit: {
+    type: String,
+    maxlength: 50,
+    default: 'people'
+  },
+  ingredients: [{
+    name: { type: String, maxlength: 200 },
+    quantity: { type: String, maxlength: 50 },
+    unit: { type: String, maxlength: 20 },
+    optional: { type: Boolean, default: false },
+    category: { type: String, maxlength: 50 } // e.g., "Spices", "Vegetables"
+  }],
+  cuisine: {
+    type: String,
+    maxlength: 50
+  },
+  diet: [{
+    type: String,
+    enum: ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Keto', 'Paleo', 'Low-Carb', 'High-Protein']
+  }],
+  
+  // ========================================
+  // ✨ NEW: RATINGS & REVIEWS
+  // ========================================
+  ratings: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5
+    },
+    review: {
+      type: String,
+      maxlength: 1000
+    },
+    helpful: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  averageRating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
+  },
+  
+  // ========================================
+  // ✨ NEW: USER ENGAGEMENT
+  // ========================================
+  saves: [{ // Bookmarks/Favorites
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  
+  // "I Made This" feature
+  userPhotos: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    photoUrl: {
+      type: String,
+      required: true
+    },
+    caption: {
+      type: String,
+      maxlength: 300
+    },
+    likes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
+  // ========================================
+  // ✨ NEW: AFFILIATE LINKS
+  // ========================================
+  affiliateLinks: [{
+    platform: {
+      type: String,
+      enum: ['Amazon', 'Flipkart', 'Other'],
+      required: true
+    },
+    productName: {
+      type: String,
+      maxlength: 200,
+      required: true
+    },
+    url: {
+      type: String,
+      required: true
+    },
+    price: {
+      type: String,
+      maxlength: 50
+    },
+    category: {
+      type: String, // "ingredient", "tool", "material"
+      enum: ['ingredient', 'tool', 'material', 'equipment', 'other']
+    }
+  }]
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
@@ -623,6 +777,128 @@ PostSchema.methods.getCommentStats = function() {
     totalLikes: approvedComments.reduce((sum, comment) => sum + comment.likeCount, 0)
   }
 }
+
+// ========================================
+// ✨ NEW: RATING METHODS
+// ========================================
+
+// Instance method to add/update rating
+PostSchema.methods.addRating = async function(userId, rating, review = '') {
+  // Check if user already rated
+  const existingRatingIndex = this.ratings.findIndex(
+    r => r.user.toString() === userId.toString()
+  )
+  
+  if (existingRatingIndex !== -1) {
+    // Update existing rating
+    this.ratings[existingRatingIndex].rating = rating
+    this.ratings[existingRatingIndex].review = review
+    this.ratings[existingRatingIndex].createdAt = new Date()
+  } else {
+    // Add new rating
+    this.ratings.push({
+      user: userId,
+      rating,
+      review,
+      helpful: [],
+      createdAt: new Date()
+    })
+  }
+  
+  // Recalculate average rating
+  this.averageRating = this.ratings.reduce((sum, r) => sum + r.rating, 0) / this.ratings.length
+  
+  return this.save({ validateBeforeSave: false })
+}
+
+// Instance method to mark rating as helpful
+PostSchema.methods.markRatingHelpful = function(ratingId, userId) {
+  const rating = this.ratings.id(ratingId)
+  if (rating && !rating.helpful.includes(userId)) {
+    rating.helpful.push(userId)
+    return this.save({ validateBeforeSave: false })
+  }
+  return Promise.resolve(this)
+}
+
+// ========================================
+// ✨ NEW: BOOKMARK/SAVE METHODS
+// ========================================
+
+// Instance method to add bookmark/save
+PostSchema.methods.addSave = function(userId) {
+  if (!this.saves.includes(userId)) {
+    this.saves.push(userId)
+    return this.save({ validateBeforeSave: false })
+  }
+  return Promise.resolve(this)
+}
+
+// Instance method to remove bookmark/save
+PostSchema.methods.removeSave = function(userId) {
+  this.saves = this.saves.filter(id => !id.equals(userId))
+  return this.save({ validateBeforeSave: false })
+}
+
+// ========================================
+// ✨ NEW: USER PHOTO ("I Made This") METHODS
+// ========================================
+
+// Instance method to add user photo
+PostSchema.methods.addUserPhoto = function(userId, photoUrl, caption = '') {
+  this.userPhotos.push({
+    user: userId,
+    photoUrl,
+    caption,
+    likes: [],
+    createdAt: new Date()
+  })
+  return this.save({ validateBeforeSave: false })
+}
+
+// Instance method to like user photo
+PostSchema.methods.likeUserPhoto = function(photoId, userId) {
+  const photo = this.userPhotos.id(photoId)
+  if (photo && !photo.likes.includes(userId)) {
+    photo.likes.push(userId)
+    return this.save({ validateBeforeSave: false })
+  }
+  return Promise.resolve(this)
+}
+
+// Instance method to remove user photo like
+PostSchema.methods.unlikeUserPhoto = function(photoId, userId) {
+  const photo = this.userPhotos.id(photoId)
+  if (photo) {
+    photo.likes = photo.likes.filter(id => !id.equals(userId))
+    return this.save({ validateBeforeSave: false })
+  }
+  return Promise.resolve(this)
+}
+
+// ========================================
+// ✨ NEW: VIRTUAL PROPERTIES
+// ========================================
+
+// Virtual for save count
+PostSchema.virtual('saveCount').get(function() {
+  return this.saves ? this.saves.length : 0
+})
+
+// Virtual for total time (prep + cook for recipes)
+PostSchema.virtual('totalTime').get(function() {
+  return (this.prepTime || 0) + (this.cookTime || 0)
+})
+
+// Virtual for rating count
+PostSchema.virtual('ratingCount').get(function() {
+  return this.ratings ? this.ratings.length : 0
+})
+
+// Virtual for user photo count
+PostSchema.virtual('userPhotoCount').get(function() {
+  return this.userPhotos ? this.userPhotos.length : 0
+})
 
 // Static method to get posts with comment counts
 PostSchema.statics.getPostsWithCommentStats = function(query = {}) {

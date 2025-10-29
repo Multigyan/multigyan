@@ -94,7 +94,10 @@ export async function PUT(request, { params }) {
       editReason, // ✅ NEW: Admin must provide reason when editing author's post
       approveRevision, // ✅ NEW: Admin approving author's revision
       rejectRevision,  // ✅ NEW: Admin rejecting author's revision
-      author
+      author,
+      // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
+      lang,
+      translationOf
     } = updateData
 
     await connectDB()
@@ -419,6 +422,9 @@ export async function PUT(request, { params }) {
     if (isFeatured !== undefined && isAdmin) sanitizedData.isFeatured = isFeatured
     if (editReason !== undefined) sanitizedData.editReason = editReason ? editReason.trim().slice(0, 500) : undefined
     if (rejectionReason !== undefined) sanitizedData.rejectionReason = rejectionReason ? rejectionReason.trim().slice(0, 500) : undefined
+    // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
+    if (lang !== undefined) sanitizedData.lang = lang || 'en'
+    if (translationOf !== undefined) sanitizedData.translationOf = translationOf || null
     
     // Admin edit tracking
     if (isAdmin && !isAuthor) {
