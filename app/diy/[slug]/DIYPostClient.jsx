@@ -34,6 +34,9 @@ import { toast } from "sonner"
 import CommentSection from "@/components/comments/CommentSection"
 import { PostLikeButton } from "@/components/interactions/LikeButton"
 import InteractiveCheckList from "@/components/blog/InteractiveCheckList"
+import BookmarkButton from "@/components/posts/BookmarkButton"
+import RatingSection from "@/components/posts/RatingSection"
+import IMadeThisSection from "@/components/posts/IMadeThisSection"
 
 export default function DIYPostClient({ post }) {
   const { data: session } = useSession()
@@ -422,6 +425,20 @@ export default function DIYPostClient({ post }) {
 
             <Separator className="my-8" />
 
+            {/* ⭐ NEW: Rating Section */}
+            <section className="mb-12">
+              <RatingSection postId={post._id} />
+            </section>
+
+            <Separator className="my-8" />
+
+            {/* 📸 NEW: I Made This Section */}
+            <section className="mb-12">
+              <IMadeThisSection postId={post._id} contentType="diy" />
+            </section>
+
+            <Separator className="my-8" />
+
             {/* Actions */}
             <div className="flex items-center gap-4 mb-8">
               <PostLikeButton
@@ -430,6 +447,15 @@ export default function DIYPostClient({ post }) {
                 initialIsLiked={session?.user?.id && post.likes?.includes(session.user.id)}
                 size="md"
                 animated={true}
+              />
+
+              {/* 🔖 NEW: Bookmark Button */}
+              <BookmarkButton
+                postId={post._id}
+                initialBookmarked={session?.user?.id && post.saves?.includes(session.user.id)}
+                initialCount={post.saves?.length || 0}
+                size="default"
+                showCount={true}
               />
 
               <Button variant="outline" className="flex items-center gap-2">

@@ -86,6 +86,20 @@ export default function Footer() {
                 >
                   All Posts
                 </Link>
+                {/* 🎨 NEW: DIY Link */}
+                <Link 
+                  href="/diy" 
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
+                >
+                  DIY Tutorials
+                </Link>
+                {/* 🍳 NEW: Recipe Link */}
+                <Link 
+                  href="/recipe" 
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
+                >
+                  Recipes
+                </Link>
                 <Link 
                   href="/categories" 
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
