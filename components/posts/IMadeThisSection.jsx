@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -34,7 +34,6 @@ export default function IMadeThisSection({ postId, contentType = 'diy' }) {
   // ========================================
   
   const { data: session } = useSession()
-  const { toast } = useToast()
   
   // Photo data
   const [photos, setPhotos] = useState([])
@@ -83,21 +82,13 @@ export default function IMadeThisSection({ postId, contentType = 'diy' }) {
     
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please select an image file',
-        variant: 'destructive'
-      })
+      toast.error('Please select an image file')
       return
     }
     
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'Please select an image under 5MB',
-        variant: 'destructive'
-      })
+      toast.error('Please select an image under 5MB')
       return
     }
     
@@ -117,20 +108,12 @@ export default function IMadeThisSection({ postId, contentType = 'diy' }) {
   
   const handleUpload = async () => {
     if (!session) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to share your photos',
-        variant: 'destructive'
-      })
+      toast.error('Please sign in to share your photos')
       return
     }
     
     if (!selectedFile) {
-      toast({
-        title: 'No photo selected',
-        description: 'Please select a photo to upload',
-        variant: 'destructive'
-      })
+      toast.error('Please select a photo to upload')
       return
     }
     
@@ -160,10 +143,7 @@ export default function IMadeThisSection({ postId, contentType = 'diy' }) {
       const data = await response.json()
       
       if (data.success) {
-        toast({
-          title: 'Photo uploaded!',
-          description: 'Your creation has been shared with the community'
-        })
+        toast.success('Photo uploaded! Your creation has been shared with the community')
         
         // Reset form
         setSelectedFile(null)
@@ -177,11 +157,7 @@ export default function IMadeThisSection({ postId, contentType = 'diy' }) {
         throw new Error(data.error)
       }
     } catch (error) {
-      toast({
-        title: 'Upload failed',
-        description: error.message || 'Failed to upload photo',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to upload photo')
     } finally {
       setIsUploading(false)
     }
@@ -193,11 +169,7 @@ export default function IMadeThisSection({ postId, contentType = 'diy' }) {
   
   const handleLikePhoto = async (photoId) => {
     if (!session) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to like photos',
-        variant: 'destructive'
-      })
+      toast.error('Please sign in to like photos')
       return
     }
     

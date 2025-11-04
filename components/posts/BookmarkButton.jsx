@@ -19,7 +19,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { Bookmark } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export default function BookmarkButton({ 
   postId, 
@@ -33,7 +33,6 @@ export default function BookmarkButton({
   // ========================================
   
   const { data: session } = useSession() // Get current user
-  const { toast } = useToast() // For notifications
   
   // Bookmark state
   const [isBookmarked, setIsBookmarked] = useState(initialBookmarked)
@@ -78,11 +77,7 @@ export default function BookmarkButton({
   const handleToggleBookmark = async () => {
     // Check if user is logged in
     if (!session) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to bookmark posts',
-        variant: 'destructive'
-      })
+      toast.error('Please sign in to bookmark posts')
       return
     }
     
@@ -102,19 +97,12 @@ export default function BookmarkButton({
         setBookmarkCount(data.saveCount)
         
         // Show notification
-        toast({
-          title: data.isBookmarked ? 'Bookmarked!' : 'Bookmark removed',
-          description: data.message,
-        })
+        toast.success(data.message)
       } else {
         throw new Error(data.error)
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update bookmark',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to update bookmark')
     } finally {
       setIsLoading(false)
     }

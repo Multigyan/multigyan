@@ -25,12 +25,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import FilterSort from '@/components/posts/FilterSort'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export default function BookmarksPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { toast } = useToast()
   
   // State
   const [bookmarks, setBookmarks] = useState([])
@@ -44,14 +43,10 @@ export default function BookmarksPage() {
   
   useEffect(() => {
     if (status === 'unauthenticated') {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to view your bookmarks',
-        variant: 'destructive'
-      })
+      toast.error('Please sign in to view your bookmarks')
       router.push('/login')
     }
-  }, [status, router])
+  }, [status, router, toast])
   
   // ========================================
   // FETCH BOOKMARKS
@@ -77,11 +72,7 @@ export default function BookmarksPage() {
         throw new Error(data.error)
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load bookmarks',
-        variant: 'destructive'
-      })
+      toast.error('Failed to load bookmarks')
     } finally {
       setIsLoading(false)
     }
@@ -106,17 +97,10 @@ export default function BookmarksPage() {
         setBookmarks(prev => prev.filter(post => post._id !== postId))
         setFilteredBookmarks(prev => prev.filter(post => post._id !== postId))
         
-        toast({
-          title: 'Bookmark removed',
-          description: 'Post removed from your bookmarks'
-        })
+        toast.success('Bookmark removed')
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to remove bookmark',
-        variant: 'destructive'
-      })
+      toast.error('Failed to remove bookmark')
     } finally {
       setRemovingId(null)
     }

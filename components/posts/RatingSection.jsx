@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function RatingSection({ postId }) {
@@ -28,7 +28,6 @@ export default function RatingSection({ postId }) {
   // ========================================
   
   const { data: session } = useSession() // Get current user info
-  const { toast } = useToast() // For showing notifications
   
   // Rating data from server
   const [ratings, setRatings] = useState([]) // All ratings
@@ -101,21 +100,13 @@ export default function RatingSection({ postId }) {
   const handleSubmitRating = async () => {
     // Validate: User must be logged in
     if (!session) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to rate this post',
-        variant: 'destructive'
-      })
+      toast.error('Please sign in to rate this post')
       return
     }
     
     // Validate: Rating must be selected
     if (userRating === 0) {
-      toast({
-        title: 'Rating required',
-        description: 'Please select a star rating',
-        variant: 'destructive'
-      })
+      toast.error('Please select a star rating')
       return
     }
     
@@ -136,10 +127,7 @@ export default function RatingSection({ postId }) {
       const data = await response.json()
       
       if (data.success) {
-        toast({
-          title: hasRated ? 'Rating updated!' : 'Rating submitted!',
-          description: 'Thank you for your feedback',
-        })
+        toast.success(hasRated ? 'Rating updated!' : 'Rating submitted! Thank you for your feedback')
         
         // Refresh ratings to show new rating
         await fetchRatings()
@@ -147,11 +135,7 @@ export default function RatingSection({ postId }) {
         throw new Error(data.error)
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to submit rating',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Failed to submit rating')
     } finally {
       setIsSubmitting(false)
     }
@@ -166,11 +150,7 @@ export default function RatingSection({ postId }) {
    */
   const handleMarkHelpful = async (ratingId) => {
     if (!session) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in to vote',
-        variant: 'destructive'
-      })
+      toast.error('Please sign in to vote')
       return
     }
     
@@ -186,9 +166,7 @@ export default function RatingSection({ postId }) {
       const data = await response.json()
       
       if (data.success) {
-        toast({
-          title: 'Thanks for your feedback!',
-        })
+        toast.success('Thanks for your feedback!')
         
         // Refresh ratings
         await fetchRatings()
