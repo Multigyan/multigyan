@@ -37,6 +37,7 @@ import InteractiveCheckList from "@/components/blog/InteractiveCheckList"
 import BookmarkButton from "@/components/posts/BookmarkButton"
 import RatingSection from "@/components/posts/RatingSection"
 import IMadeThisSection from "@/components/posts/IMadeThisSection"
+import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
 
 export default function DIYPostClient({ post }) {
   const { data: session } = useSession()
@@ -144,6 +145,9 @@ export default function DIYPostClient({ post }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white">
+      {/* Add Code Copy Buttons */}
+      <CodeBlockCopyButton />
+      
       <article className="py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">

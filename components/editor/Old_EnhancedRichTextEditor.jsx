@@ -1,22 +1,14 @@
 "use client"
 
 import { useEditor, EditorContent } from '@tiptap/react'
-import { StarterKit } from '@tiptap/starter-kit'
-import { Image } from '@tiptap/extension-image'
-import { Link } from '@tiptap/extension-link'
-import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
-import { Youtube } from '@tiptap/extension-youtube'
-import { TextAlign } from '@tiptap/extension-text-align'
-import { Underline } from '@tiptap/extension-underline'
-import { Table } from '@tiptap/extension-table'
-import { TableRow } from '@tiptap/extension-table-row'
-import { TableHeader } from '@tiptap/extension-table-header'
-import { TableCell } from '@tiptap/extension-table-cell'
-import { TextStyle } from '@tiptap/extension-text-style'
-import { Color } from '@tiptap/extension-color'
-import { Highlight } from '@tiptap/extension-highlight'
+import StarterKit from '@tiptap/starter-kit'
+import Image from '@tiptap/extension-image'
+import Link from '@tiptap/extension-link'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import Youtube from '@tiptap/extension-youtube'
+import TextAlign from '@tiptap/extension-text-align'
+import Underline from '@tiptap/extension-underline'
 import { createLowlight } from 'lowlight'
-
 import js from 'highlight.js/lib/languages/javascript'
 import ts from 'highlight.js/lib/languages/typescript'
 import html from 'highlight.js/lib/languages/xml'
@@ -24,20 +16,41 @@ import css from 'highlight.js/lib/languages/css'
 import python from 'highlight.js/lib/languages/python'
 import java from 'highlight.js/lib/languages/java'
 import cpp from 'highlight.js/lib/languages/cpp'
-
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  Bold, Italic, Strikethrough, Code, Code2,
-  Heading1, Heading2, Heading3, Heading4, Heading5, Heading6,
-  List, ListOrdered, Quote, Undo, Redo,
-  Link as LinkIcon, Image as ImageIcon, Type,
-  AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  Youtube as YoutubeIcon, Underline as UnderlineIcon,
-  Minus, Upload, Zap, Table as TableIcon, Trash2, Plus, Palette, Highlighter,
+import { 
+  Bold, 
+  Italic, 
+  Strikethrough, 
+  Code, 
+  Code2,
+  Heading1, 
+  Heading2, 
+  Heading3,
+  Heading4,
+  Heading5,
+  Heading6,
+  List, 
+  ListOrdered, 
+  Quote, 
+  Undo, 
+  Redo,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Type,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Youtube as YoutubeIcon,
+  Underline as UnderlineIcon,
+  Minus,
+  Upload,
+  Zap,
+  Copy,
+  Check
 } from 'lucide-react'
-
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -45,15 +58,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { toast } from 'sonner'
 import { convertToWebP, googleDriveUrlToFile } from '@/lib/imageUtils'
 
-// Configure lowlight (using the singleton from 'lowlight/lib/core')
+// Configure lowlight with popular languages
 const lowlight = createLowlight()
+lowlight.register('js', js)
 lowlight.register('javascript', js)
 lowlight.register('ts', ts)
-lowlight.register('xml', html)    // your `html` import is XML from highlight.js
+lowlight.register('typescript', ts)
+lowlight.register('html', html)
 lowlight.register('css', css)
 lowlight.register('python', python)
 lowlight.register('java', java)
 lowlight.register('cpp', cpp)
+lowlight.register('c++', cpp)
 
 const MenuBar = ({ editor }) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
@@ -74,7 +90,9 @@ const MenuBar = ({ editor }) => {
     setIsLinkDialogOpen(false)
   }, [editor, linkUrl])
 
+  // Upload image to Cloudinary with WebP conversion
   const uploadToCloudinary = useCallback(async (file) => {
+    // Convert to WebP first (unless already WebP)
     let processedFile = file
     if (file.type !== 'image/webp') {
       try {
@@ -113,12 +131,14 @@ const MenuBar = ({ editor }) => {
     return data.secure_url
   }, [])
 
+  // Handle drag and drop for images in editor
   const handleImageUpload = useCallback(async (file) => {
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file')
       return
     }
 
+    // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast.error('Image size must be less than 10MB')
       return
@@ -134,7 +154,7 @@ const MenuBar = ({ editor }) => {
       }
     } catch (error) {
       console.error('Upload error:', error)
-      toast.error('Failed to upload image')
+      toast.error('Failed to upload image. You can use the image URL option instead.')
     } finally {
       setUploadingImage(false)
     }
@@ -147,66 +167,78 @@ const MenuBar = ({ editor }) => {
     }
   }
 
+  // ✅ FIXED: Added Google Drive support with download and upload
   const addImage = useCallback(async () => {
-    if (imageUrl && editor) {
-      if (imageUrl.includes('drive.google.com')) {
-        toast.info('Google Drive URL detected - downloading and uploading image...')
-        setUploadingImage(true)
+  if (imageUrl && editor) {
+    // Check if it's a Google Drive URL
+    if (imageUrl.includes('drive.google.com')) {
+      toast.info('Google Drive URL detected - downloading and uploading image...')
+      setUploadingImage(true)
+      
+      try {
+        // Download the image from Google Drive
+        const file = await googleDriveUrlToFile(imageUrl)
         
-        try {
-          const file = await googleDriveUrlToFile(imageUrl)
+        if (file) {
+          toast.success('Image downloaded from Google Drive!')
           
-          if (file) {
-            toast.success('Image downloaded from Google Drive!')
-            const cloudinaryUrl = await uploadToCloudinary(file)
-            
-            if (cloudinaryUrl) {
-              editor.chain().focus().setImage({ 
-                src: cloudinaryUrl, 
-                alt: imageAlt || 'Google Drive Image' 
-              }).run()
-              toast.success('Image uploaded successfully!')
-            }
-          } else {
-            throw new Error('Failed to download from Google Drive')
+          // Upload to Cloudinary
+          const cloudinaryUrl = await uploadToCloudinary(file)
+          
+          if (cloudinaryUrl) {
+            // Insert the Cloudinary URL into the editor
+            editor.chain().focus().setImage({ 
+              src: cloudinaryUrl, 
+              alt: imageAlt || 'Google Drive Image' 
+            }).run()
+            toast.success('Image uploaded successfully!')
           }
-        } catch (error) {
-          console.error('Google Drive image error:', error)
-          toast.error('Failed to process Google Drive image', {
-            description: error.message || 'Please check the sharing settings and try again',
-            duration: 5000
-          })
-        } finally {
-          setUploadingImage(false)
+        } else {
+          throw new Error('Failed to download from Google Drive')
         }
-      } else {
-        editor.chain().focus().setImage({ 
-          src: imageUrl, 
-          alt: imageAlt || 'Image' 
-        }).run()
-        toast.success('Image added successfully!')
+      } catch (error) {
+        console.error('Google Drive image error:', error)
+        toast.error('Failed to process Google Drive image', {
+          description: error.message || 'Please check the sharing settings and try again',
+          duration: 5000
+        })
+      } finally {
+        setUploadingImage(false)
       }
+    } else {
+      // Regular URL - use directly
+      editor.chain().focus().setImage({ 
+        src: imageUrl, 
+        alt: imageAlt || 'Image' 
+      }).run()
+      toast.success('Image added successfully!')
     }
-    setImageUrl('')
-    setImageAlt('')
-    setIsImageDialogOpen(false)
-  }, [editor, imageUrl, imageAlt, uploadToCloudinary])
+  }
+  setImageUrl('')
+  setImageAlt('')
+  setIsImageDialogOpen(false)
+}, [editor, imageUrl, imageAlt, uploadToCloudinary])
 
   const addYoutube = useCallback(() => {
     if (youtubeUrl && editor) {
+      // Extract video ID from various YouTube URL formats
       let videoId = ''
       
       try {
+        // Handle youtu.be links
         if (youtubeUrl.includes('youtu.be/')) {
           videoId = youtubeUrl.split('youtu.be/')[1].split('?')[0]
         }
+        // Handle youtube.com/watch links
         else if (youtubeUrl.includes('youtube.com/watch')) {
           const url = new URL(youtubeUrl)
           videoId = url.searchParams.get('v')
         }
+        // Handle youtube.com/embed links
         else if (youtubeUrl.includes('youtube.com/embed/')) {
           videoId = youtubeUrl.split('embed/')[1].split('?')[0]
         }
+        // Handle shorts
         else if (youtubeUrl.includes('youtube.com/shorts/')) {
           videoId = youtubeUrl.split('shorts/')[1].split('?')[0]
         }
@@ -219,7 +251,7 @@ const MenuBar = ({ editor }) => {
           }).run()
           toast.success('YouTube video embedded successfully!')
         } else {
-          toast.error('Invalid YouTube URL')
+          toast.error('Invalid YouTube URL. Please enter a valid YouTube video link.')
         }
       } catch (error) {
         toast.error('Invalid YouTube URL format')
@@ -305,30 +337,7 @@ const MenuBar = ({ editor }) => {
 
       <Separator orientation="vertical" className="h-6 mx-1" />
 
-      {/* Text Color & Highlight */}
-      <div className="flex gap-1">
-        <div className="relative">
-          <input
-            type="color"
-            onInput={(e) => editor.chain().focus().setColor(e.target.value).run()}
-            value={editor.getAttributes('textStyle').color || '#000000'}
-            className="h-8 w-8 cursor-pointer rounded border border-input"
-            title="Text Color"
-          />
-        </div>
-        
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHighlight().run()}
-          isActive={editor.isActive('highlight')}
-          title="Highlight"
-        >
-          <Highlighter className="h-4 w-4" />
-        </ToolbarButton>
-      </div>
-
-      <Separator orientation="vertical" className="h-6 mx-1" />
-
-      {/* Headings */}
+      {/* Headings - All 6 levels */}
       <div className="flex gap-1">
         <ToolbarButton
           onClick={() => editor.chain().focus().setParagraph().run()}
@@ -341,7 +350,7 @@ const MenuBar = ({ editor }) => {
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           isActive={editor.isActive('heading', { level: 1 })}
-          title="Heading 1"
+          title="Heading 1 (Largest)"
         >
           <Heading1 className="h-4 w-4" />
         </ToolbarButton>
@@ -360,6 +369,30 @@ const MenuBar = ({ editor }) => {
           title="Heading 3"
         >
           <Heading3 className="h-4 w-4" />
+        </ToolbarButton>
+        
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+          isActive={editor.isActive('heading', { level: 4 })}
+          title="Heading 4"
+        >
+          <Heading4 className="h-4 w-4" />
+        </ToolbarButton>
+        
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
+          isActive={editor.isActive('heading', { level: 5 })}
+          title="Heading 5"
+        >
+          <Heading5 className="h-4 w-4" />
+        </ToolbarButton>
+        
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()}
+          isActive={editor.isActive('heading', { level: 6 })}
+          title="Heading 6 (Smallest)"
+        >
+          <Heading6 className="h-4 w-4" />
         </ToolbarButton>
       </div>
 
@@ -390,11 +423,19 @@ const MenuBar = ({ editor }) => {
         >
           <AlignRight className="h-4 w-4" />
         </ToolbarButton>
+        
+        <ToolbarButton
+          onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+          isActive={editor.isActive({ textAlign: 'justify' })}
+          title="Justify"
+        >
+          <AlignJustify className="h-4 w-4" />
+        </ToolbarButton>
       </div>
 
       <Separator orientation="vertical" className="h-6 mx-1" />
 
-      {/* Lists */}
+      {/* Lists and Quotes */}
       <div className="flex gap-1">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -419,62 +460,18 @@ const MenuBar = ({ editor }) => {
         >
           <Quote className="h-4 w-4" />
         </ToolbarButton>
-      </div>
 
-      <Separator orientation="vertical" className="h-6 mx-1" />
-
-      {/* 🆕 TABLE CONTROLS */}
-      <div className="flex gap-1">
         <ToolbarButton
-          onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-          title="Insert Table"
+          onClick={addHorizontalRule}
+          title="Horizontal Line"
         >
-          <TableIcon className="h-4 w-4" />
+          <Minus className="h-4 w-4" />
         </ToolbarButton>
-        
-        {editor.isActive('table') && (
-          <>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().addColumnBefore().run()}
-              title="Add Column Before"
-            >
-              <Plus className="h-3 w-3" />
-            </ToolbarButton>
-            
-            <ToolbarButton
-              onClick={() => editor.chain().focus().deleteColumn().run()}
-              title="Delete Column"
-            >
-              <Trash2 className="h-3 w-3" />
-            </ToolbarButton>
-            
-            <ToolbarButton
-              onClick={() => editor.chain().focus().addRowBefore().run()}
-              title="Add Row Before"
-            >
-              <Plus className="h-3 w-3" />
-            </ToolbarButton>
-            
-            <ToolbarButton
-              onClick={() => editor.chain().focus().deleteRow().run()}
-              title="Delete Row"
-            >
-              <Trash2 className="h-3 w-3" />
-            </ToolbarButton>
-            
-            <ToolbarButton
-              onClick={() => editor.chain().focus().deleteTable().run()}
-              title="Delete Table"
-            >
-              <Trash2 className="h-4 w-4 text-red-500" />
-            </ToolbarButton>
-          </>
-        )}
       </div>
 
       <Separator orientation="vertical" className="h-6 mx-1" />
 
-      {/* Code Block */}
+      {/* Code Block with Language Selection */}
       <div className="flex items-center gap-1">
         <ToolbarButton
           onClick={() => addCodeBlock()}
@@ -483,18 +480,40 @@ const MenuBar = ({ editor }) => {
         >
           <Code2 className="h-4 w-4" />
         </ToolbarButton>
+        
+        {editor.isActive('codeBlock') && (
+          <Select 
+            value={editor.getAttributes('codeBlock').language || 'text'}
+            onValueChange={(language) => addCodeBlock(language)}
+          >
+            <SelectTrigger className="w-[110px] h-8">
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="text">Plain Text</SelectItem>
+              <SelectItem value="javascript">JavaScript</SelectItem>
+              <SelectItem value="typescript">TypeScript</SelectItem>
+              <SelectItem value="html">HTML</SelectItem>
+              <SelectItem value="css">CSS</SelectItem>
+              <SelectItem value="python">Python</SelectItem>
+              <SelectItem value="java">Java</SelectItem>
+              <SelectItem value="cpp">C++</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <Separator orientation="vertical" className="h-6 mx-1" />
 
-      {/* Media */}
+      {/* Media & Links */}
       <div className="flex gap-1">
+        {/* Link Dialog */}
         <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
           <DialogTrigger asChild>
             <Button
               variant={editor.isActive('link') ? "default" : "ghost"}
               size="sm"
-              title="Add Link"
+              title="Add Link (Ctrl+K)"
               className="h-8 w-8 p-0"
             >
               <LinkIcon className="h-4 w-4" />
@@ -503,6 +522,9 @@ const MenuBar = ({ editor }) => {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Add Link</DialogTitle>
+              <DialogDescription>
+                Enter the URL you want to link to
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -515,11 +537,23 @@ const MenuBar = ({ editor }) => {
                   onKeyDown={(e) => e.key === 'Enter' && setLink()}
                 />
               </div>
-              <Button onClick={setLink}>Add Link</Button>
+              <div className="flex gap-2">
+                <Button onClick={setLink}>Add Link</Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    editor.chain().focus().unsetLink().run()
+                    setIsLinkDialogOpen(false)
+                  }}
+                >
+                  Remove Link
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
 
+        {/* Image Dialog */}
         <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
           <DialogTrigger asChild>
             <Button
@@ -539,8 +573,12 @@ const MenuBar = ({ editor }) => {
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Add Image</DialogTitle>
+              <DialogDescription>
+                Upload an image or paste an image URL (Google Drive links will be automatically downloaded and uploaded)
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
+              {/* File Upload */}
               <div>
                 <Label>Upload Image</Label>
                 <div className="mt-2">
@@ -561,16 +599,20 @@ const MenuBar = ({ editor }) => {
                     {uploadingImage ? (
                       <>
                         <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full mr-2" />
-                        Uploading...
+                        Converting to WebP & Uploading...
                       </>
                     ) : (
                       <>
                         <Upload className="mr-2 h-4 w-4" />
-                        Choose Image
+                        Choose Image File
                       </>
                     )}
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <Zap className="h-3 w-3 text-green-500" />
+                  Auto-converts to WebP for faster loading
+                </p>
               </div>
 
               <div className="relative">
@@ -582,58 +624,78 @@ const MenuBar = ({ editor }) => {
                 </div>
               </div>
 
+              {/* URL Input */}
               <div>
-                <Label htmlFor="imageUrl">Image URL</Label>
+                <Label htmlFor="imageUrl">Image URL (supports Google Drive)</Label>
                 <Input
                   id="imageUrl"
-                  placeholder="https://example.com/image.jpg"
+                  placeholder="https://example.com/image.jpg or Google Drive link"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <span>💡</span>
+                  <span>Google Drive images will be downloaded and uploaded to Cloudinary automatically</span>
+                </p>
               </div>
               <div>
-                <Label htmlFor="imageAlt">Alt Text</Label>
+                <Label htmlFor="imageAlt">Alt Text (for accessibility)</Label>
                 <Input
                   id="imageAlt"
                   placeholder="Describe the image"
                   value={imageAlt}
                   onChange={(e) => setImageAlt(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addImage()}
                 />
               </div>
               <Button onClick={addImage} disabled={!imageUrl || uploadingImage}>
-                Add Image
+                {uploadingImage ? 'Processing...' : 'Add Image'}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
 
+        {/* YouTube Dialog */}
         <Dialog open={isYoutubeDialogOpen} onOpenChange={setIsYoutubeDialogOpen}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              title="YouTube"
+              title="Embed YouTube Video"
               className="h-8 w-8 p-0"
             >
               <YoutubeIcon className="h-4 w-4" />
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Embed YouTube Video</DialogTitle>
+              <DialogDescription>
+                Paste any YouTube video URL to embed it in your post
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="youtubeUrl">YouTube URL</Label>
+                <Label htmlFor="youtubeUrl">YouTube Video URL</Label>
                 <Input
                   id="youtubeUrl"
                   placeholder="https://www.youtube.com/watch?v=..."
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addYoutube()}
                 />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Supported formats:
+                </p>
+                <ul className="text-xs text-muted-foreground mt-1 space-y-1">
+                  <li>• https://www.youtube.com/watch?v=VIDEO_ID</li>
+                  <li>• https://youtu.be/VIDEO_ID</li>
+                  <li>• https://www.youtube.com/embed/VIDEO_ID</li>
+                  <li>• https://www.youtube.com/shorts/VIDEO_ID</li>
+                </ul>
               </div>
               <Button onClick={addYoutube} disabled={!youtubeUrl}>
-                Embed
+                Embed Video
               </Button>
             </div>
           </DialogContent>
@@ -646,7 +708,7 @@ const MenuBar = ({ editor }) => {
       <div className="flex gap-1">
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
-          title="Undo"
+          title="Undo (Ctrl+Z)"
           disabled={!editor.can().undo()}
         >
           <Undo className="h-4 w-4" />
@@ -654,7 +716,7 @@ const MenuBar = ({ editor }) => {
         
         <ToolbarButton
           onClick={() => editor.chain().focus().redo().run()}
-          title="Redo"
+          title="Redo (Ctrl+Y)"
           disabled={!editor.can().redo()}
         >
           <Redo className="h-4 w-4" />
@@ -667,6 +729,7 @@ const MenuBar = ({ editor }) => {
 export default function EnhancedRichTextEditor({ content, onChange, placeholder = "Start writing..." }) {
   const [isProcessingImages, setIsProcessingImages] = useState(false)
 
+  // Helper function to convert base64 to blob
   const base64ToBlob = (base64String) => {
     try {
       const parts = base64String.split(';base64,')
@@ -686,6 +749,7 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
     }
   }
 
+  // Function to upload base64 image to Cloudinary
   const uploadBase64Image = async (base64String) => {
     try {
       const blob = base64ToBlob(base64String)
@@ -693,11 +757,12 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       
       const file = new File([blob], 'pasted-image.png', { type: blob.type })
       
+      // Convert to WebP
       let processedFile = file
       try {
         processedFile = await convertToWebP(file, 0.85)
       } catch (error) {
-        console.error('WebP conversion failed:', error)
+        console.error('WebP conversion failed, using original:', error)
         processedFile = file
       }
       
@@ -736,23 +801,9 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
         },
       }),
       Underline,
-      TextStyle,
-      Color,
-      Highlight.configure({
-        multicolor: true,
-      }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
-      Table.configure({
-        resizable: true,
-        HTMLAttributes: {
-          class: 'my-table',
-        },
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
       Image.configure({
         HTMLAttributes: {
           class: 'max-w-full h-auto rounded-lg border my-4',
@@ -791,6 +842,7 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
     },
   })
 
+  // Add copy buttons to code blocks
   useEffect(() => {
     if (!editor) return
 
@@ -798,22 +850,52 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       const codeBlocks = document.querySelectorAll('.ProseMirror pre')
       
       codeBlocks.forEach((block) => {
+        // Check if copy button already exists
         if (block.querySelector('.copy-code-button')) return
         
+        // Create copy button
         const button = document.createElement('button')
         button.className = 'copy-code-button'
-        button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
+        button.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        `
         button.title = 'Copy code'
         
+        // Copy functionality
         button.onclick = async (e) => {
           e.preventDefault()
+          e.stopPropagation()
+          
           const code = block.querySelector('code')
           if (code) {
             try {
               await navigator.clipboard.writeText(code.textContent)
-              toast.success('Code copied!')
+              
+              // Show success feedback
+              button.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              `
+              button.style.color = '#10b981'
+              
+              // Reset after 2 seconds
+              setTimeout(() => {
+                button.innerHTML = `
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                `
+                button.style.color = ''
+              }, 2000)
+              
+              toast.success('Code copied to clipboard!')
             } catch (err) {
-              toast.error('Failed to copy')
+              toast.error('Failed to copy code')
             }
           }
         }
@@ -822,56 +904,70 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       })
     }
     
+    // Run after editor updates
     const timeoutId = setTimeout(addCopyButtons, 100)
+    
     return () => clearTimeout(timeoutId)
   }, [editor?.state.doc.content])
 
+  // ✅ Detect and upload base64 images after paste
   useEffect(() => {
     if (!editor) return
 
     const checkAndUploadBase64Images = async () => {
       const html = editor.getHTML()
+      
+      // Check if there are any base64 images
       const base64ImageRegex = /<img[^>]+src="data:image\/[^;]+;base64,[^"]+"/g
       const matches = html.match(base64ImageRegex)
       
       if (!matches || matches.length === 0) return
-      if (isProcessingImages) return
+      if (isProcessingImages) return // Prevent multiple simultaneous uploads
       
       setIsProcessingImages(true)
-      const loadingToast = toast.loading(`Uploading ${matches.length} image(s)...`)
+      const loadingToast = toast.loading(`Uploading ${matches.length} image(s) to Cloudinary...`)
       
       try {
         let updatedHtml = html
         let uploadedCount = 0
         
         for (const match of matches) {
+          // Extract base64 src
           const srcMatch = match.match(/src="([^"]+)"/)
           if (!srcMatch) continue
           
           const base64Src = srcMatch[1]
+          
+          // Upload to Cloudinary
           const cloudinaryUrl = await uploadBase64Image(base64Src)
           
           if (cloudinaryUrl) {
+            // Replace base64 with Cloudinary URL
             updatedHtml = updatedHtml.replace(base64Src, cloudinaryUrl)
             uploadedCount++
           }
         }
         
         if (uploadedCount > 0) {
+          // Update editor content with new URLs
           editor.commands.setContent(updatedHtml)
-          toast.success(`${uploadedCount} image(s) uploaded!`, { id: loadingToast })
+          toast.success(`${uploadedCount} image(s) uploaded successfully!`, { id: loadingToast })
         } else {
           toast.error('Failed to upload images', { id: loadingToast })
         }
       } catch (error) {
-        console.error('Error processing images:', error)
+        console.error('Error processing base64 images:', error)
         toast.error('Failed to process images', { id: loadingToast })
       } finally {
         setIsProcessingImages(false)
       }
     }
 
-    const timeoutId = setTimeout(checkAndUploadBase64Images, 500)
+    // Add a small delay to allow paste to complete
+    const timeoutId = setTimeout(() => {
+      checkAndUploadBase64Images()
+    }, 500)
+
     return () => clearTimeout(timeoutId)
   }, [editor?.state.doc.content])
 
@@ -884,61 +980,15 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       />
       <div className="border-t border-border p-2 bg-muted/30">
         <p className="text-xs text-muted-foreground">
-          <span className="font-semibold">✨ Word Support:</span> Paste tables, colored text, highlights from Word! • 
-          Copy from Excel/Word and it will work! • 
-          Use toolbar to create tables manually
+          <span className="font-semibold">Pro Tips:</span> Drag & drop images (auto-converts to WebP!) • 
+          Use <kbd className="bg-muted px-1 py-0.5 rounded text-xs mx-1">Ctrl+B</kbd> for bold, 
+          <kbd className="bg-muted px-1 py-0.5 rounded text-xs mx-1">Ctrl+I</kbd> for italic •
+          Supports Google Drive image URLs • Type <kbd className="bg-muted px-1 py-0.5 rounded text-xs mx-1">```</kbd> for code blocks • Hover over code blocks to copy
         </p>
       </div>
       
       <style jsx global>{`
-        /* Table Styling */
-        .ProseMirror table {
-          border-collapse: collapse;
-          table-layout: fixed;
-          width: 100%;
-          margin: 1.5rem 0;
-          overflow: hidden;
-        }
-
-        .ProseMirror td,
-        .ProseMirror th {
-          min-width: 1em;
-          border: 2px solid var(--border);
-          padding: 0.5rem;
-          vertical-align: top;
-          box-sizing: border-box;
-          position: relative;
-        }
-
-        .ProseMirror th {
-          font-weight: bold;
-          text-align: left;
-          background-color: var(--muted);
-        }
-
-        .ProseMirror .selectedCell:after {
-          z-index: 2;
-          position: absolute;
-          content: "";
-          left: 0;
-          right: 0;
-          top: 0;
-          bottom: 0;
-          background: rgba(200, 200, 255, 0.4);
-          pointer-events: none;
-        }
-
-        .ProseMirror .column-resize-handle {
-          position: absolute;
-          right: -2px;
-          top: 0;
-          bottom: -2px;
-          width: 4px;
-          background-color: var(--primary);
-          pointer-events: none;
-        }
-
-        /* Code Block Styling */
+        /* Code Block Styling with Scroll and Copy Button */
         .ProseMirror pre {
           position: relative;
           background: #1e293b !important;
@@ -949,7 +999,10 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
           margin: 1rem 0;
           font-family: 'Courier New', monospace;
           font-size: 0.875rem;
+          line-height: 1.5;
+          /* Enable scrolling */
           overflow-x: auto;
+          overflow-y: auto;
           max-height: 500px;
           border: 1px solid #334155;
         }
@@ -959,8 +1012,10 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
           color: inherit !important;
           padding: 0 !important;
           white-space: pre !important;
+          display: block;
         }
         
+        /* Copy button styling */
         .copy-code-button {
           position: absolute;
           top: 0.5rem;
@@ -973,19 +1028,52 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
           cursor: pointer;
           transition: all 0.2s;
           z-index: 10;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
         .copy-code-button:hover {
           background: #475569;
+          border-color: #64748b;
           transform: scale(1.05);
         }
-
-        /* Highlight colors */
-        .ProseMirror mark {
-          background-color: #fef08a;
-          padding: 0.125rem 0;
-          border-radius: 0.125rem;
+        
+        .copy-code-button:active {
+          transform: scale(0.95);
         }
+        
+        /* Scrollbar styling for code blocks */
+        .ProseMirror pre::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        
+        .ProseMirror pre::-webkit-scrollbar-track {
+          background: #0f172a;
+          border-radius: 4px;
+        }
+        
+        .ProseMirror pre::-webkit-scrollbar-thumb {
+          background: #475569;
+          border-radius: 4px;
+        }
+        
+        .ProseMirror pre::-webkit-scrollbar-thumb:hover {
+          background: #64748b;
+        }
+        
+        /* Syntax highlighting colors */
+        .ProseMirror pre .hljs-keyword { color: #f472b6; }
+        .ProseMirror pre .hljs-string { color: #a3e635; }
+        .ProseMirror pre .hljs-number { color: #fbbf24; }
+        .ProseMirror pre .hljs-comment { color: #94a3b8; font-style: italic; }
+        .ProseMirror pre .hljs-function { color: #60a5fa; }
+        .ProseMirror pre .hljs-variable { color: #e2e8f0; }
+        .ProseMirror pre .hljs-title { color: #a78bfa; }
+        .ProseMirror pre .hljs-params { color: #fb923c; }
+        .ProseMirror pre .hljs-attr { color: #34d399; }
+        .ProseMirror pre .hljs-tag { color: #f472b6; }
       `}</style>
     </div>
   )

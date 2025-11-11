@@ -39,6 +39,7 @@ import PrintRecipeButton from "@/components/blog/PrintRecipeButton"
 import BookmarkButton from "@/components/posts/BookmarkButton"
 import RatingSection from "@/components/posts/RatingSection"
 import IMadeThisSection from "@/components/posts/IMadeThisSection"
+import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
 
 export default function RecipePostClient({ post }) {
   const { data: session } = useSession()
@@ -122,6 +123,9 @@ export default function RecipePostClient({ post }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50/50 to-white">
+      {/* ✨ Add Code Block Copy Buttons */}
+      <CodeBlockCopyButton />
+      
       <article className="py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">

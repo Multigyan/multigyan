@@ -257,30 +257,307 @@ const PostSchema = new mongoose.Schema({
   editReason: String,  // Admin must provide reason for editing author's post
   
   // ========================================
-  // ✨ NEW: DIY-SPECIFIC FIELDS
+  // ✨ CONTENT TYPE IDENTIFICATION
   // ========================================
-  difficulty: {
+  contentType: {
     type: String,
-    enum: ['Easy', 'Medium', 'Hard'],
-    default: 'Medium'
+    enum: ['blog', 'diy', 'recipe'],
+    default: 'blog'
   },
-  materials: [{
-    name: { type: String, maxlength: 100 },
-    quantity: { type: String, maxlength: 50 },
-    optional: { type: Boolean, default: false }
-  }],
-  tools: [{
-    name: { type: String, maxlength: 100 },
-    optional: { type: Boolean, default: false }
-  }],
-  estimatedTime: {
-    type: Number, // in minutes
-    default: 0
+
+  // ========================================
+  // ✨ DIY-SPECIFIC FIELDS (Enhanced)
+  // ========================================
+  
+  // ===== EXISTING DIY FIELDS (Keep for backward compatibility) =====
+  diyDifficulty: {
+    type: String,
+    enum: ['easy', 'medium', 'hard'],
+    default: 'medium'
+  },
+  diyMaterials: [String], // Simple array of material strings
+  diyTools: [String], // Simple array of tool strings
+  diyEstimatedTime: String, // e.g., "2 hours"
+
+  // ===== NEW ENHANCED DIY FIELDS =====
+  
+  // Project Overview
+  projectType: {
+    type: String,
+    enum: ['electronics', 'woodworking', 'crafts', '3dprinting', 'programming', 'robotics', 'iot', 'home-improvement', 'other'],
+    default: 'other'
   },
   
+  whatYouWillLearn: [{
+    type: String,
+    trim: true,
+    maxlength: [200, 'Learning outcome cannot exceed 200 characters']
+  }],
+  
+  estimatedCost: {
+    min: {
+      type: Number,
+      min: 0
+    },
+    max: {
+      type: Number,
+      min: 0
+    },
+    currency: {
+      type: String,
+      default: 'USD',
+      enum: ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD']
+    }
+  },
+  
+  prerequisites: [{
+    type: String,
+    trim: true,
+    maxlength: [200, 'Prerequisite cannot exceed 200 characters']
+  }],
+  
+  safetyWarnings: [{
+    type: String,
+    trim: true,
+    maxlength: [300, 'Safety warning cannot exceed 300 characters']
+  }],
+  
+  targetAudience: [{
+    type: String,
+    enum: ['kids', 'teens', 'adults', 'professionals', 'beginners', 'intermediate', 'advanced']
+  }],
+  
+  inspirationStory: {
+    type: String,
+    trim: true,
+    maxlength: [1000, 'Inspiration story cannot exceed 1000 characters']
+  },
+  
+  // Enhanced Requirements
+  hardwareRequirements: [{
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200
+    },
+    quantity: {
+      type: Number,
+      default: 1,
+      min: 0
+    },
+    specifications: {
+      type: String,
+      trim: true,
+      maxlength: 500
+    },
+    isOptional: {
+      type: Boolean,
+      default: false
+    },
+    estimatedPrice: {
+      type: Number,
+      min: 0
+    },
+    purchaseLinks: [{
+      name: String,
+      url: String
+    }]
+  }],
+  
+  softwareRequirements: [{
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200
+    },
+    version: String,
+    downloadLink: String,
+    isRequired: {
+      type: Boolean,
+      default: true
+    },
+    description: {
+      type: String,
+      maxlength: 500
+    }
+  }],
+  
+  toolRequirements: [{
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200
+    },
+    alternatives: [String],
+    isOptional: {
+      type: Boolean,
+      default: false
+    }
+  }],
+  
+  // Step-by-Step Instructions
+  steps: [{
+    stepNumber: {
+      type: Number,
+      required: true
+    },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200
+    },
+    description: {
+      type: String,
+      required: true
+    },
+    images: [{
+      url: String,
+      caption: String,
+      alt: String
+    }],
+    videos: [{
+      platform: {
+        type: String,
+        enum: ['youtube', 'vimeo', 'direct']
+      },
+      url: String,
+      embedId: String,
+      thumbnail: String
+    }],
+    codeSnippets: [{
+      language: {
+        type: String,
+        default: 'javascript'
+      },
+      code: {
+        type: String,
+        required: true
+      },
+      filename: String,
+      description: String
+    }],
+    estimatedTime: String,
+    tips: [String],
+    warnings: [String]
+  }],
+  
+  // Technical Documentation
+  githubRepo: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function(v) {
+        return !v || /^https:\/\/github\.com\//.test(v);
+      },
+      message: 'Must be a valid GitHub URL'
+    }
+  },
+  
+  designFiles: [{
+    type: {
+      type: String,
+      enum: ['cad', 'stl', 'gerber', 'code', 'schematic', 'pcb', 'other'],
+      required: true
+    },
+    name: {
+      type: String,
+      required: true,
+      maxlength: 200
+    },
+    url: {
+      type: String,
+      required: true
+    },
+    description: {
+      type: String,
+      maxlength: 500
+    },
+    fileSize: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
+  circuits: [{
+    name: String,
+    imageUrl: String,
+    description: String,
+    type: {
+      type: String,
+      enum: ['schematic', 'wiring', 'pcb', 'breadboard']
+    }
+  }],
+  
+  // Testing & Results
+  performanceMetrics: [{
+    metric: String,
+    value: String,
+    unit: String
+  }],
+  
+  testResults: {
+    description: String,
+    images: [String],
+    videos: [String],
+    date: Date
+  },
+  
+  troubleshootingGuide: [{
+    problem: {
+      type: String,
+      required: true,
+      maxlength: 300
+    },
+    solution: {
+      type: String,
+      required: true,
+      maxlength: 1000
+    },
+    preventiveMeasures: [String]
+  }],
+  
+  versionHistory: [{
+    version: String,
+    date: {
+      type: Date,
+      default: Date.now
+    },
+    changes: [String],
+    improvements: [String]
+  }],
+  
+  // Community & Use Cases
+  useCases: [String],
+  futureImprovements: [String],
+  
+  partSubstitutions: [{
+    originalPart: String,
+    substitutePart: String,
+    notes: String,
+    suggestedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  }],
+  
   // ========================================
-  // ✨ NEW: RECIPE-SPECIFIC FIELDS
+  // ✨ RECIPE-SPECIFIC FIELDS
   // ========================================
+  
+  // ===== EXISTING RECIPE FIELDS (Keep for backward compatibility) =====
+  recipePrepTime: String, // e.g., "15 mins"
+  recipeCookTime: String, // e.g., "30 mins"
+  recipeServings: String, // e.g., "4 servings"
+  recipeIngredients: [String], // Simple array of ingredient strings
+  recipeCuisine: String, // e.g., "Indian"
+  recipeDiet: [String], // e.g., ["vegetarian", "gluten-free"]
+
+  // ===== LEGACY RECIPE FIELDS (Keep for backward compatibility) =====
   prepTime: {
     type: Number, // in minutes
     default: 0

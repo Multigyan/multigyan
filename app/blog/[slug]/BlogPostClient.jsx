@@ -28,6 +28,7 @@ import { toast } from "sonner"
 import CommentSection from "@/components/comments/CommentSection"
 import { PostLikeButton } from "@/components/interactions/LikeButton"
 import TableOfContents from "@/components/blog/TableOfContents"
+import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
 
 export default function BlogPostClient({ post }) {
   const { data: session } = useSession()
@@ -113,6 +114,9 @@ export default function BlogPostClient({ post }) {
 
   return (
     <div className="min-h-screen">
+      {/* ✨ Add Code Block Copy Buttons */}
+      <CodeBlockCopyButton />
+      
       <article className="py-6 sm:py-8 md:py-12">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">

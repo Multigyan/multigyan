@@ -24,6 +24,7 @@ import CategorySelector from "@/components/blog/CategorySelector"
 import BlogPostPreview from "@/components/blog/BlogPostPreview"
 import DynamicListInput from "@/components/blog/DynamicListInput"
 import AffiliateLinkManager from "@/components/blog/AffiliateLinkManager"
+import ProjectOverview from "@/components/posts/enhanced-form/ProjectOverview"
 import { ArrowLeft, Save, Send, FileText, Image, Tag, Settings, Eye, Wrench, ChefHat, BookOpen, Globe, Link as LinkIcon } from "lucide-react"
 import { toast } from "sonner"
 import { generateSlug } from "@/lib/helpers"
@@ -52,11 +53,20 @@ export default function NewPostPage() {
     lang: "en", // en, hi
     translationOf: "", // Link to alternate language version
     
-    // ✨ DIY-specific fields
+    // ✨ DIY-specific fields (existing)
     diyDifficulty: "medium", // easy, medium, hard
     diyMaterials: [], // Array of material strings
     diyTools: [], // Array of tool strings
     diyEstimatedTime: "", // e.g., "2 hours"
+    
+    // ✨ DIY-specific fields (enhanced - new)
+    projectType: "other",
+    whatYouWillLearn: [],
+    estimatedCost: { min: 0, max: 0, currency: "USD" },
+    prerequisites: [],
+    safetyWarnings: [],
+    targetAudience: [],
+    inspirationStory: "",
     
     // ✨ Recipe-specific fields
     recipePrepTime: "", // e.g., "15 mins"
@@ -564,7 +574,12 @@ export default function NewPostPage() {
 
             {/* ✨ DIY-SPECIFIC FIELDS */}
             {formData.contentType === 'diy' && (
-              <Card className="border-2 border-orange-500/30 bg-orange-50/10">
+              <>
+                {/* NEW: Project Overview Section */}
+                <ProjectOverview formData={formData} setFormData={setFormData} />
+                
+                {/* Existing DIY Project Details */}
+                <Card className="border-2 border-orange-500/30 bg-orange-50/10">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Wrench className="h-5 w-5 text-orange-600" />
@@ -657,6 +672,7 @@ export default function NewPostPage() {
                   />
                 </CardContent>
               </Card>
+              </>
             )}
 
             {/* ✨ RECIPE-SPECIFIC FIELDS */}
