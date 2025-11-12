@@ -34,6 +34,12 @@ export default function BlogPostClient({ post }) {
   const { data: session } = useSession()
   const [relatedPosts, setRelatedPosts] = useState([])
   const [loading, setLoading] = useState(true)
+  
+  // ✨ NEW: State to track live comment stats
+  const [commentStats, setCommentStats] = useState({
+    approved: post.comments?.filter(c => c.isApproved).length || 0,
+    totalLikes: 0
+  })
 
   useEffect(() => {
     if (post) {
@@ -56,6 +62,14 @@ export default function BlogPostClient({ post }) {
         console.error('Error fetching related posts:', error)
       }
     }
+  }
+
+  // ✨ NEW: Callback to update comment stats when they change
+  const handleCommentStatsUpdate = (newStats) => {
+    setCommentStats({
+      approved: newStats.approved || 0,
+      totalLikes: newStats.totalLikes || 0
+    })
   }
 
   const handleShare = async (platform) => {
@@ -640,9 +654,10 @@ export default function BlogPostClient({ post }) {
                       animated={true}
                     />
 
+                    {/* ✨ FIXED: Now using dynamic state */}
                     <Button variant="outline" className="flex items-center gap-2 min-h-[44px]">
                       <MessageCircle className="h-4 w-4" />
-                      <span className="text-sm">{post.comments?.filter(c => c.isApproved).length || 0}</span>
+                      <span className="text-sm">{commentStats.approved}</span>
                       <span className="hidden sm:inline text-sm">Comments</span>
                     </Button>
                   </div>
@@ -725,10 +740,12 @@ export default function BlogPostClient({ post }) {
             <div className="max-w-7xl mx-auto mt-8 sm:mt-12">
               {/* Comments Section */}
               <section className="mb-8 sm:mb-12">
+                {/* ✨ FIXED: Now passing callback to update stats */}
                 <CommentSection 
                   postId={post._id} 
                   allowComments={post.allowComments}
                   showStats={true}
+                  onStatsUpdate={handleCommentStatsUpdate}
                 />
               </section>
 

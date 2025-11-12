@@ -45,6 +45,12 @@ export default function RecipePostClient({ post }) {
   const { data: session } = useSession()
   const [relatedPosts, setRelatedPosts] = useState([])
   const [loading, setLoading] = useState(true)
+  
+  // ✨ NEW: State to track live comment stats
+  const [commentStats, setCommentStats] = useState({
+    approved: post.comments?.filter(c => c.isApproved).length || 0,
+    totalLikes: 0
+  })
 
   useEffect(() => {
     if (post) {
@@ -65,6 +71,14 @@ export default function RecipePostClient({ post }) {
     } catch (error) {
       console.error('Error fetching related recipes:', error)
     }
+  }
+
+  // ✨ NEW: Callback to update comment stats when they change
+  const handleCommentStatsUpdate = (newStats) => {
+    setCommentStats({
+      approved: newStats.approved || 0,
+      totalLikes: newStats.totalLikes || 0
+    })
   }
 
   const handleShare = async (platform) => {
@@ -474,18 +488,22 @@ export default function RecipePostClient({ post }) {
                 showCount={true}
               />
 
+              {/* ✨ FIXED: Now using dynamic state */}
               <Button variant="outline" className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
-                <span>{post.comments?.filter(c => c.isApproved).length || 0} Comments</span>
+                <span>{commentStats.approved}</span>
+                <span className="hidden sm:inline">Comments</span>
               </Button>
             </div>
 
             {/* Comments Section */}
             <section className="mb-12">
+              {/* ✨ FIXED: Now passing callback to update stats */}
               <CommentSection 
                 postId={post._id} 
                 allowComments={post.allowComments}
                 showStats={true}
+                onStatsUpdate={handleCommentStatsUpdate}
               />
             </section>
 

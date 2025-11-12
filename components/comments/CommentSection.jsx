@@ -10,7 +10,12 @@ import CommentItem from './CommentItem'
 import CommentForm from './CommentForm'
 import { toast } from 'sonner'
 
-export default function CommentSection({ postId, allowComments = true, showStats = true }) {
+export default function CommentSection({ 
+  postId, 
+  allowComments = true, 
+  showStats = true,
+  onStatsUpdate // ✨ NEW: Callback to notify parent of stats changes
+}) {
   const { data: session } = useSession()
   const [comments, setComments] = useState([])
   const [stats, setStats] = useState({
@@ -42,7 +47,13 @@ export default function CommentSection({ postId, allowComments = true, showStats
       
       if (response.ok) {
         setComments(data.comments || [])
-        setStats(data.stats || stats)
+        const newStats = data.stats || stats
+        setStats(newStats)
+        
+        // ✨ FIXED: Notify parent component of stats update
+        if (onStatsUpdate) {
+          onStatsUpdate(newStats)
+        }
       } else {
         toast.error(data.error || 'Failed to load comments')
       }
@@ -57,15 +68,19 @@ export default function CommentSection({ postId, allowComments = true, showStats
   const handleCommentAdded = (newComment, needsApproval) => {
     if (needsApproval && !isAdmin) {
       toast.success('Comment submitted for approval')
+      // ✨ FIXED: Refresh to get updated stats
       fetchComments()
     } else {
       setComments(prev => [newComment, ...prev])
       toast.success('Comment added successfully')
+      // ✨ FIXED: Refresh to get updated stats
+      fetchComments()
     }
     setShowForm(false)
   }
 
   const handleCommentUpdated = () => {
+    // ✨ FIXED: Always refresh when comments are updated (including likes)
     fetchComments()
   }
 
@@ -103,7 +118,9 @@ export default function CommentSection({ postId, allowComments = true, showStats
               </div>
               <div className="text-center">
                 <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.totalLikes}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground">Likes</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  <span className="hidden sm:inline">Comment </span>Likes
+                </div>
               </div>
               {isAdmin && (
                 <div className="text-center">
