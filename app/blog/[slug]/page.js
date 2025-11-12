@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import BlogPostClient from "./BlogPostClient"
 import connectDB from "@/lib/mongodb"
 import Post from "@/models/Post"
@@ -166,6 +166,11 @@ export default async function BlogPostPage({ params }) {
     
     if (!post) {
       notFound()
+    }
+    
+    // 🐛 NEW: Redirect recipes to /recipe/[slug]
+    if (post.contentType === 'recipe') {
+      redirect(`/recipe/${post.slug}`)
     }
     
     // Increment view count (we'll do this async to not block rendering)

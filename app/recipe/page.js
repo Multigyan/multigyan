@@ -23,7 +23,10 @@ export const revalidate = 60
 
 export default async function RecipePage() {
   try {
+    console.log('🍳 Recipe Page: Starting to fetch recipes...')
+    
     await connectDB()
+    console.log('🍳 Recipe Page: Database connected')
     
     // Fetch all recipe posts
     const recipePosts = await Post.find({ 
@@ -35,6 +38,51 @@ export default async function RecipePage() {
       .sort({ publishedAt: -1 })
       .limit(100) // Increased limit for better filtering
       .lean()
+    
+    console.log(`🍳 Recipe Page: Found ${recipePosts.length} recipes`)
+    
+    // If no recipes found, show empty state instead of error
+    if (recipePosts.length === 0) {
+      console.log('🍳 Recipe Page: No recipes found, showing empty state')
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-white to-green-50/30">
+          {/* Hero Section */}
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-16">
+            <div className="container mx-auto px-4">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 flex items-center gap-3">
+                <ChefHat className="h-10 w-10" />
+                Recipes Collection
+              </h1>
+              <p className="text-xl md:text-2xl text-green-50 mb-2">
+                Delicious Recipes & Cooking Guides
+              </p>
+              <p className="text-green-100 max-w-2xl">
+                From traditional family recipes to modern cuisine, discover delicious meals with step-by-step instructions.
+              </p>
+            </div>
+          </div>
+          
+          {/* Empty State */}
+          <div className="container mx-auto px-4 py-12">
+            <div className="text-center py-16">
+              <ChefHat className="h-16 w-16 text-green-600 mx-auto mb-4" />
+              <p className="text-2xl text-gray-600 mb-4">
+                No recipes available yet 🍳
+              </p>
+              <p className="text-gray-500 mb-6">
+                Check back soon for delicious cooking guides!
+              </p>
+              <Link 
+                href="/blog"
+                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+              >
+                Browse All Posts
+              </Link>
+            </div>
+          </div>
+        </div>
+      )
+    }
 
     // Serialize ObjectIds and Dates
     const serializedPosts = recipePosts.map(post => ({

@@ -38,7 +38,8 @@ export default function BlogPage() {
     try {
       setLoading(true)
       
-      const postsResponse = await fetch(`/api/posts?status=published&page=${currentPage}&limit=12`, {
+      // 🐛 FIX: Exclude recipes from blog listing
+      const postsResponse = await fetch(`/api/posts?status=published&excludeRecipes=true&page=${currentPage}&limit=12`, {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -102,7 +103,8 @@ export default function BlogPage() {
     if (!searchTerm.trim()) return
 
     try {
-      const response = await fetch(`/api/posts?status=published&search=${encodeURIComponent(searchTerm)}&limit=12`, {
+      // 🐛 FIX: Exclude recipes from search results
+      const response = await fetch(`/api/posts?status=published&excludeRecipes=true&search=${encodeURIComponent(searchTerm)}&limit=12`, {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',

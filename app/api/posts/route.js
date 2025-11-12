@@ -20,6 +20,7 @@ export async function GET(request) {
     const search = searchParams.get('search')
     const featured = searchParams.get('featured') === 'true'
     const slug = searchParams.get('slug')
+    const excludeRecipes = searchParams.get('excludeRecipes') === 'true' // 🐛 NEW: Exclude recipes from results
 
     const session = await getServerSession(authOptions)
     
@@ -55,6 +56,11 @@ export async function GET(request) {
     if (author) query.author = author
     if (featured) query.isFeatured = true
     if (slug) query.slug = slug
+    
+    // 🐛 NEW: Exclude recipes if requested (for blog section)
+    if (excludeRecipes) {
+      query.contentType = { $ne: 'recipe' }
+    }
 
     // Handle search
     if (search) {
