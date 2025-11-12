@@ -61,10 +61,12 @@ export default function RecipePostClient({ post }) {
 
   const fetchRelatedPosts = async () => {
     try {
-      const response = await fetch(`/api/posts?status=published&limit=3&tags=recipe,recipes,cooking`)
+      // 🐛 FIX: Fetch only recipes from the same author
+      const response = await fetch(`/api/posts?status=published&contentType=recipe&author=${post.author?._id}&limit=4`)
       const data = await response.json()
       
       if (response.ok) {
+        // Exclude current post and limit to 3
         const filtered = data.posts?.filter(p => p._id !== post._id) || []
         setRelatedPosts(filtered.slice(0, 3))
       }
@@ -207,7 +209,7 @@ export default function RecipePostClient({ post }) {
 
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4 text-green-600" />
-                  <span>{post.readingTime} min cook time</span>
+                  <span>{post.readingTime} min read</span>
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -547,10 +549,10 @@ export default function RecipePostClient({ post }) {
               <section className="mb-12">
                 <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                   <UtensilsCrossed className="h-6 w-6 text-green-700" />
-                  More Delicious Recipes
+                  More Recipes by {post.author?.name}
                 </h2>
                 <p className="text-muted-foreground mb-6">
-                  Try these other amazing recipes
+                  Try these other amazing recipes from the same author
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {relatedPosts.map((relatedPost) => (
