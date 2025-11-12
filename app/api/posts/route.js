@@ -20,7 +20,8 @@ export async function GET(request) {
     const search = searchParams.get('search')
     const featured = searchParams.get('featured') === 'true'
     const slug = searchParams.get('slug')
-    const excludeRecipes = searchParams.get('excludeRecipes') === 'true' // 🐛 NEW: Exclude recipes from results
+    const excludeRecipes = searchParams.get('excludeRecipes') === 'true' // 🐛 Exclude recipes from results
+    const contentType = searchParams.get('contentType') // 🐛 NEW: Filter by content type
 
     const session = await getServerSession(authOptions)
     
@@ -57,7 +58,12 @@ export async function GET(request) {
     if (featured) query.isFeatured = true
     if (slug) query.slug = slug
     
-    // 🐛 NEW: Exclude recipes if requested (for blog section)
+    // 🐛 NEW: Filter by content type (for recipe/diy sections)
+    if (contentType) {
+      query.contentType = contentType
+    }
+    
+    // 🐛 Exclude recipes if requested (for blog section)
     if (excludeRecipes) {
       query.contentType = { $ne: 'recipe' }
     }
