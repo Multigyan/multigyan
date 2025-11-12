@@ -19,7 +19,9 @@
     "clean": "rm -rf .next node_modules/.cache",
     "recategorize": "node scripts/recategorize-articles.js",
     "cleanup-categories": "node scripts/cleanup-categories.js",
-    "restructure": "node scripts/restructure-complete.js"
+    "restructure": "node scripts/restructure-complete.js",
+    "db:check-recipe": "node scripts/check-recipe-post.js",
+    "db:fix-recipe": "node scripts/fix-recipe-post.js"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

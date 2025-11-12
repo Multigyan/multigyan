@@ -148,7 +148,23 @@ export async function POST(request) {
       seoKeywords,
       // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
       lang,
-      translationOf
+      translationOf,
+      // ✨ CONTENT TYPE
+      contentType,
+      // ✨ RECIPE-SPECIFIC FIELDS (Phase 2 - Simple)
+      recipePrepTime,
+      recipeCookTime,
+      recipeServings,
+      recipeIngredients,
+      recipeCuisine,
+      recipeDiet,
+      // ✨ DIY-SPECIFIC FIELDS
+      diyDifficulty,
+      diyMaterials,
+      diyTools,
+      diyEstimatedTime,
+      // ✨ AFFILIATE LINKS (for recipes/DIY)
+      affiliateLinks
     } = await request.json()
 
     // Validation
@@ -218,7 +234,23 @@ export async function POST(request) {
       seoKeywords: seoKeywords || [],
       // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
       lang: lang || 'en',
-      translationOf: translationOf || null
+      translationOf: translationOf || null,
+      // ✨ CONTENT TYPE
+      contentType: contentType || 'blog',
+      // ✨ RECIPE-SPECIFIC FIELDS (Phase 2)
+      recipePrepTime: recipePrepTime || null,
+      recipeCookTime: recipeCookTime || null,
+      recipeServings: recipeServings || null,
+      recipeIngredients: recipeIngredients || [],
+      recipeCuisine: recipeCuisine || null,
+      recipeDiet: recipeDiet || [],
+      // ✨ DIY-SPECIFIC FIELDS
+      diyDifficulty: diyDifficulty || null,
+      diyMaterials: diyMaterials || [],
+      diyTools: diyTools || [],
+      diyEstimatedTime: diyEstimatedTime || null,
+      // ✨ AFFILIATE LINKS
+      affiliateLinks: affiliateLinks || []
     })
 
     await newPost.save()

@@ -148,6 +148,15 @@ export default function NewPostPage() {
   }
 
   const handleSubmit = async (status = 'draft') => {
+    // 🐛 DEBUG: Log what we're submitting
+    console.log('📤 Submitting post with contentType:', formData.contentType)
+    console.log('📤 Recipe fields:', {
+      prepTime: formData.recipePrepTime,
+      cookTime: formData.recipeCookTime,
+      servings: formData.recipeServings,
+      ingredients: formData.recipeIngredients
+    })
+    
     // Validation
     if (!formData.title.trim()) {
       toast.error('Post title is required')
@@ -193,31 +202,82 @@ export default function NewPostPage() {
 
     // ✨ Recipe-specific validation
     if (formData.contentType === 'recipe') {
-      if (!formData.recipePrepTime.trim()) {
-        toast.error('Prep time is required for recipes')
+      console.log('🍳 Validating recipe fields...')
+      
+      if (!formData.recipePrepTime || !formData.recipePrepTime.trim()) {
+        toast.error('❌ Prep time is required for recipes', {
+          description: 'Example: "10 minutes" or "15 mins"'
+        })
         return
       }
-      if (!formData.recipeCookTime.trim()) {
-        toast.error('Cook time is required for recipes')
+      if (!formData.recipeCookTime || !formData.recipeCookTime.trim()) {
+        toast.error('❌ Cook time is required for recipes', {
+          description: 'Example: "30 minutes" or "1 hour"'
+        })
         return
       }
-      if (!formData.recipeServings.trim()) {
-        toast.error('Servings is required for recipes')
+      if (!formData.recipeServings || !formData.recipeServings.trim()) {
+        toast.error('❌ Servings is required for recipes', {
+          description: 'Example: "4 servings" or "Serves 6"'
+        })
         return
       }
-      if (formData.recipeIngredients.length === 0) {
-        toast.error('Please add at least one ingredient for your recipe')
+      if (!formData.recipeIngredients || formData.recipeIngredients.length === 0) {
+        toast.error('❌ Ingredients are required for recipes', {
+          description: 'Please add at least one ingredient'
+        })
         return
       }
+      
+      console.log('✅ Recipe validation passed!')
     }
 
     setLoading(true)
 
     try {
+      // 🐛 FIX: Explicitly construct submitData to avoid state timing issues
       const submitData = {
-        ...formData,
-        status
+        title: formData.title,
+        content: formData.content,
+        excerpt: formData.excerpt,
+        featuredImageUrl: formData.featuredImageUrl,
+        featuredImageAlt: formData.featuredImageAlt,
+        category: formData.category,
+        tags: formData.tags,
+        seoTitle: formData.seoTitle,
+        seoDescription: formData.seoDescription,
+        allowComments: formData.allowComments,
+        lang: formData.lang,
+        translationOf: formData.translationOf,
+        contentType: formData.contentType,
+        status,
+        
+        // Recipe fields - explicitly included
+        recipePrepTime: formData.recipePrepTime,
+        recipeCookTime: formData.recipeCookTime,
+        recipeServings: formData.recipeServings,
+        recipeIngredients: formData.recipeIngredients,
+        recipeCuisine: formData.recipeCuisine,
+        recipeDiet: formData.recipeDiet,
+        
+        // DIY fields
+        diyDifficulty: formData.diyDifficulty,
+        diyMaterials: formData.diyMaterials,
+        diyTools: formData.diyTools,
+        diyEstimatedTime: formData.diyEstimatedTime,
+        projectType: formData.projectType,
+        whatYouWillLearn: formData.whatYouWillLearn,
+        estimatedCost: formData.estimatedCost,
+        prerequisites: formData.prerequisites,
+        safetyWarnings: formData.safetyWarnings,
+        targetAudience: formData.targetAudience,
+        inspirationStory: formData.inspirationStory,
+        
+        // Common fields
+        affiliateLinks: formData.affiliateLinks
       }
+      
+      console.log('📤 Final submitData:', JSON.stringify(submitData, null, 2))
 
       const response = await fetch('/api/posts', {
         method: 'POST',

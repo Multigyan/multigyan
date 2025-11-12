@@ -97,7 +97,23 @@ export async function PUT(request, { params }) {
       author,
       // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
       lang,
-      translationOf
+      translationOf,
+      // ✨ CONTENT TYPE
+      contentType,
+      // ✨ RECIPE-SPECIFIC FIELDS (Phase 2)
+      recipePrepTime,
+      recipeCookTime,
+      recipeServings,
+      recipeIngredients,
+      recipeCuisine,
+      recipeDiet,
+      // ✨ DIY-SPECIFIC FIELDS
+      diyDifficulty,
+      diyMaterials,
+      diyTools,
+      diyEstimatedTime,
+      // ✨ AFFILIATE LINKS
+      affiliateLinks
     } = updateData
 
     await connectDB()
@@ -425,6 +441,26 @@ export async function PUT(request, { params }) {
     // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
     if (lang !== undefined) sanitizedData.lang = lang || 'en'
     if (translationOf !== undefined) sanitizedData.translationOf = translationOf || null
+    
+    // ✨ CONTENT TYPE
+    if (contentType !== undefined) sanitizedData.contentType = contentType || 'blog'
+    
+    // ✨ RECIPE-SPECIFIC FIELDS (Phase 2)
+    if (recipePrepTime !== undefined) sanitizedData.recipePrepTime = recipePrepTime || null
+    if (recipeCookTime !== undefined) sanitizedData.recipeCookTime = recipeCookTime || null
+    if (recipeServings !== undefined) sanitizedData.recipeServings = recipeServings || null
+    if (recipeIngredients !== undefined) sanitizedData.recipeIngredients = recipeIngredients || []
+    if (recipeCuisine !== undefined) sanitizedData.recipeCuisine = recipeCuisine || null
+    if (recipeDiet !== undefined) sanitizedData.recipeDiet = recipeDiet || []
+    
+    // ✨ DIY-SPECIFIC FIELDS
+    if (diyDifficulty !== undefined) sanitizedData.diyDifficulty = diyDifficulty || null
+    if (diyMaterials !== undefined) sanitizedData.diyMaterials = diyMaterials || []
+    if (diyTools !== undefined) sanitizedData.diyTools = diyTools || []
+    if (diyEstimatedTime !== undefined) sanitizedData.diyEstimatedTime = diyEstimatedTime || null
+    
+    // ✨ AFFILIATE LINKS
+    if (affiliateLinks !== undefined) sanitizedData.affiliateLinks = affiliateLinks || []
     
     // Admin edit tracking
     if (isAdmin && !isAuthor) {
