@@ -100,10 +100,11 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning={true}
       >
         
-        {/* Google Analytics 4 */}
+        {/* Google Analytics 4 - FIXED: Proper configuration */}
         <Script
           strategy="afterInteractive"
           src="https://www.googletagmanager.com/gtag/js?id=G-HEPC56C10C"
+          async
         />
         <Script
           id="google-analytics"
@@ -115,16 +116,16 @@ export default function RootLayout({ children }) {
               gtag('js', new Date());
               gtag('config', 'G-HEPC56C10C', {
                 page_path: window.location.pathname,
+                send_page_view: true
               });
             `,
           }}
         />
         
-        {/* Google AdSense */}
+        {/* Google AdSense - FIXED: Removed crossOrigin to avoid warning */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1982960683340318"
-          crossOrigin="anonymous"
           strategy="afterInteractive"
         />
         
