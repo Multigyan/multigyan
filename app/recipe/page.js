@@ -21,23 +21,40 @@ export const metadata = {
 // Revalidate every 60 seconds
 export const revalidate = 60
 
+// Don't throw errors on build
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 export default async function RecipePage() {
   try {
     console.log('🍳 Recipe Page: Starting to fetch recipes...')
     
-    await connectDB()
+    // Add timeout to database connection
+    const dbPromise = connectDB()
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+    )
+    
+    await Promise.race([dbPromise, timeoutPromise])
     console.log('🍳 Recipe Page: Database connected')
     
-    // Fetch all recipe posts
-    const recipePosts = await Post.find({ 
+    // Fetch all recipe posts with timeout
+    const queryPromise = Post.find({ 
       status: 'published',
       contentType: 'recipe'
     })
       .populate('author', 'name profilePictureUrl username')
       .populate('category', 'name slug color')
       .sort({ publishedAt: -1 })
-      .limit(100) // Increased limit for better filtering
+      .limit(100)
+      .maxTimeMS(5000) // ✨ MongoDB query timeout
       .lean()
+    
+    const queryTimeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Query timeout')), 6000)
+    )
+    
+    const recipePosts = await Promise.race([queryPromise, queryTimeoutPromise])
     
     console.log(`🍳 Recipe Page: Found ${recipePosts.length} recipes`)
     
@@ -167,16 +184,33 @@ export default async function RecipePage() {
     )
   } catch (error) {
     console.error('Error loading recipe posts:', error)
+    
+    // Determine error type for better user messaging
+    const errorType = error.message.includes('timeout') 
+      ? 'timeout' 
+      : error.message.includes('connection')
+      ? 'connection'
+      : 'unknown'
+    
+    const errorMessages = {
+      timeout: 'The request is taking too long. Please try again.',
+      connection: 'Unable to connect to the database. Please try again later.',
+      unknown: 'We couldn\'t load the recipes. Please try again later.'
+    }
+    
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-green-50/30">
+        <Card className="max-w-md m-4">
           <CardContent className="p-8 text-center">
             <ChefHat className="h-16 w-16 text-green-600 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
               Oops! Something went wrong
             </h1>
-            <p className="text-gray-600 mb-6">
-              We couldn&#39;t load the recipes. Please try again later.
+            <p className="text-gray-600 mb-2">
+              {errorMessages[errorType]}
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              Error: {error.message}
             </p>
             <Link
               href="/"

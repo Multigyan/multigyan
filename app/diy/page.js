@@ -20,20 +20,37 @@ export const metadata = {
 // Revalidate every 60 seconds
 export const revalidate = 60
 
+// Don't throw errors on build - force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 export default async function DIYPage() {
   try {
-    await connectDB()
+    // Add timeout to database connection
+    const dbPromise = connectDB()
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+    )
     
-    // Fetch all DIY posts
-    const diyPosts = await Post.find({ 
+    await Promise.race([dbPromise, timeoutPromise])
+    
+    // Fetch all DIY posts with timeout
+    const queryPromise = Post.find({ 
       status: 'published',
       contentType: 'diy'
     })
       .populate('author', 'name profilePictureUrl username')
       .populate('category', 'name slug color')
       .sort({ publishedAt: -1 })
-      .limit(100) // Increased limit for better filtering
+      .limit(100)
+      .maxTimeMS(5000) // MongoDB query timeout
       .lean()
+    
+    const queryTimeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Query timeout')), 6000)
+    )
+    
+    const diyPosts = await Promise.race([queryPromise, queryTimeoutPromise])
 
     // Serialize ObjectIds and Dates
     const serializedPosts = diyPosts.map(post => ({
@@ -101,16 +118,33 @@ export default async function DIYPage() {
     )
   } catch (error) {
     console.error('Error loading DIY posts:', error)
+    
+    // Determine error type for better messaging
+    const errorType = error.message.includes('timeout') 
+      ? 'timeout' 
+      : error.message.includes('connection')
+      ? 'connection'
+      : 'unknown'
+    
+    const errorMessages = {
+      timeout: 'The request is taking too long. Please try again.',
+      connection: 'Unable to connect to the database. Please try again later.',
+      unknown: 'We couldn\'t load the DIY tutorials. Please try again later.'
+    }
+    
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-orange-50/30">
+        <Card className="max-w-md m-4">
           <CardContent className="p-8 text-center">
             <Wrench className="h-16 w-16 text-orange-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
               Oops! Something went wrong
             </h1>
-            <p className="text-gray-600 mb-6">
-              We couldn&#39;t load the DIY tutorials. Please try again later.
+            <p className="text-gray-600 mb-2">
+              {errorMessages[errorType]}
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              Error: {error.message}
             </p>
             <Link
               href="/"
