@@ -28,7 +28,7 @@ export const metadata = {
     google: 'pub-1982960683340318',
   },
   other: {
-    'google-analytics': 'G-HEPC56C10C',
+    'google-analytics': 'G-1L0YJCZV0M',
   },
   icons: {
     icon: [
@@ -103,7 +103,7 @@ export default function RootLayout({ children }) {
         {/* Google Analytics 4 */}
         <Script
           strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtag/js?id=G-HEPC56C10C"
+          src="https://www.googletagmanager.com/gtag/js?id=G-1L0YJCZV0M"
         />
         <Script
           id="google-analytics"
@@ -113,7 +113,7 @@ export default function RootLayout({ children }) {
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-HEPC56C10C', {
+              gtag('config', 'G-1L0YJCZV0M', {
                 page_path: window.location.pathname,
               });
             `,
