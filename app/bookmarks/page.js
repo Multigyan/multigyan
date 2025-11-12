@@ -46,7 +46,7 @@ export default function BookmarksPage() {
       toast.error('Please sign in to view your bookmarks')
       router.push('/login')
     }
-  }, [status, router, toast])
+  }, [status, router]) // toast is stable, doesn't need to be in deps
   
   // ========================================
   // FETCH BOOKMARKS

@@ -113,6 +113,7 @@ export default function NewPostPage() {
   }
 
   // ✨ Auto-add content type tag when content type changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (formData.contentType === 'diy') {
       // Ensure "diy" tag is present
