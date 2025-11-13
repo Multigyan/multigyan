@@ -8,7 +8,7 @@ import { BookOpen, PenTool, ArrowRight, TrendingUp, Sparkles } from "lucide-reac
 import PostCard from "@/components/blog/PostCard"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
-import { formatDate } from "@/lib/helpers"
+import { formatDate, getPostUrl } from "@/lib/helpers"
 import { Calendar, Clock, Eye, User } from "lucide-react"
 import HomeSchemas from "@/components/seo/HomeSchemas"
 
@@ -175,7 +175,7 @@ export default function HomePage() {
                   <h2 className="text-lg sm:text-xl font-bold">Latest Article</h2>
                 </div>
                 
-                <Link href={`/blog/${featuredPost.slug}`} className="block group">
+                <Link href={getPostUrl(featuredPost)} className="block group">
                   <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-primary/20 mx-4 sm:mx-0">
                     {/* ✅ Better mobile card layout - stack on mobile, side-by-side on tablet+ */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-0">

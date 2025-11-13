@@ -18,7 +18,7 @@ import {
   BookOpen,
   TrendingUp
 } from "lucide-react"
-import { formatDate } from "@/lib/helpers"
+import { formatDate, getPostUrl } from "@/lib/helpers"
 
 export default function CategoryPage({ params }) {
   const resolvedParams = use(params)
@@ -259,7 +259,7 @@ export default function CategoryPage({ params }) {
                       
                       <CardContent className="p-4 sm:p-6">
                         <h3 className="text-base sm:text-lg lg:text-xl font-semibold mb-2 sm:mb-3 line-clamp-2">
-                          <Link href={`/blog/${post.slug}`} className="hover:text-primary">
+                          <Link href={getPostUrl(post)} className="hover:text-primary">
                             {post.title}
                           </Link>
                         </h3>

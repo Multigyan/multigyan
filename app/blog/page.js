@@ -18,7 +18,7 @@ import {
   TrendingUp,
   BookOpen
 } from "lucide-react"
-import { formatDate, calculateReadingTime } from "@/lib/helpers"
+import { formatDate, calculateReadingTime, getPostUrl } from "@/lib/helpers"
 
 export default function BlogPage() {
   const [posts, setPosts] = useState([])
@@ -238,7 +238,7 @@ export default function BlogPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
               {/* Main featured post */}
               {featuredPosts[0] && (
-                <Link href={`/blog/${featuredPosts[0].slug}`} className="lg:col-span-2 block slide-in">
+                <Link href={getPostUrl(featuredPosts[0])} className="lg:col-span-2 block slide-in">
                   <Card className="blog-card h-full overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group">
                     <div className="relative h-56 sm:h-64 lg:h-80">
                       {featuredPosts[0].featuredImageUrl ? (
@@ -285,7 +285,7 @@ export default function BlogPage() {
               {/* Secondary featured posts */}
               <div className="space-y-4 sm:space-y-6">
                 {featuredPosts.slice(1, 3).map((post, index) => (
-                  <Link key={post._id} href={`/blog/${post.slug}`} className="block scale-in" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
+                  <Link key={post._id} href={getPostUrl(post)} className="block scale-in" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
                     <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group">
                       <div className="flex gap-3 sm:gap-4 p-3 sm:p-4">
                         <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 overflow-hidden rounded">
@@ -400,7 +400,7 @@ export default function BlogPage() {
                   {/* ✅ IMPROVED: Better responsive grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-10 sm:mb-12">
                     {posts.map((post, index) => (
-                      <Link key={post._id} href={`/blog/${post.slug}`} className="block scale-in" style={{ animationDelay: `${index * 50}ms` }}>
+                      <Link key={post._id} href={getPostUrl(post)} className="block scale-in" style={{ animationDelay: `${index * 50}ms` }}>
                         <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group h-full">
                           <div className="relative h-40 sm:h-48 overflow-hidden">
                             {post.featuredImageUrl ? (

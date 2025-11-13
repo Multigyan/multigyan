@@ -13,7 +13,7 @@ import {
   MessageCircle,
   BookOpen
 } from "lucide-react"
-import { formatDate } from "@/lib/helpers"
+import { formatDate, getPostUrl } from "@/lib/helpers"
 
 export default function PostCard({ post, featured = false }) {
   // ✅ FALLBACK: Handle both old (imageUrl) and new (featuredImageUrl) field names
@@ -25,7 +25,7 @@ export default function PostCard({ post, featured = false }) {
   const viewsCount = post.views || 0
 
   return (
-    <Link href={`/blog/${post.slug}`} className="block h-full">
+    <Link href={getPostUrl(post)} className="block h-full">
       <Card className="blog-card overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 h-full flex flex-col">
         {/* ✅ IMPROVED: Featured Image - Consistent 16:9 Aspect Ratio */}
         <div className="relative w-full" style={{ aspectRatio: '16 / 9' }}>
