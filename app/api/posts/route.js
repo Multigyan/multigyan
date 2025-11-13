@@ -79,7 +79,7 @@ export async function GET(request) {
     let postsQuery = Post.find(query)
       .populate('author', 'name email profilePictureUrl')
       .populate('category', 'name slug color')
-      .select('title slug excerpt content featuredImageUrl featuredImageAlt status publishedAt createdAt updatedAt readingTime views isFeatured allowComments likes comments')
+      .select('title slug excerpt content featuredImageUrl featuredImageAlt contentType status publishedAt createdAt updatedAt readingTime views isFeatured allowComments likes comments')
 
     // Sort
     if (search) {

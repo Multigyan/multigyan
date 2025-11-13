@@ -52,26 +52,79 @@ export default async function DIYPage() {
     
     const diyPosts = await Promise.race([queryPromise, queryTimeoutPromise])
 
-    // Serialize ObjectIds and Dates
-    const serializedPosts = diyPosts.map(post => ({
-      ...post,
-      _id: post._id.toString(),
-      author: post.author ? {
-        ...post.author,
-        _id: post.author._id.toString()
-      } : null,
-      category: post.category ? {
-        ...post.category,
-        _id: post.category._id.toString()
-      } : null,
-      publishedAt: post.publishedAt.toISOString(),
-      createdAt: post.createdAt.toISOString(),
-      updatedAt: post.updatedAt.toISOString(),
-      // Include additional fields for filtering
-      likes: post.likes || [],
-      saves: post.saves || [],
-      averageRating: post.averageRating || 0
-    }))
+    // Serialize ObjectIds and Dates COMPLETELY
+    const serializedPosts = diyPosts.map(post => {
+      // Helper function to convert ObjectId to string
+      const serializeId = (id) => id ? id.toString() : null
+      
+      // Helper function to serialize array of ObjectIds
+      const serializeIdArray = (arr) => arr ? arr.map(id => serializeId(id)) : []
+      
+      return {
+        ...post,
+        _id: serializeId(post._id),
+        
+        // Author
+        author: post.author ? {
+          ...post.author,
+          _id: serializeId(post.author._id)
+        } : null,
+        
+        // Category
+        category: post.category ? {
+          ...post.category,
+          _id: serializeId(post.category._id)
+        } : null,
+        
+        // Dates
+        publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+        createdAt: post.createdAt ? post.createdAt.toISOString() : null,
+        updatedAt: post.updatedAt ? post.updatedAt.toISOString() : null,
+        reviewedAt: post.reviewedAt ? post.reviewedAt.toISOString() : null,
+        
+        // ObjectId fields
+        reviewedBy: serializeId(post.reviewedBy),
+        translationOf: serializeId(post.translationOf),
+        lastEditedBy: serializeId(post.lastEditedBy),
+        
+        // Arrays of ObjectIds
+        likes: serializeIdArray(post.likes),
+        saves: serializeIdArray(post.saves),
+        
+        // Comments array
+        comments: post.comments ? post.comments.map(comment => ({
+          ...comment,
+          _id: serializeId(comment._id),
+          author: serializeId(comment.author),
+          parentComment: serializeId(comment.parentComment),
+          likes: serializeIdArray(comment.likes),
+          createdAt: comment.createdAt ? comment.createdAt.toISOString() : null,
+          updatedAt: comment.updatedAt ? comment.updatedAt.toISOString() : null,
+          editedAt: comment.editedAt ? comment.editedAt.toISOString() : null
+        })) : [],
+        
+        // Ratings array
+        ratings: post.ratings ? post.ratings.map(rating => ({
+          ...rating,
+          _id: serializeId(rating._id),
+          user: serializeId(rating.user),
+          helpful: serializeIdArray(rating.helpful),
+          createdAt: rating.createdAt ? rating.createdAt.toISOString() : null
+        })) : [],
+        
+        // User photos array
+        userPhotos: post.userPhotos ? post.userPhotos.map(photo => ({
+          ...photo,
+          _id: serializeId(photo._id),
+          user: serializeId(photo.user),
+          likes: serializeIdArray(photo.likes),
+          createdAt: photo.createdAt ? photo.createdAt.toISOString() : null
+        })) : [],
+        
+        // Include additional fields for filtering
+        averageRating: post.averageRating || 0
+      }
+    })
 
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-orange-50/30">

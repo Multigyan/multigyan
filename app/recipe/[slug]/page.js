@@ -184,6 +184,30 @@ export default async function RecipePostPage({ params }) {
       
       tags: post.tags || [],
       likes: post.likes?.map(like => like.toString()) || [],
+      saves: post.saves?.map(save => save.toString()) || [],
+      averageRating: post.averageRating || 0,
+      
+      // ✨ Ratings array
+      ratings: post.ratings?.map(rating => ({
+        ...rating,
+        _id: rating._id.toString(),
+        user: rating.user.toString(),
+        helpful: rating.helpful?.map(h => h.toString()) || [],
+        createdAt: toISOStringSafe(rating.createdAt),
+        rating: rating.rating,
+        review: rating.review || ''
+      })) || [],
+      
+      // ✨ User Photos array
+      userPhotos: post.userPhotos?.map(photo => ({
+        ...photo,
+        _id: photo._id.toString(),
+        user: photo.user.toString(),
+        photoUrl: photo.photoUrl,
+        caption: photo.caption || '',
+        likes: photo.likes?.map(l => l.toString()) || [],
+        createdAt: toISOStringSafe(photo.createdAt)
+      })) || [],
       
       publishedAt: toISOStringSafe(post.publishedAt),
       updatedAt: toISOStringSafe(post.updatedAt),
