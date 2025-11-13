@@ -27,8 +27,6 @@ export const fetchCache = 'force-no-store'
 
 export default async function RecipePage() {
   try {
-    console.log('🍳 Recipe Page: Starting to fetch recipes...')
-    
     // Add timeout to database connection
     const dbPromise = connectDB()
     const timeoutPromise = new Promise((_, reject) => 
@@ -36,7 +34,6 @@ export default async function RecipePage() {
     )
     
     await Promise.race([dbPromise, timeoutPromise])
-    console.log('🍳 Recipe Page: Database connected')
     
     // Fetch all recipe posts with timeout
     const queryPromise = Post.find({ 
@@ -56,11 +53,8 @@ export default async function RecipePage() {
     
     const recipePosts = await Promise.race([queryPromise, queryTimeoutPromise])
     
-    console.log(`🍳 Recipe Page: Found ${recipePosts.length} recipes`)
-    
     // If no recipes found, show empty state instead of error
     if (recipePosts.length === 0) {
-      console.log('🍳 Recipe Page: No recipes found, showing empty state')
       return (
         <div className="min-h-screen bg-gradient-to-b from-white to-green-50/30">
           {/* Hero Section */}
