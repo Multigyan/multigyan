@@ -13,6 +13,10 @@ import Category from "@/models/Category"
 import Post from "@/models/Post"
 import { generateSEOMetadata } from "@/lib/seo"
 
+// Force dynamic rendering - always fetch fresh data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata = generateSEOMetadata({
   title: 'Categories - Browse Topics',
   description: 'Explore content by category on Multigyan. Find articles organized by technology, programming, design, business, and more topics.',

@@ -168,7 +168,7 @@ export default function CategoryPage({ params }) {
           <div className="flex items-center justify-center gap-3 sm:gap-6 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm">{category.postCount} articles</span>
+              <span className="text-xs sm:text-sm">{pagination?.total || category.postCount || 0} articles</span>
             </span>
           </div>
         </div>
