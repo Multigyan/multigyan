@@ -18,6 +18,10 @@ import User from "@/models/User"
 import Post from "@/models/Post"
 import { generateSEOMetadata } from "@/lib/seo"
 
+// Force dynamic rendering - always fetch fresh data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata = generateSEOMetadata({
   title: 'Authors - Meet Our Talented Writers',
   description: 'Discover the talented authors behind Multigyan. Connect with expert writers sharing knowledge across technology, programming, design, and more.',
@@ -28,7 +32,9 @@ export const metadata = generateSEOMetadata({
 
 export default async function AuthorsPage() {
   try {
+    console.log('🔍 [Authors Page] Starting to fetch data...')
     await connectDB()
+    console.log('✅ [Authors Page] Database connected')
     
     const authorsWithPosts = await Post.aggregate([
       { $match: { status: 'published' } },
@@ -42,6 +48,13 @@ export default async function AuthorsPage() {
         }
       }
     ])
+
+    console.log(`📊 [Authors Page] Found ${authorsWithPosts.length} authors with posts`)
+    console.log('📊 [Authors Page] Authors:', authorsWithPosts.map(a => ({
+      id: a._id.toString(),
+      postCount: a.postCount,
+      totalViews: a.totalViews
+    })))
 
     const authorIds = authorsWithPosts.map(author => author._id)
     
@@ -78,6 +91,13 @@ export default async function AuthorsPage() {
     const totalPosts = authorsWithStats.reduce((sum, author) => sum + author.postCount, 0)
     const totalViews = authorsWithStats.reduce((sum, author) => sum + author.totalViews, 0)
     const adminCount = authorsWithStats.filter(author => author.role === 'admin').length
+
+    console.log('📊 [Authors Page] Final Stats:', {
+      totalAuthors,
+      totalPosts,
+      totalViews,
+      adminCount
+    })
 
     return (
       <div className="min-h-screen py-8">
