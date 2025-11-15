@@ -75,7 +75,7 @@ export async function GET(request) {
     let postsQuery = Post.find(query)
       .populate('author', 'name email profilePictureUrl')  // ⚡ Specify only needed fields
       .populate('category', 'name slug color')             // ⚡ Specify only needed fields
-      .select('title slug excerpt featuredImageUrl featuredImageAlt contentType status publishedAt createdAt updatedAt readingTime views isFeatured allowComments') // ⚡ Select only displayed fields
+      .select('title slug excerpt featuredImageUrl featuredImageAlt contentType status publishedAt createdAt updatedAt readingTime views isFeatured allowComments likes comments') // ⚡ Select displayed fields + likes/comments for counts
       .lean()  // ⚡ CRITICAL: Converts to plain JS objects (40-75% faster!)
 
     // Sort
