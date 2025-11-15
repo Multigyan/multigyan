@@ -6,10 +6,7 @@ import Post from '@/models/Post'
 import Category from '@/models/Category'
 import { apiCache, invalidatePostCaches } from '@/lib/cache'
 
-// ⚡ PERFORMANCE: Enable route segment config for better caching
-export const revalidate = 300 // Revalidate every 5 minutes
-
-// GET posts with filters and pagination - ⚡ OPTIMIZED VERSION
+// GET posts with filters and pagination
 export async function GET(request) {
   try {
     await connectDB()
@@ -23,33 +20,33 @@ export async function GET(request) {
     const search = searchParams.get('search')
     const featured = searchParams.get('featured') === 'true'
     const slug = searchParams.get('slug')
-    const excludeRecipes = searchParams.get('excludeRecipes') === 'true'
-    const contentType = searchParams.get('contentType')
+    const excludeRecipes = searchParams.get('excludeRecipes') === 'true' // 🐛 Exclude recipes from results
+    const contentType = searchParams.get('contentType') // 🐛 NEW: Filter by content type
 
     const session = await getServerSession(authOptions)
     
-    // ⚡ OPTIMIZATION 1: Check cache for public requests
+    // Check cache for public requests only
     if (!session && status === 'published') {
-      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}`
+      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}`
       const cached = apiCache.get(cacheKey)
       if (cached) {
-        return NextResponse.json(cached, {
-          headers: {
-            'X-Cache-Status': 'HIT'
-          }
-        })
+        return NextResponse.json(cached)
       }
     }
     
-    // Build query based on user role and filters
+    // ✅ BUILD QUERY BASED ON USER ROLE AND FILTERS
     let query = {}
     
+    // Public access - only published posts
     if (!session) {
       query.status = 'published'
     } else {
+      // Authenticated users
       if (session.user.role === 'admin') {
+        // ✅ ADMINS CAN SEE ALL POSTS FROM ALL AUTHORS
         if (status) query.status = status
       } else {
+        // ✅ AUTHORS CAN ONLY SEE THEIR OWN POSTS (any status)
         query.author = session.user.id
         if (status) query.status = status
       }
@@ -60,8 +57,16 @@ export async function GET(request) {
     if (author) query.author = author
     if (featured) query.isFeatured = true
     if (slug) query.slug = slug
-    if (contentType) query.contentType = contentType
-    if (excludeRecipes) query.contentType = { $ne: 'recipe' }
+    
+    // 🐛 NEW: Filter by content type (for recipe/diy sections)
+    if (contentType) {
+      query.contentType = contentType
+    }
+    
+    // 🐛 Exclude recipes if requested (for blog section)
+    if (excludeRecipes) {
+      query.contentType = { $ne: 'recipe' }
+    }
 
     // Handle search
     if (search) {
@@ -70,44 +75,29 @@ export async function GET(request) {
 
     const skip = (page - 1) * limit
 
-    // ⚡ OPTIMIZATION 2: Use .lean() for 40-75% faster queries
-    // ⚡ OPTIMIZATION 3: Use field projection to reduce data transfer by 80%
+    // Execute query
     let postsQuery = Post.find(query)
-      .populate('author', 'name email profilePictureUrl')  // ⚡ Specify only needed fields
-      .populate('category', 'name slug color')             // ⚡ Specify only needed fields
-      .select('title slug excerpt featuredImageUrl featuredImageAlt contentType status publishedAt createdAt updatedAt readingTime views isFeatured allowComments') // ⚡ Select only displayed fields
-      .lean()  // ⚡ CRITICAL: Converts to plain JS objects (40-75% faster!)
+      .populate('author', 'name email profilePictureUrl')
+      .populate('category', 'name slug color')
+      .select('title slug excerpt content featuredImageUrl featuredImageAlt contentType status publishedAt createdAt updatedAt readingTime views isFeatured allowComments likes comments')
 
     // Sort
     if (search) {
       postsQuery = postsQuery.sort({ score: { $meta: 'textScore' } })
     } else {
       postsQuery = postsQuery.sort({ 
-        status: 1,
+        status: 1, // Draft first, then pending, published, rejected
         createdAt: -1 
       })
     }
 
-    // ⚡ OPTIMIZATION 4: Run count and find queries in parallel (2-3x faster in production)
-    const [posts, total] = await Promise.all([
-      postsQuery.skip(skip).limit(limit),
-      Post.countDocuments(query)
-    ])
+    const posts = await postsQuery.skip(skip).limit(limit)
 
-    // ⚡ OPTIMIZATION 5: Add computed fields efficiently
-    const postsWithStats = posts.map(post => ({
-      ...post,
-      likeCount: post.likes?.length || 0,
-      commentCount: post.comments?.filter(c => c.isApproved).length || 0,
-      // Remove sensitive data for public API
-      ...((!session || session.user.role !== 'admin') && {
-        likes: undefined,
-        comments: undefined
-      })
-    }))
+    // Get total count for pagination
+    const total = await Post.countDocuments(query)
 
     const response = {
-      posts: postsWithStats,
+      posts,
       pagination: {
         current: page,
         limit,
@@ -118,31 +108,31 @@ export async function GET(request) {
       }
     }
     
-    // ⚡ OPTIMIZATION 6: Cache public requests
+    // Cache public requests only
     if (!session && status === 'published') {
-      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}`
+      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}`
       apiCache.set(cacheKey, response, 300) // 5 minutes
     }
 
     return NextResponse.json(response, {
       headers: {
-        'Cache-Control': !session 
-          ? 'public, s-maxage=300, stale-while-revalidate=600'
-          : 'no-store, no-cache, must-revalidate',
-        'X-Cache-Status': 'MISS'
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
       }
     })
 
   } catch (error) {
-    console.error('❌ Error fetching posts:', error)
+    console.error('Error fetching posts:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
 }
 
-// POST - Create new post - ⚡ OPTIMIZED
+// POST - Create new post (Authors and Admins)
 export async function POST(request) {
   try {
     const session = await getServerSession(authOptions)
@@ -168,19 +158,24 @@ export async function POST(request) {
       seoTitle,
       seoDescription,
       seoKeywords,
+      // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
       lang,
       translationOf,
+      // ✨ CONTENT TYPE
       contentType,
+      // ✨ RECIPE-SPECIFIC FIELDS (Phase 2 - Simple)
       recipePrepTime,
       recipeCookTime,
       recipeServings,
       recipeIngredients,
       recipeCuisine,
       recipeDiet,
+      // ✨ DIY-SPECIFIC FIELDS
       diyDifficulty,
       diyMaterials,
       diyTools,
       diyEstimatedTime,
+      // ✨ AFFILIATE LINKS (for recipes/DIY)
       affiliateLinks
     } = await request.json()
 
@@ -215,8 +210,8 @@ export async function POST(request) {
 
     await connectDB()
 
-    // ⚡ OPTIMIZATION: Use lean() to verify category faster
-    const categoryExists = await Category.findById(category).lean()
+    // Verify category exists
+    const categoryExists = await Category.findById(category)
     if (!categoryExists) {
       return NextResponse.json(
         { error: 'Invalid category' },
@@ -224,12 +219,13 @@ export async function POST(request) {
       )
     }
 
-    // Validate status
+    // Validate status - only admins can directly publish
     let postStatus = status || 'draft'
     if (postStatus === 'published' && session.user.role !== 'admin') {
       postStatus = 'pending_review'
     }
 
+    // Only admins can set featured posts
     const postIsFeatured = (session.user.role === 'admin') ? (isFeatured || false) : false
 
     // Create new post
@@ -248,25 +244,30 @@ export async function POST(request) {
       seoTitle: seoTitle || '',
       seoDescription: seoDescription || '',
       seoKeywords: seoKeywords || [],
+      // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
       lang: lang || 'en',
       translationOf: translationOf || null,
+      // ✨ CONTENT TYPE
       contentType: contentType || 'blog',
+      // ✨ RECIPE-SPECIFIC FIELDS (Phase 2)
       recipePrepTime: recipePrepTime || null,
       recipeCookTime: recipeCookTime || null,
       recipeServings: recipeServings || null,
       recipeIngredients: recipeIngredients || [],
       recipeCuisine: recipeCuisine || null,
       recipeDiet: recipeDiet || [],
+      // ✨ DIY-SPECIFIC FIELDS
       diyDifficulty: diyDifficulty || null,
       diyMaterials: diyMaterials || [],
       diyTools: diyTools || [],
       diyEstimatedTime: diyEstimatedTime || null,
+      // ✨ AFFILIATE LINKS
       affiliateLinks: affiliateLinks || []
     })
 
     await newPost.save()
 
-    // Invalidate caches
+    // ✅ Invalidate caches after creating post
     invalidatePostCaches()
 
     // Increment category post count if published
@@ -274,23 +275,22 @@ export async function POST(request) {
       await Category.incrementPostCount(category)
     }
 
-    // ⚡ OPTIMIZATION: Use lean() when populating for response
-    const savedPost = await Post.findById(newPost._id)
-      .populate('author', 'name email profilePictureUrl')
-      .populate('category', 'name slug color')
-      .lean()
+    // Populate the saved post for response
+    await newPost.populate('author', 'name email profilePictureUrl')
+    await newPost.populate('category', 'name slug color')
 
     return NextResponse.json(
       {
         message: 'Post created successfully',
-        post: savedPost
+        post: newPost
       },
       { status: 201 }
     )
 
   } catch (error) {
-    console.error('❌ Error creating post:', error)
+    console.error('Error creating post:', error)
 
+    // Handle mongoose validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message)
       return NextResponse.json(
@@ -300,7 +300,7 @@ export async function POST(request) {
     }
 
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

@@ -2,6 +2,7 @@
   "name": "multigyan",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
@@ -21,7 +22,12 @@
     "cleanup-categories": "node scripts/cleanup-categories.js",
     "restructure": "node scripts/restructure-complete.js",
     "db:check-recipe": "node scripts/check-recipe-post.js",
-    "db:fix-recipe": "node scripts/fix-recipe-post.js"
+    "db:fix-recipe": "node scripts/fix-recipe-post.js",
+    "optimize:indexes": "node scripts/add-database-indexes.js",
+    "optimize:all": "npm run optimize:indexes",
+    "test:performance": "node scripts/test-performance.js",
+    "verify:setup": "node scripts/verify-optimization-setup.js",
+    "fix:references": "node scripts/fix-post-references.js"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
@@ -58,6 +64,7 @@
     "@tiptap/extension-youtube": "^3.6.2",
     "@tiptap/react": "^3.4.4",
     "@tiptap/starter-kit": "^3.4.4",
+    "@upstash/redis": "^1.35.6",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "bcryptjs": "^3.0.2",

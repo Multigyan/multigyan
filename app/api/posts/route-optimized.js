@@ -4,12 +4,13 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import Category from '@/models/Category'
-import { apiCache, invalidatePostCaches } from '@/lib/cache'
+import { redisCache, cacheWrapper, invalidatePostCaches } from '@/lib/redis-cache'
 
-// ⚡ PERFORMANCE: Enable route segment config for better caching
-export const revalidate = 300 // Revalidate every 5 minutes
+// ⚡ PERFORMANCE: Enable route segment config
+export const revalidate = 300 // Revalidate every 5 minutes for ISR
+export const dynamic = 'force-dynamic' // Since we need auth
 
-// GET posts with filters and pagination - ⚡ OPTIMIZED VERSION
+// GET posts with filters and pagination - OPTIMIZED VERSION
 export async function GET(request) {
   try {
     await connectDB()
@@ -28,25 +29,29 @@ export async function GET(request) {
 
     const session = await getServerSession(authOptions)
     
-    // ⚡ OPTIMIZATION 1: Check cache for public requests
+    // ⚡ OPTIMIZATION 1: Check cache for public requests only
     if (!session && status === 'published') {
       const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}`
-      const cached = apiCache.get(cacheKey)
+      const cached = await redisCache.get(cacheKey)
       if (cached) {
+        console.log('✅ Cache HIT:', cacheKey)
         return NextResponse.json(cached, {
           headers: {
+            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
             'X-Cache-Status': 'HIT'
           }
         })
       }
     }
     
-    // Build query based on user role and filters
+    // ✅ BUILD QUERY BASED ON USER ROLE AND FILTERS
     let query = {}
     
+    // Public access - only published posts
     if (!session) {
       query.status = 'published'
     } else {
+      // Authenticated users
       if (session.user.role === 'admin') {
         if (status) query.status = status
       } else {
@@ -70,13 +75,13 @@ export async function GET(request) {
 
     const skip = (page - 1) * limit
 
-    // ⚡ OPTIMIZATION 2: Use .lean() for 40-75% faster queries
-    // ⚡ OPTIMIZATION 3: Use field projection to reduce data transfer by 80%
+    // ⚡ OPTIMIZATION 2: Use .lean() for 5-10x faster queries
+    // ⚡ OPTIMIZATION 3: Select only needed fields to reduce bandwidth
     let postsQuery = Post.find(query)
-      .populate('author', 'name email profilePictureUrl')  // ⚡ Specify only needed fields
-      .populate('category', 'name slug color')             // ⚡ Specify only needed fields
-      .select('title slug excerpt featuredImageUrl featuredImageAlt contentType status publishedAt createdAt updatedAt readingTime views isFeatured allowComments') // ⚡ Select only displayed fields
-      .lean()  // ⚡ CRITICAL: Converts to plain JS objects (40-75% faster!)
+      .populate('author', 'name email profilePictureUrl')
+      .populate('category', 'name slug color')
+      .select('title slug excerpt content featuredImageUrl featuredImageAlt contentType status publishedAt createdAt updatedAt readingTime views isFeatured allowComments')
+      .lean() // ⚡ CRITICAL: Converts to plain JS objects (5-10x faster)
 
     // Sort
     if (search) {
@@ -88,7 +93,7 @@ export async function GET(request) {
       })
     }
 
-    // ⚡ OPTIMIZATION 4: Run count and find queries in parallel (2-3x faster in production)
+    // ⚡ OPTIMIZATION 4: Use Promise.all to run queries in parallel
     const [posts, total] = await Promise.all([
       postsQuery.skip(skip).limit(limit),
       Post.countDocuments(query)
@@ -118,10 +123,11 @@ export async function GET(request) {
       }
     }
     
-    // ⚡ OPTIMIZATION 6: Cache public requests
+    // ⚡ OPTIMIZATION 6: Cache public requests with longer TTL
     if (!session && status === 'published') {
       const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}`
-      apiCache.set(cacheKey, response, 300) // 5 minutes
+      await redisCache.set(cacheKey, response, 300) // 5 minutes
+      console.log('✅ Cache SET:', cacheKey)
     }
 
     return NextResponse.json(response, {
@@ -142,7 +148,7 @@ export async function GET(request) {
   }
 }
 
-// POST - Create new post - ⚡ OPTIMIZED
+// POST - Create new post (Authors and Admins) - OPTIMIZED
 export async function POST(request) {
   try {
     const session = await getServerSession(authOptions)
@@ -224,12 +230,13 @@ export async function POST(request) {
       )
     }
 
-    // Validate status
+    // Validate status - only admins can directly publish
     let postStatus = status || 'draft'
     if (postStatus === 'published' && session.user.role !== 'admin') {
       postStatus = 'pending_review'
     }
 
+    // Only admins can set featured posts
     const postIsFeatured = (session.user.role === 'admin') ? (isFeatured || false) : false
 
     // Create new post
@@ -266,7 +273,7 @@ export async function POST(request) {
 
     await newPost.save()
 
-    // Invalidate caches
+    // ✅ Invalidate caches after creating post
     invalidatePostCaches()
 
     // Increment category post count if published
@@ -291,6 +298,7 @@ export async function POST(request) {
   } catch (error) {
     console.error('❌ Error creating post:', error)
 
+    // Handle mongoose validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message)
       return NextResponse.json(
