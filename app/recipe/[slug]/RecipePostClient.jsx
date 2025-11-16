@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { 
@@ -40,13 +40,14 @@ import BookmarkButton from "@/components/posts/BookmarkButton"
 import RatingSection from "@/components/posts/RatingSection"
 import IMadeThisSection from "@/components/posts/IMadeThisSection"
 import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
+import AdSense from "@/components/AdSense" // ✅ Import AdSense
 
 export default function RecipePostClient({ post }) {
   const { data: session } = useSession()
   const [relatedPosts, setRelatedPosts] = useState([])
   const [loading, setLoading] = useState(true)
   
-  // ✨ NEW: State to track live comment stats
+  // ✨ State to track live comment stats
   const [commentStats, setCommentStats] = useState({
     approved: post.comments?.filter(c => c.isApproved).length || 0,
     totalLikes: 0
@@ -61,7 +62,7 @@ export default function RecipePostClient({ post }) {
 
   const fetchRelatedPosts = async () => {
     try {
-      // 🐛 FIX: Fetch only recipes from the same author
+      // Fetch only recipes from the same author
       const response = await fetch(`/api/posts?status=published&contentType=recipe&author=${post.author?._id}&limit=4`)
       const data = await response.json()
       
@@ -75,7 +76,7 @@ export default function RecipePostClient({ post }) {
     }
   }
 
-  // ✨ NEW: Callback to update comment stats when they change
+  // ✨ Callback to update comment stats when they change
   const handleCommentStatsUpdate = (newStats) => {
     setCommentStats({
       approved: newStats.approved || 0,
@@ -277,6 +278,15 @@ export default function RecipePostClient({ post }) {
               </div>
             )}
 
+            {/* ✅ TOP AD - After Featured Image */}
+            <div className="my-8">
+              <AdSense 
+                adSlot="2469893467"
+                adFormat="auto"
+                adStyle={{ display: 'block', textAlign: 'center' }}
+              />
+            </div>
+
             {/* ✨ RECIPE DETAILS (PHASE 2 FIELDS) */}
             {(post.recipePrepTime || post.recipeCookTime || post.recipeServings || (post.recipeIngredients && post.recipeIngredients.length > 0) || post.recipeCuisine || (post.recipeDiet && post.recipeDiet.length > 0) || (post.affiliateLinks && post.affiliateLinks.length > 0)) && (
               <div className="mb-8 space-y-6">
@@ -434,6 +444,15 @@ export default function RecipePostClient({ post }) {
               />
             </div>
 
+            {/* ✅ BOTTOM AD - After Recipe Content */}
+            <div className="my-8">
+              <AdSense 
+                adSlot="1347673049"
+                adFormat="auto"
+                adStyle={{ display: 'block', textAlign: 'center' }}
+              />
+            </div>
+
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (
               <div className="mb-8">
@@ -457,14 +476,14 @@ export default function RecipePostClient({ post }) {
 
             <Separator className="my-8" />
 
-            {/* ⭐ NEW: Rating Section */}
+            {/* ⭐ Rating Section */}
             <section className="mb-12">
               <RatingSection postId={post._id} />
             </section>
 
             <Separator className="my-8" />
 
-            {/* 📸 NEW: I Made This Section */}
+            {/* 📸 I Made This Section */}
             <section className="mb-12">
               <IMadeThisSection postId={post._id} contentType="recipe" />
             </section>
@@ -481,7 +500,7 @@ export default function RecipePostClient({ post }) {
                 animated={true}
               />
 
-              {/* 🔖 NEW: Bookmark Button */}
+              {/* 🔖 Bookmark Button */}
               <BookmarkButton
                 postId={post._id}
                 initialBookmarked={session?.user?.id && post.saves?.includes(session.user.id)}
@@ -490,7 +509,7 @@ export default function RecipePostClient({ post }) {
                 showCount={true}
               />
 
-              {/* ✨ FIXED: Now using dynamic state */}
+              {/* ✨ Using dynamic state */}
               <Button variant="outline" className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" />
                 <span>{commentStats.approved}</span>
@@ -500,7 +519,6 @@ export default function RecipePostClient({ post }) {
 
             {/* Comments Section */}
             <section className="mb-12">
-              {/* ✨ FIXED: Now passing callback to update stats */}
               <CommentSection 
                 postId={post._id} 
                 allowComments={post.allowComments}

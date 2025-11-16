@@ -108,6 +108,27 @@ export default function BlogPostClient({ post }) {
     }
   }
 
+  // ✅ NEW: Function to insert middle ad in content
+  const insertMiddleAd = (content) => {
+    // Split content by paragraphs
+    const paragraphs = content.split('</p>')
+    
+    // Calculate middle position (after ~40% of content)
+    const middleIndex = Math.floor(paragraphs.length * 0.4)
+    
+    if (paragraphs.length > 5 && middleIndex > 2) {
+      // Insert ad after the middle paragraph
+      paragraphs.splice(middleIndex, 0, `
+        <div class="my-8 ad-middle-container">
+          <!-- Ad placeholder - will be replaced by AdSense component -->
+        </div>
+      `)
+      return paragraphs.join('</p>')
+    }
+    
+    return content
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen">
@@ -285,13 +306,13 @@ export default function BlogPostClient({ post }) {
                 {/* ✅ TOP AD - After Featured Image, Before Content */}
                 <div className="my-8">
                   <AdSense 
-                    adSlot="YOUR_TOP_AD_SLOT_ID_HERE"
+                    adSlot="2469893467"
                     adFormat="auto"
                     adStyle={{ display: 'block', textAlign: 'center' }}
                   />
                 </div>
 
-                {/* Blog Content */}
+                {/* Blog Content with Middle Ad */}
                 <div className="blog-content mb-8 sm:mb-12">
                   <style jsx global>{`
                     .blog-content {
@@ -627,16 +648,35 @@ export default function BlogPostClient({ post }) {
                       }
                     }
                   `}</style>
+                  
+                  {/* Content - First Half */}
                   <div 
                     className="text-foreground"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
+                    dangerouslySetInnerHTML={{ __html: post.content.split('</p>').slice(0, Math.floor(post.content.split('</p>').length * 0.4)).join('</p>') + '</p>' }}
+                  />
+                  
+                  {/* ✅ MIDDLE AD - In the middle of content (40% through) */}
+                  {post.content.split('</p>').length > 5 && (
+                    <div className="my-8">
+                      <AdSense 
+                        adSlot="2660754715"
+                        adFormat="auto"
+                        adStyle={{ display: 'block', textAlign: 'center' }}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Content - Second Half */}
+                  <div 
+                    className="text-foreground"
+                    dangerouslySetInnerHTML={{ __html: post.content.split('</p>').slice(Math.floor(post.content.split('</p>').length * 0.4)).join('</p>') }}
                   />
                 </div>
 
                 {/* ✅ BOTTOM AD - After Content, Before Tags */}
                 <div className="my-8">
                   <AdSense 
-                    adSlot="YOUR_BOTTOM_AD_SLOT_ID_HERE"
+                    adSlot="1347673049"
                     adFormat="auto"
                     adStyle={{ display: 'block', textAlign: 'center' }}
                   />

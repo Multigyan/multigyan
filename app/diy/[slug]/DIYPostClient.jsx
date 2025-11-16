@@ -38,6 +38,7 @@ import BookmarkButton from "@/components/posts/BookmarkButton"
 import RatingSection from "@/components/posts/RatingSection"
 import IMadeThisSection from "@/components/posts/IMadeThisSection"
 import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
+import AdSense from "@/components/AdSense" // ✅ Import AdSense
 
 export default function DIYPostClient({ post }) {
   const { data: session } = useSession()
@@ -296,6 +297,15 @@ export default function DIYPostClient({ post }) {
               </div>
             )}
 
+            {/* ✅ TOP AD - After Featured Image */}
+            <div className="my-8">
+              <AdSense 
+                adSlot="2469893467"
+                adFormat="auto"
+                adStyle={{ display: 'block', textAlign: 'center' }}
+              />
+            </div>
+
             {/* ✨ DIY PROJECT DETAILS (PHASE 2 FIELDS) */}
             {(post.diyDifficulty || post.diyEstimatedTime || (post.diyMaterials && post.diyMaterials.length > 0) || (post.diyTools && post.diyTools.length > 0) || (post.affiliateLinks && post.affiliateLinks.length > 0)) && (
               <div className="mb-8 space-y-6">
@@ -417,6 +427,15 @@ export default function DIYPostClient({ post }) {
               <div 
                 className="prose prose-orange max-w-none"
                 dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+            </div>
+
+            {/* ✅ BOTTOM AD - After DIY Content */}
+            <div className="my-8">
+              <AdSense 
+                adSlot="1347673049"
+                adFormat="auto"
+                adStyle={{ display: 'block', textAlign: 'center' }}
               />
             </div>
 
