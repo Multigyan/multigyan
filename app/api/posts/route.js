@@ -6,9 +6,9 @@ import Post from '@/models/Post'
 import Category from '@/models/Category'
 import { apiCache, invalidatePostCaches } from '@/lib/cache'
 
-// ⚡ PERFORMANCE: Dynamic in development, cached in production
-export const dynamic = process.env.NODE_ENV === 'development' ? 'force-dynamic' : 'auto'
-export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 60 // 1 minute in production
+// ⚡ PERFORMANCE: Short revalidation for fresh content
+// Note: Cache-Control headers below handle development vs production behavior
+export const revalidate = 60 // Revalidate every 60 seconds
 
 // GET posts with filters and pagination - ⚡ OPTIMIZED VERSION
 export async function GET(request) {
