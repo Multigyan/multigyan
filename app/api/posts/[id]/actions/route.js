@@ -6,6 +6,7 @@ import Post from '@/models/Post'
 import Category from '@/models/Category'
 import Notification from '@/models/Notification'
 import { updateUserStats } from '@/lib/updateUserStats'
+import { invalidatePostCaches } from '@/lib/cache' // ✅ ADD CACHE INVALIDATION
 
 // POST - Handle post actions (approve, reject, like, unlike, submit)
 export async function POST(request, { params }) {
@@ -71,6 +72,9 @@ export async function POST(request, { params }) {
         // ✅ UPDATE AUTHOR STATS
         await updateUserStats(post.author._id)
 
+        // ✅ CLEAR CACHE - Post just got published!
+        invalidatePostCaches()
+
         // CREATE NOTIFICATION when post is approved
         try {
           await Notification.createNotification({
@@ -123,6 +127,9 @@ export async function POST(request, { params }) {
         // ✅ UPDATE AUTHOR STATS (in case post was previously published)
         await updateUserStats(post.author._id)
 
+        // ✅ CLEAR CACHE - Post status changed!
+        invalidatePostCaches()
+
         return NextResponse.json({
           message: 'Post rejected successfully',
           post: {
@@ -150,6 +157,9 @@ export async function POST(request, { params }) {
         }
 
         await post.submitForReview()
+
+        // ✅ CLEAR CACHE - Post status changed!
+        invalidatePostCaches()
 
         return NextResponse.json({
           message: 'Post submitted for review successfully',
@@ -224,6 +234,9 @@ export async function POST(request, { params }) {
 
         post.isFeatured = !post.isFeatured
         await post.save()
+
+        // ✅ CLEAR CACHE - Featured status changed!
+        invalidatePostCaches()
 
         return NextResponse.json({
           message: `Post ${post.isFeatured ? 'featured' : 'unfeatured'} successfully`,

@@ -29,13 +29,14 @@ import CommentSection from "@/components/comments/CommentSection"
 import { PostLikeButton } from "@/components/interactions/LikeButton"
 import TableOfContents from "@/components/blog/TableOfContents"
 import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
+import AdSense from "@/components/AdSense" // ✅ Import AdSense component
 
 export default function BlogPostClient({ post }) {
   const { data: session } = useSession()
   const [relatedPosts, setRelatedPosts] = useState([])
   const [loading, setLoading] = useState(true)
   
-  // ✨ NEW: State to track live comment stats
+  // ✨ State to track live comment stats
   const [commentStats, setCommentStats] = useState({
     approved: post.comments?.filter(c => c.isApproved).length || 0,
     totalLikes: 0
@@ -64,7 +65,7 @@ export default function BlogPostClient({ post }) {
     }
   }
 
-  // ✨ NEW: Callback to update comment stats when they change
+  // ✨ Callback to update comment stats when they change
   const handleCommentStatsUpdate = (newStats) => {
     setCommentStats({
       approved: newStats.approved || 0,
@@ -280,6 +281,15 @@ export default function BlogPostClient({ post }) {
                     />
                   </div>
                 )}
+
+                {/* ✅ TOP AD - After Featured Image, Before Content */}
+                <div className="my-8">
+                  <AdSense 
+                    adSlot="YOUR_TOP_AD_SLOT_ID_HERE"
+                    adFormat="auto"
+                    adStyle={{ display: 'block', textAlign: 'center' }}
+                  />
+                </div>
 
                 {/* Blog Content */}
                 <div className="blog-content mb-8 sm:mb-12">
@@ -623,6 +633,15 @@ export default function BlogPostClient({ post }) {
                   />
                 </div>
 
+                {/* ✅ BOTTOM AD - After Content, Before Tags */}
+                <div className="my-8">
+                  <AdSense 
+                    adSlot="YOUR_BOTTOM_AD_SLOT_ID_HERE"
+                    adFormat="auto"
+                    adStyle={{ display: 'block', textAlign: 'center' }}
+                  />
+                </div>
+
                 {/* Tags */}
                 {post.tags && post.tags.length > 0 && (
                   <div className="mb-6 sm:mb-8">
@@ -654,7 +673,7 @@ export default function BlogPostClient({ post }) {
                       animated={true}
                     />
 
-                    {/* ✨ FIXED: Now using dynamic state */}
+                    {/* ✨ Using dynamic state */}
                     <Button variant="outline" className="flex items-center gap-2 min-h-[44px]">
                       <MessageCircle className="h-4 w-4" />
                       <span className="text-sm">{commentStats.approved}</span>
@@ -740,7 +759,7 @@ export default function BlogPostClient({ post }) {
             <div className="max-w-7xl mx-auto mt-8 sm:mt-12">
               {/* Comments Section */}
               <section className="mb-8 sm:mb-12">
-                {/* ✨ FIXED: Now passing callback to update stats */}
+                {/* ✨ Passing callback to update stats */}
                 <CommentSection 
                   postId={post._id} 
                   allowComments={post.allowComments}

@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Category from '@/models/Category'
 import Post from '@/models/Post'
+import { invalidatePostCaches } from '@/lib/cache' // ✅ ADD CACHE INVALIDATION
 
 // GET single category
 export async function GET(request, { params }) {
@@ -113,6 +114,9 @@ export async function PUT(request, { params }) {
 
     await category.save()
 
+    // ✅ CLEAR CACHE - Category details changed, affects post listings!
+    invalidatePostCaches()
+
     return NextResponse.json({
       message: 'Category updated successfully',
       category: {
@@ -204,6 +208,9 @@ export async function DELETE(request, { params }) {
 
     // Delete the category
     await Category.findByIdAndDelete(resolvedParams.id)
+
+    // ✅ CLEAR CACHE - Category deleted, posts moved to uncategorized!
+    invalidatePostCaches()
 
     return NextResponse.json({
       message: postCount > 0 

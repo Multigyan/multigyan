@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Category from '@/models/Category'
 import Post from '@/models/Post'
+import { invalidatePostCaches } from '@/lib/cache' // ✅ ADD CACHE INVALIDATION
 
 export async function POST(request) {
   try {
@@ -74,6 +75,9 @@ export async function POST(request) {
 
     // Delete old categories
     await Category.deleteMany({ _id: { $in: categoryIds } })
+
+    // ✅ CLEAR CACHE - Categories merged, posts moved!
+    invalidatePostCaches()
 
     return NextResponse.json({
       message: `Successfully merged ${categoryIds.length} categories`,

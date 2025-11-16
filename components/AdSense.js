@@ -1,24 +1,20 @@
 // File: components/AdSense.js
 // Purpose: Display Google AdSense ads
-// IMPORTANT: Only use AFTER AdSense approval!
+// Updated: Fixed for production use
 
 'use client'
 
 import { useEffect } from 'react'
 
 /**
- * AdSense Component
- * 
- * BEFORE USING:
- * 1. Get approved by Google AdSense
- * 2. Create ad units in AdSense dashboard
- * 3. Get your Publisher ID (ca-pub-XXXXXXXXXXXXXXXX)
- * 4. Replace "ca-pub-XXXXXXXXXXXXXXXX" below with your actual ID
+ * AdSense Component - READY TO USE
  * 
  * USAGE:
  * import AdSense from '@/components/AdSense'
  * 
  * <AdSense adSlot="1234567890" adFormat="auto" />
+ * 
+ * Get your ad slot IDs from: https://adsense.google.com
  */
 
 export default function AdSense({ 
@@ -28,11 +24,6 @@ export default function AdSense({
   adStyle = { display: 'block', margin: '20px 0' }
 }) {
   useEffect(() => {
-    // Only load ads in production
-    if (process.env.NODE_ENV !== 'production') {
-      return
-    }
-
     try {
       // Push ad to AdSense queue
       (window.adsbygoogle = window.adsbygoogle || []).push({})
@@ -50,9 +41,18 @@ export default function AdSense({
         padding: '20px',
         textAlign: 'center',
         color: '#666',
-        border: '2px dashed #ccc'
+        border: '2px dashed #ccc',
+        borderRadius: '8px'
       }}>
-        [AdSense Ad Preview - Slot: {adSlot}]
+        <div style={{ fontSize: '14px', marginBottom: '8px' }}>
+          📢 AdSense Ad Preview
+        </div>
+        <div style={{ fontSize: '12px', opacity: 0.7 }}>
+          Slot: {adSlot} | Format: {adFormat}
+        </div>
+        <div style={{ fontSize: '11px', marginTop: '8px', opacity: 0.5 }}>
+          (Ads will show in production)
+        </div>
       </div>
     )
   }
@@ -61,7 +61,7 @@ export default function AdSense({
     <ins
       className="adsbygoogle"
       style={adStyle}
-      data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" // REPLACE with your Publisher ID
+      data-ad-client="ca-pub-1982960683340318"
       data-ad-slot={adSlot}
       data-ad-format={adFormat}
       data-full-width-responsive={fullWidthResponsive ? 'true' : 'false'}
@@ -72,13 +72,27 @@ export default function AdSense({
 /**
  * AD PLACEMENT BEST PRACTICES:
  * 
+ * ✅ RECOMMENDED PLACEMENTS:
+ * - After first paragraph in blog posts
+ * - In the middle of long content
+ * - At the end of articles (before comments)
+ * - In sidebar (on desktop)
+ * 
  * ✅ DO:
- * - Place 1-3 ads per page
+ * - Place 2-3 ads per page maximum
  * - Use responsive ad formats
  * - Place ads in natural content breaks
+ * - Wait 2-3 seconds before loading ads
  * 
  * ❌ DON'T:
  * - Use more than 3 ads per page
- * - Click on your own ads (will get banned!)
- * - Cover content with ads
+ * - Click on your own ads (instant ban!)
+ * - Place ads too close together
+ * - Cover important content with ads
+ * 
+ * 📊 PERFORMANCE TIPS:
+ * - Use 'auto' format for responsive sizing
+ * - Test different placements
+ * - Monitor CTR in AdSense dashboard
+ * - Higher viewability = higher earnings
  */

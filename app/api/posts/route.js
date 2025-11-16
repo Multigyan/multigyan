@@ -6,8 +6,9 @@ import Post from '@/models/Post'
 import Category from '@/models/Category'
 import { apiCache, invalidatePostCaches } from '@/lib/cache'
 
-// ⚡ PERFORMANCE: Enable route segment config for better caching
-export const revalidate = 300 // Revalidate every 5 minutes
+// ⚡ PERFORMANCE: Dynamic in development, cached in production
+export const dynamic = process.env.NODE_ENV === 'development' ? 'force-dynamic' : 'auto'
+export const revalidate = process.env.NODE_ENV === 'development' ? 0 : 60 // 1 minute in production
 
 // GET posts with filters and pagination - ⚡ OPTIMIZED VERSION
 export async function GET(request) {
@@ -28,8 +29,8 @@ export async function GET(request) {
 
     const session = await getServerSession(authOptions)
     
-    // ⚡ OPTIMIZATION 1: Check cache for public requests
-    if (!session && status === 'published') {
+    // ⚡ OPTIMIZATION 1: Check cache for public requests (skip in development)
+    if (!session && status === 'published' && process.env.NODE_ENV !== 'development') {
       const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}`
       const cached = apiCache.get(cacheKey)
       if (cached) {
@@ -118,18 +119,24 @@ export async function GET(request) {
       }
     }
     
-    // ⚡ OPTIMIZATION 6: Cache public requests
-    if (!session && status === 'published') {
+    // ⚡ OPTIMIZATION 6: Cache public requests (only in production)
+    if (!session && status === 'published' && process.env.NODE_ENV !== 'development') {
       const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}`
-      apiCache.set(cacheKey, response, 300) // 5 minutes
+      apiCache.set(cacheKey, response, 60) // 1 minute in production
     }
+
+    // Set cache control headers based on environment
+    const cacheControl = process.env.NODE_ENV === 'development'
+      ? 'no-store, no-cache, must-revalidate' // Development: always fresh
+      : !session 
+        ? 'public, s-maxage=60, stale-while-revalidate=120' // Production public: 1 min cache
+        : 'no-store, no-cache, must-revalidate' // Production private: no cache
 
     return NextResponse.json(response, {
       headers: {
-        'Cache-Control': !session 
-          ? 'public, s-maxage=300, stale-while-revalidate=600'
-          : 'no-store, no-cache, must-revalidate',
-        'X-Cache-Status': 'MISS'
+        'Cache-Control': cacheControl,
+        'X-Cache-Status': 'MISS',
+        'X-Environment': process.env.NODE_ENV || 'production'
       }
     })
 

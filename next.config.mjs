@@ -32,33 +32,39 @@ const nextConfig = {
           },
         ],
       },
-      // Blog posts - cache for 1 hour, serve stale for 24 hours
+      // ✅ UPDATED: Blog posts - cache for 1 minute in production, NO cache in development
       {
         source: '/blog/:slug',
         headers: [
           {
             key: 'Cache-Control',
-            value: 's-maxage=3600, stale-while-revalidate=86400',
+            value: process.env.NODE_ENV === 'development'
+              ? 'no-store, no-cache, must-revalidate' // Development: always fresh
+              : 's-maxage=60, stale-while-revalidate=120', // Production: 1 min cache, 2 min stale
           },
         ],
       },
-      // Categories - cache for 1 hour, serve stale for 24 hours
+      // ✅ UPDATED: Categories - cache for 1 minute in production, NO cache in development
       {
         source: '/category/:slug',
         headers: [
           {
             key: 'Cache-Control',
-            value: 's-maxage=3600, stale-while-revalidate=86400',
+            value: process.env.NODE_ENV === 'development'
+              ? 'no-store, no-cache, must-revalidate' // Development: always fresh
+              : 's-maxage=60, stale-while-revalidate=120', // Production: 1 min cache, 2 min stale
           },
         ],
       },
-      // Homepage - cache for 10 minutes
+      // ✅ UPDATED: Homepage - cache for 1 minute in production, NO cache in development
       {
         source: '/',
         headers: [
           {
             key: 'Cache-Control',
-            value: 's-maxage=600, stale-while-revalidate=3600',
+            value: process.env.NODE_ENV === 'development'
+              ? 'no-store, no-cache, must-revalidate' // Development: always fresh
+              : 's-maxage=60, stale-while-revalidate=120', // Production: 1 min cache, 2 min stale
           },
         ],
       },
