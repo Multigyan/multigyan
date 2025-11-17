@@ -5,7 +5,7 @@ import connectDB from '@/lib/mongodb'
 import Newsletter from '@/models/Newsletter'
 
 // GET - Get specific newsletter subscriber
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -17,6 +17,9 @@ export async function GET(request, { params }) {
     }
 
     await connectDB()
+
+    // ✅ FIX: Await params in Next.js 15
+    const params = await context.params
 
     const subscriber = await Newsletter.findById(params.id)
       .populate('preferences.categories', 'name slug color')
@@ -43,7 +46,7 @@ export async function GET(request, { params }) {
 }
 
 // PUT - Update newsletter subscriber
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -56,6 +59,8 @@ export async function PUT(request, { params }) {
 
     await connectDB()
 
+    // ✅ FIX: Await params in Next.js 15
+    const params = await context.params
     const { action, preferences, email } = await request.json()
 
     const subscriber = await Newsletter.findById(params.id)
@@ -140,7 +145,7 @@ export async function PUT(request, { params }) {
 }
 
 // DELETE - Delete specific newsletter subscriber
-export async function DELETE(request, { params }) {
+export async function DELETE(request, context) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -152,6 +157,9 @@ export async function DELETE(request, { params }) {
     }
 
     await connectDB()
+
+    // ✅ FIX: Await params in Next.js 15
+    const params = await context.params
 
     const subscriber = await Newsletter.findByIdAndDelete(params.id)
 

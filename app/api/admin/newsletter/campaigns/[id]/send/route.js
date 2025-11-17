@@ -4,10 +4,12 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import NewsletterCampaign from '@/models/NewsletterCampaign'
 import Newsletter from '@/models/Newsletter'
-import { sendNewsletterCampaign, sendEmail } from '@/lib/email'
+import Post from '@/models/Post'
+import { sendBulkEmails, sendEmail } from '@/lib/email'
+import { generateNewsletterHTML } from '@/lib/email-templates/newsletter-templates'
 
 // POST - Send newsletter campaign
-export async function POST(request, { params }) {
+export async function POST(request, context) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -20,6 +22,8 @@ export async function POST(request, { params }) {
 
     await connectDB()
 
+    // ✅ FIX: Await params in Next.js 15
+    const params = await context.params
     const { testEmail } = await request.json()
 
     const campaign = await NewsletterCampaign.findById(params.id)
@@ -33,35 +37,29 @@ export async function POST(request, { params }) {
       )
     }
 
+    // Fetch blog posts if featured posts are selected
+    let posts = []
+    if (campaign.featuredPosts && campaign.featuredPosts.length > 0) {
+      posts = await Post.find({
+        _id: { $in: campaign.featuredPosts }
+      })
+        .populate('author', 'name profileImage')
+        .populate('category', 'name slug color')
+        .lean()
+    }
+
     // If sending test email
     if (testEmail) {
-      // Generate HTML for test email
-      const unsubscribeUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/newsletter/unsubscribe?email=${encodeURIComponent(testEmail)}`
-      const testHtml = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${campaign.subject}</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            ${campaign.htmlContent}
-            
-            <div style="text-align: center; margin-top: 40px; padding: 20px; color: #999; font-size: 12px; border-top: 1px solid #eee;">
-              <p style="color: red; font-weight: bold;">⚠️ THIS IS A TEST EMAIL ⚠️</p>
-              <p>© ${new Date().getFullYear()} Multigyan. All rights reserved.</p>
-              <p>
-                You're receiving this email because you subscribed to our newsletter.
-              </p>
-              <p>
-                <a href="${unsubscribeUrl}" style="color: #667eea; text-decoration: none;">Unsubscribe</a> | 
-                <a href="${process.env.NEXT_PUBLIC_SITE_URL}" style="color: #667eea; text-decoration: none;">Visit Website</a>
-              </p>
-            </div>
-          </body>
-        </html>
-      `
+      // Create test subscriber object
+      const testSubscriber = { email: testEmail }
+      
+      // Generate beautiful branded HTML
+      const testHtml = generateNewsletterHTML(
+        campaign,
+        posts,
+        testSubscriber,
+        campaign.layoutSettings?.template || 'featured'
+      )
       
       const result = await sendEmail({
         to: testEmail,
@@ -132,20 +130,36 @@ export async function POST(request, { params }) {
     campaign.analytics.totalRecipients = subscribers.length
     await campaign.save()
 
-    // Send emails in background
-    // Note: This sends all emails synchronously. For production, consider using a queue system.
+    // Generate emails with beautiful branded template
+    const emails = subscribers.map(subscriber => {
+      const html = generateNewsletterHTML(
+        campaign,
+        posts,
+        subscriber,
+        campaign.layoutSettings?.template || 'featured'
+      )
+      
+      return {
+        to: subscriber.email,
+        subject: campaign.subject,
+        html,
+        text: campaign.content
+      }
+    })
+
+    // Send emails in batches
     let progressCallback = ({ current, total, sent, failed }) => {
       console.log(`Sending progress: ${current}/${total} (Sent: ${sent}, Failed: ${failed})`)
     }
 
-    const results = await sendNewsletterCampaign(campaign, subscribers, progressCallback)
+    const results = await sendBulkEmails(emails, progressCallback)
 
     // Update campaign analytics
     campaign.analytics.sentCount = results.sent
     campaign.analytics.failedCount = results.failed
 
     // Store individual email records
-    campaign.analytics.sentEmails = subscribers.map((subscriber, index) => ({
+    campaign.analytics.sentEmails = subscribers.map((subscriber) => ({
       email: subscriber.email,
       sentAt: new Date(),
       status: results.errors.find(e => e.email === subscriber.email) ? 'failed' : 'sent',
@@ -180,6 +194,7 @@ export async function POST(request, { params }) {
     
     // Try to mark campaign as failed
     try {
+      const params = await context.params
       const campaign = await NewsletterCampaign.findById(params.id)
       if (campaign) {
         await campaign.markAsFailed()

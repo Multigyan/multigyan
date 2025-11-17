@@ -3,8 +3,10 @@ import connectDB from '@/lib/mongodb'
 import NewsletterCampaign from '@/models/NewsletterCampaign'
 
 // GET - Track email click and redirect
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
+    // ✅ FIX: Await params in Next.js 15
+    const params = await context.params
     const { campaignId, email } = params
     const decodedEmail = decodeURIComponent(email)
     

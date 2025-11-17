@@ -5,7 +5,7 @@ import connectDB from '@/lib/mongodb'
 import NewsletterCampaign from '@/models/NewsletterCampaign'
 
 // GET - Get specific campaign
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -17,6 +17,9 @@ export async function GET(request, { params }) {
     }
 
     await connectDB()
+
+    // ✅ FIX: Await params in Next.js 15
+    const params = await context.params
 
     const campaign = await NewsletterCampaign.findById(params.id)
       .populate('createdBy', 'name email profileImage')
@@ -45,7 +48,7 @@ export async function GET(request, { params }) {
 }
 
 // PUT - Update campaign
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -57,6 +60,9 @@ export async function PUT(request, { params }) {
     }
 
     await connectDB()
+
+    // ✅ FIX: Await params in Next.js 15
+    const params = await context.params
 
     const campaign = await NewsletterCampaign.findById(params.id)
 
@@ -132,7 +138,7 @@ export async function PUT(request, { params }) {
 }
 
 // DELETE - Delete campaign
-export async function DELETE(request, { params }) {
+export async function DELETE(request, context) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -144,6 +150,9 @@ export async function DELETE(request, { params }) {
     }
 
     await connectDB()
+
+    // ✅ FIX: Await params in Next.js 15
+    const params = await context.params
 
     const campaign = await NewsletterCampaign.findById(params.id)
 
