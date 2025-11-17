@@ -1,8 +1,8 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import NewsletterSubscribe from "@/components/newsletter/NewsletterSubscribe"
 import { 
   BookOpen, 
   Mail, 
@@ -86,14 +86,12 @@ export default function Footer() {
                 >
                   All Posts
                 </Link>
-                {/* 🎨 NEW: DIY Link */}
                 <Link 
                   href="/diy" 
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   DIY Tutorials
                 </Link>
-                {/* 🍳 NEW: Recipe Link */}
                 <Link 
                   href="/recipe" 
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
@@ -125,6 +123,13 @@ export default function Footer() {
             <div className="space-y-4 fade-in" style={{ animationDelay: '200ms' }}>
               <h3 className="font-semibold text-foreground">Resources</h3>
               <nav className="flex flex-col space-y-2">
+                <Link 
+                  href="/newsletter" 
+                  className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1 flex items-center space-x-1"
+                >
+                  <Mail className="h-3 w-3" />
+                  <span>Newsletter</span>
+                </Link>
                 <Link 
                   href="/dashboard" 
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
@@ -158,27 +163,21 @@ export default function Footer() {
               </nav>
             </div>
 
-            {/* Newsletter */}
+            {/* Newsletter Section */}
             <div className="space-y-4 fade-in" style={{ animationDelay: '300ms' }}>
-              <h3 className="font-semibold text-foreground">Stay Updated</h3>
-              <p className="text-muted-foreground text-sm">
-                Subscribe to our newsletter for the latest posts and updates.
-              </p>
-              <div className="space-y-2">
-                <div className="flex space-x-2">
-                  <Input 
-                    type="email" 
-                    placeholder="your@email.com" 
-                    className="flex-1 transition-all focus:scale-105"
-                  />
-                  <Button size="icon" className="transition-all hover:scale-110">
-                    <SendIcon className="h-4 w-4" />
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  We respect your privacy. Unsubscribe at any time.
-                </p>
-              </div>
+              <NewsletterSubscribe 
+                source="footer"
+                showTitle={true}
+                compact={false}
+                className="space-y-3"
+              />
+              <Link 
+                href="/newsletter"
+                className="text-xs text-primary hover:underline inline-flex items-center space-x-1"
+              >
+                <span>Learn more about our newsletter</span>
+                <Mail className="h-3 w-3" />
+              </Link>
             </div>
           </div>
         </div>

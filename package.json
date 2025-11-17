@@ -27,7 +27,9 @@
     "optimize:all": "npm run optimize:indexes",
     "test:performance": "node scripts/test-performance.js",
     "verify:setup": "node scripts/verify-optimization-setup.js",
-    "fix:references": "node scripts/fix-post-references.js"
+    "fix:references": "node scripts/fix-post-references.js",
+    "newsletter:verify": "node scripts/verify-newsletter-setup.js",
+    "newsletter:fix-subscribers": "node scripts/fix-newsletter-subscribers.js"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

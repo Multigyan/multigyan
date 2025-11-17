@@ -19,7 +19,8 @@ import {
   MessageCircle,
   Crown,
   AlertTriangle,
-  Activity
+  Activity,
+  Mail
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 
@@ -335,6 +336,12 @@ export default function AdminDashboardPage() {
               <Link href="/dashboard/admin/users">
                 <Users className="mr-2 h-4 w-4" />
                 Manage Users ({stats.users.total})
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start" asChild>
+              <Link href="/dashboard/admin/newsletter">
+                <Mail className="mr-2 h-4 w-4" />
+                Newsletter Management
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>
