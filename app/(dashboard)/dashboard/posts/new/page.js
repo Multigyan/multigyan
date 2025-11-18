@@ -113,7 +113,6 @@ export default function NewPostPage() {
   }
 
   // ✨ Auto-add content type tag when content type changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (formData.contentType === 'diy') {
       // Ensure "diy" tag is present
@@ -133,12 +132,15 @@ export default function NewPostPage() {
       }
     } else {
       // Remove diy and recipe tags for regular blog posts
-      setFormData(prev => ({
-        ...prev,
-        tags: prev.tags.filter(t => t !== 'diy' && t !== 'recipe')
-      }))
+      const hasDiyOrRecipe = formData.tags.includes('diy') || formData.tags.includes('recipe')
+      if (hasDiyOrRecipe) {
+        setFormData(prev => ({
+          ...prev,
+          tags: prev.tags.filter(t => t !== 'diy' && t !== 'recipe')
+        }))
+      }
     }
-  }, [formData.contentType])
+  }, [formData.contentType, formData.tags])
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
