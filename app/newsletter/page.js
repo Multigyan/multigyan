@@ -62,7 +62,7 @@ export default function NewsletterPage() {
       {/* Features Grid */}
       <div className="container mx-auto px-4 mb-16">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">What You'll Get</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">What You&#39;ll Get</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Feature 1 */}
@@ -149,7 +149,7 @@ export default function NewsletterPage() {
                 ))}
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                "Best newsletter I've subscribed to! Always delivers quality content right when I need it."
+                &quot;Best newsletter I&apos;ve subscribed to! Always delivers quality content right when I need it.&quot;
               </p>
               <p className="text-sm font-semibold">- Rahul K.</p>
             </div>
@@ -161,7 +161,7 @@ export default function NewsletterPage() {
                 ))}
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                "Love the variety! From tech articles to recipes, there's something for everyone."
+                &quot;Love the variety! From tech articles to recipes, there&apos;s something for everyone.&quot;
               </p>
               <p className="text-sm font-semibold">- Priya S.</p>
             </div>
@@ -173,7 +173,7 @@ export default function NewsletterPage() {
                 ))}
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                "The DIY tutorials are amazing! I've completed 5 projects already thanks to these guides."
+                &quot;The DIY tutorials are amazing! I&apos;ve completed 5 projects already thanks to these guides.&quot;
               </p>
               <p className="text-sm font-semibold">- Amit P.</p>
             </div>

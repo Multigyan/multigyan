@@ -24,6 +24,7 @@ export default function NewsletterSubscribe({
     if (showPreferencesModal && categories.length === 0) {
       fetchCategories()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showPreferencesModal])
 
   const fetchCategories = async () => {
@@ -181,7 +182,7 @@ export default function NewsletterSubscribe({
               <div>
                 <h2 className="text-2xl font-bold">Choose Your Interests</h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Select the topics you'd like to receive updates about
+                  Select the topics you&#39;d like to receive updates about
                 </p>
               </div>
               <button
@@ -271,7 +272,7 @@ export default function NewsletterSubscribe({
                 {selectedCategories.length === 0 && (
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-800">
-                      💡 No categories selected? You'll receive updates about all topics!
+                    💡 No categories selected? You&apos;ll receive updates about all topics!
                     </p>
                   </div>
                 )}
