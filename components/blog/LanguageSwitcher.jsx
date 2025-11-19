@@ -83,22 +83,23 @@ export default function LanguageSwitcher({ post }) {
   const target = languageLabels[targetLang]
 
   return (
-    <div className="flex items-center gap-3">
-      {/* Mobile View: Icon Button */}
-      <Link href={`/blog/${translatedPost.slug}`} className="md:hidden">
+    <div className="flex items-center gap-2">
+      {/* Mobile & Tablet View: Compact Button */}
+      <Link href={`/blog/${translatedPost.slug}`} className="lg:hidden">
         <Button 
           variant="outline" 
           size="sm"
-          className="gap-2 hover:bg-primary/10 border-primary/30"
+          className="gap-1.5 hover:bg-primary/10 border-primary/30 text-xs"
           title={target.label}
         >
-          <Languages className="h-4 w-4" />
-          <span>{target.flag} {target.short}</span>
+          <Globe className="h-3.5 w-3.5" />
+          <span>{target.flag}</span>
+          <span className="hidden sm:inline">{target.short}</span>
         </Button>
       </Link>
 
-      {/* Desktop View: Full Button */}
-      <Link href={`/blog/${translatedPost.slug}`} className="hidden md:block">
+      {/* Desktop View: Full Button with Label */}
+      <Link href={`/blog/${translatedPost.slug}`} className="hidden lg:block">
         <Button 
           variant="outline" 
           size="sm"
@@ -111,8 +112,8 @@ export default function LanguageSwitcher({ post }) {
         </Button>
       </Link>
 
-      {/* Current Language Indicator */}
-      <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-muted/50 rounded-md border border-border">
+      {/* Current Language Indicator (Desktop only) */}
+      <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 bg-muted/50 rounded-md border border-border">
         <span className="text-xs text-muted-foreground">Currently viewing:</span>
         <span className="text-xs font-medium">{current.flag} {current.full}</span>
       </div>
