@@ -280,6 +280,7 @@ export default async function BlogPostPage({ params }) {
       
       // ✅ NEW: Add language and translation data
       lang: post.lang || 'en',
+      translationOf: post.translationOf ? post.translationOf.toString() : null, // ✨ ADD THIS!
       translation: translation ? {
         slug: translation.slug,
         lang: translation.lang
