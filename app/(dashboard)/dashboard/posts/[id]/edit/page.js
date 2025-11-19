@@ -16,7 +16,7 @@ import FeaturedImageUploader from "@/components/blog/FeaturedImageUploader"
 import FlexibleTagInput from "@/components/blog/FlexibleTagInput"
 import CategorySelector from "@/components/blog/CategorySelector"
 import BlogPostPreview from "@/components/blog/BlogPostPreview"
-import { ArrowLeft, Save, Loader2, Eye, User, AlertTriangle, FileText, Send, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, Save, Loader2, Eye, User, AlertTriangle, FileText, Send, CheckCircle2, Globe, Link as LinkIcon, Wrench, ChefHat } from "lucide-react"
 import { toast } from "sonner"
 import {
   AlertDialog,
@@ -37,6 +37,7 @@ export default function EditPostPage({ params }) {
   const [showPreview, setShowPreview] = useState(false)
   const [categories, setCategories] = useState([])
   const [authors, setAuthors] = useState([]) // ✅ NEW: Store all authors
+  const [allPosts, setAllPosts] = useState([]) // ✨ For translation linking
   const [postId, setPostId] = useState(null)
   const [originalAuthor, setOriginalAuthor] = useState(null) // ✅ NEW: Track original author
   const [postStatus, setPostStatus] = useState("") // ✅ NEW: Track post status
@@ -54,7 +55,12 @@ export default function EditPostPage({ params }) {
     allowComments: true,
     isFeatured: false,
     author: "",
-    editReason: ""
+    editReason: "",
+    
+    // ✨ Content Settings
+    contentType: "blog", // blog, diy, recipe
+    lang: "en", // en, hi
+    translationOf: "" // Link to alternate language version
   })
   const [hasLongTags, setHasLongTags] = useState(false)
   const [removedTags, setRemovedTags] = useState([])
@@ -74,7 +80,8 @@ export default function EditPostPage({ params }) {
       try {
         const promises = [
           fetch('/api/categories?includeCounts=true'), // ✅ Get accurate post counts
-          fetch(`/api/posts/${postId}`)
+          fetch(`/api/posts/${postId}`),
+          fetch('/api/posts?status=published&limit=1000') // ✨ Fetch all posts for translation linking
         ]
 
         // ✅ NEW: Fetch authors if user is admin
@@ -83,13 +90,19 @@ export default function EditPostPage({ params }) {
         }
 
         const responses = await Promise.all(promises)
-        const [categoriesRes, postRes, authorsRes] = responses
+        const [categoriesRes, postRes, allPostsRes, authorsRes] = responses
 
         const categoriesData = await categoriesRes.json()
         const postData = await postRes.json()
+        const allPostsData = await allPostsRes.json()
 
         if (categoriesRes.ok) {
           setCategories(categoriesData.categories || [])
+        }
+
+        // ✨ Load all posts for translation dropdown
+        if (allPostsRes.ok) {
+          setAllPosts(allPostsData.posts || [])
         }
 
         // ✅ NEW: Load authors for admin
@@ -127,7 +140,12 @@ export default function EditPostPage({ params }) {
             allowComments: post.allowComments !== false,
             isFeatured: post.isFeatured || false,
             author: post.author?._id || post.author || "",
-            editReason: ""
+            editReason: "",
+            
+            // ✨ Content Settings
+            contentType: post.contentType || "blog",
+            lang: post.lang || "en",
+            translationOf: post.translationOf || ""
           })
         } else {
           toast.error(postData.error || 'Failed to load post')
@@ -229,6 +247,13 @@ export default function EditPostPage({ params }) {
     // Add boolean fields
     sanitizedData.allowComments = formData.allowComments
     sanitizedData.isFeatured = formData.isFeatured
+    
+    // ✨ Add Content Settings
+    sanitizedData.contentType = formData.contentType
+    sanitizedData.lang = formData.lang
+    if (formData.translationOf) {
+      sanitizedData.translationOf = formData.translationOf
+    }
 
     setLoading(true)
 
@@ -687,6 +712,128 @@ export default function EditPostPage({ params }) {
                 </CardContent>
               </Card>
             )}
+
+            {/* ✨ NEW: Content Settings Card */}
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                  <Globe className="h-5 w-5" />
+                  Content Settings
+                </CardTitle>
+                <CardDescription className="text-blue-700 dark:text-blue-300">
+                  Choose the type of content and language
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Content Type Selector */}
+                <div>
+                  <Label htmlFor="contentType" className="text-blue-900 dark:text-blue-100">
+                    Content Type *
+                  </Label>
+                  <Select
+                    value={formData.contentType}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, contentType: value }))}
+                  >
+                    <SelectTrigger className="mt-1 bg-white dark:bg-gray-900">
+                      <SelectValue placeholder="Select content type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="blog">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          <span>Blog Post (Regular Article)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="diy">
+                        <div className="flex items-center gap-2">
+                          <Wrench className="h-4 w-4" />
+                          <span>DIY Project (Step-by-Step Guide)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="recipe">
+                        <div className="flex items-center gap-2">
+                          <ChefHat className="h-4 w-4" />
+                          <span>Recipe (Cooking Guide)</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Language Selector */}
+                <div>
+                  <Label htmlFor="lang" className="text-blue-900 dark:text-blue-100">
+                    Language *
+                  </Label>
+                  <Select
+                    value={formData.lang}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, lang: value }))}
+                  >
+                    <SelectTrigger className="mt-1 bg-white dark:bg-gray-900">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">
+                        <div className="flex items-center gap-2">
+                          <span>🇬🇧</span>
+                          <span>English</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="hi">
+                        <div className="flex items-center gap-2">
+                          <span>🇮🇳</span>
+                          <span>Hindi (हिंदी)</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Translation Link */}
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="translationOf" className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                      <LinkIcon className="h-4 w-4" />
+                      Link to Translation (Optional)
+                    </Label>
+                    {formData.translationOf && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFormData(prev => ({ ...prev, translationOf: "" }))}
+                        className="h-6 text-xs text-muted-foreground hover:text-destructive"
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  <Select
+                    value={formData.translationOf || undefined}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, translationOf: value }))}
+                  >
+                    <SelectTrigger className="mt-1 bg-white dark:bg-gray-900">
+                      <SelectValue placeholder="Select the alternate language version..." />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                      {allPosts
+                        .filter(p => p._id !== postId && p.lang !== formData.lang)
+                        .map((post) => (
+                          <SelectItem key={post._id} value={post._id}>
+                            <div className="flex items-center gap-2">
+                              <span>{post.lang === 'en' ? '🇬🇧' : '🇮🇳'}</span>
+                              <span className="truncate">{post.title}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                    🔗 Link this post to its alternate language version for easy switching
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
             <Card>
               <CardHeader>

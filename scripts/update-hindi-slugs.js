@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 // Load .env from root directory
-dotenv.config({ path: join(__dirname, '..', '.env') })
+dotenv.config({ path: join(__dirname, '..', '.env.local') })
 
 // Verify MongoDB URI is loaded
 if (!process.env.MONGODB_URI) {

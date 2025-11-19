@@ -32,19 +32,31 @@ export default function LanguageSwitcher({ post }) {
       // Check if this post has a translation linked
       if (post.translationOf) {
         // This post IS a translation, fetch the original
+        console.log('Fetching original post:', post.translationOf)
         const response = await fetch(`/api/posts/${post.translationOf}`)
         const data = await response.json()
         
+        console.log('Original post response:', data)
+        
         if (response.ok && data.post) {
+          console.log('Setting translated post to:', data.post.title, data.post.slug)
           setTranslatedPost(data.post)
+        } else {
+          console.error('Failed to fetch original post:', data)
         }
       } else {
         // This is the original, find if there's a translation
-        const response = await fetch(`/api/posts?translationOf=${post._id}&limit=1`)
+        console.log('Searching for translation of post:', post._id)
+        const response = await fetch(`/api/posts?translationOf=${post._id}&status=published&limit=1`)
         const data = await response.json()
         
+        console.log('Translation search response:', data)
+        
         if (response.ok && data.posts && data.posts.length > 0) {
+          console.log('Setting translated post to:', data.posts[0].title, data.posts[0].slug)
           setTranslatedPost(data.posts[0])
+        } else {
+          console.log('No translation found')
         }
       }
     } catch (error) {

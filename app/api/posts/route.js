@@ -26,12 +26,13 @@ export async function GET(request) {
     const slug = searchParams.get('slug')
     const excludeRecipes = searchParams.get('excludeRecipes') === 'true'
     const contentType = searchParams.get('contentType')
+    const translationOf = searchParams.get('translationOf') // ✨ For language switcher
 
     const session = await getServerSession(authOptions)
     
     // ⚡ OPTIMIZATION 1: Check cache for public requests (skip in development)
     if (!session && status === 'published' && process.env.NODE_ENV !== 'development') {
-      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}`
+      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}-${translationOf || 'all'}`
       const cached = apiCache.get(cacheKey)
       if (cached) {
         return NextResponse.json(cached, {
@@ -63,6 +64,7 @@ export async function GET(request) {
     if (slug) query.slug = slug
     if (contentType) query.contentType = contentType
     if (excludeRecipes) query.contentType = { $ne: 'recipe' }
+    if (translationOf) query.translationOf = translationOf // ✨ Filter by translation link
 
     // Handle search
     if (search) {
@@ -76,7 +78,7 @@ export async function GET(request) {
     let postsQuery = Post.find(query)
       .populate('author', 'name email profilePictureUrl')  // ⚡ Specify only needed fields
       .populate('category', 'name slug color')             // ⚡ Specify only needed fields
-      .select('title slug excerpt featuredImageUrl featuredImageAlt contentType status publishedAt createdAt updatedAt readingTime views isFeatured allowComments likes comments') // ⚡ Select displayed fields + likes/comments for counts
+      .select('title slug excerpt featuredImageUrl featuredImageAlt contentType lang translationOf status publishedAt createdAt updatedAt readingTime views isFeatured allowComments likes comments') // ✨ Added lang and translationOf
       .lean()  // ⚡ CRITICAL: Converts to plain JS objects (40-75% faster!)
 
     // Sort
@@ -121,7 +123,7 @@ export async function GET(request) {
     
     // ⚡ OPTIMIZATION 6: Cache public requests (only in production)
     if (!session && status === 'published' && process.env.NODE_ENV !== 'development') {
-      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}`
+      const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}-${translationOf || 'all'}`
       apiCache.set(cacheKey, response, 60) // 1 minute in production
     }
 
