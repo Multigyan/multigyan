@@ -16,6 +16,7 @@ import { toast } from 'sonner'
  * 3. Press Enter to add tags
  * 4. Space-separated tags
  * 5. Mix of all above formats
+ * 6. Unicode support (Hindi, other languages)
  */
 
 export default function FlexibleTagInput({ 
@@ -45,13 +46,15 @@ export default function FlexibleTagInput({
     }
     // Method 2: Check for hashtags
     else if (input.includes('#')) {
-      // Extract all hashtags
-      const hashtagMatches = input.match(/#[\w]+/g)
+      // ✅ FIX: Updated regex to support Unicode characters including Hindi
+      // \p{L} matches any Unicode letter (including Hindi/Devanagari)
+      // \p{N} matches any Unicode number
+      const hashtagMatches = input.match(/#[\p{L}\p{N}_]+/gu)
       if (hashtagMatches) {
         parsedTags = hashtagMatches.map(tag => tag.replace('#', ''))
       }
-      // Also get non-hashtag words
-      const nonHashtags = input.replace(/#[\w]+/g, '').trim()
+      // Also get non-hashtag words (supporting Unicode)
+      const nonHashtags = input.replace(/#[\p{L}\p{N}_]+/gu, '').trim()
       if (nonHashtags) {
         parsedTags = [...parsedTags, ...nonHashtags.split(/\s+/)]
       }
@@ -61,9 +64,18 @@ export default function FlexibleTagInput({
       parsedTags = input.split(/\s+/)
     }
 
-    // Clean up tags: remove empty strings, special characters, and duplicates
+    // ✅ FIX: Updated cleanup to preserve Unicode characters
+    // Only remove truly problematic characters, keep letters from all languages
     parsedTags = parsedTags
-      .map(tag => tag.replace(/[^\w\s-]/g, '').trim()) // Remove special chars except hyphens
+      .map(tag => {
+        // Remove leading/trailing whitespace and special symbols
+        // But keep Unicode letters (Hindi, etc.), numbers, hyphens, and underscores
+        return tag
+          .trim()
+          // Remove only problematic special characters, preserve Unicode letters
+          .replace(/[^\p{L}\p{N}\s\-_]/gu, '')
+          .trim()
+      })
       .filter(tag => tag.length > 0) // Remove empty strings
       .filter(tag => tag.length <= 30) // Limit to 30 characters
       .filter((tag, index, self) => self.indexOf(tag) === index) // Remove duplicates
@@ -237,6 +249,7 @@ export default function FlexibleTagInput({
             <p>• Type: <code className="bg-muted px-1 py-0.5 rounded">javascript, react, nextjs</code></p>
             <p>• Type: <code className="bg-muted px-1 py-0.5 rounded">#javascript #react #nextjs</code></p>
             <p>• Type: <code className="bg-muted px-1 py-0.5 rounded">javascript react nextjs</code> (then press Enter)</p>
+            <p>• Type: <code className="bg-muted px-1 py-0.5 rounded">PMAY Hindi, CLSS, सब्सिडी</code> (Hindi supported!)</p>
             <p>• Or mix formats and paste from anywhere!</p>
           </div>
         </div>

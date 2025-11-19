@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -28,6 +28,46 @@ import ProjectOverview from "@/components/posts/enhanced-form/ProjectOverview"
 import { ArrowLeft, Save, Send, FileText, Image, Tag, Settings, Eye, Wrench, ChefHat, BookOpen, Globe, Link as LinkIcon } from "lucide-react"
 import { toast } from "sonner"
 import { generateSlug } from "@/lib/helpers"
+
+// ✅ NEW: Helper function to count words
+function countWords(text) {
+  if (!text || typeof text !== 'string') return 0
+  // Remove HTML tags if present
+  const cleanText = text.replace(/<[^>]*>/g, ' ')
+  // Split by whitespace and filter empty strings
+  const words = cleanText.trim().split(/\s+/).filter(word => word.length > 0)
+  return words.length
+}
+
+// ✅ NEW: Helper function to count characters
+function countCharacters(text) {
+  if (!text || typeof text !== 'string') return 0
+  return text.length
+}
+
+// ✅ NEW: Word/Character Counter Component
+function TextCounter({ text, type = 'words', ideal = null, max = null }) {
+  const count = type === 'words' ? countWords(text) : countCharacters(text)
+  const unit = type === 'words' ? 'words' : 'characters'
+  
+  // Determine color based on ideal range
+  let colorClass = 'text-muted-foreground'
+  if (ideal && count >= ideal.min && count <= ideal.max) {
+    colorClass = 'text-green-600'
+  } else if (max && count > max) {
+    colorClass = 'text-destructive'
+  } else if (ideal && count < ideal.min) {
+    colorClass = 'text-amber-600'
+  }
+  
+  return (
+    <p className={`text-xs ${colorClass} mt-1`}>
+      {count} {unit}
+      {ideal && ` • Ideal: ${ideal.min}-${ideal.max} ${unit}`}
+      {max && ` • Max: ${max} ${unit}`}
+    </p>
+  )
+}
 
 export default function NewPostPage() {
   const { data: session } = useSession()
@@ -79,6 +119,11 @@ export default function NewPostPage() {
     // ✨ Common fields (for both DIY & Recipe)
     affiliateLinks: [], // Array of {name, url, description}
   })
+
+  // ✅ NEW: Memoized word count for content (for performance)
+  const contentWordCount = useMemo(() => {
+    return countWords(formData.content)
+  }, [formData.content])
 
   // Fetch categories and posts on mount
   useEffect(() => {
@@ -582,9 +627,12 @@ export default function NewPostPage() {
                     className="mt-1 text-lg"
                     required
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.title.length}/100 characters • Make it compelling and clear
-                  </p>
+                  <TextCounter 
+                    text={formData.title} 
+                    type="characters"
+                    ideal={{ min: 40, max: 70 }}
+                    max={100}
+                  />
                 </div>
 
                 {/* Excerpt */}
@@ -605,16 +653,33 @@ export default function NewPostPage() {
                     className="mt-1"
                     rows={3}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    This appears in post previews and search results (recommended: 120-160 characters)
-                  </p>
+                  <TextCounter 
+                    text={formData.excerpt} 
+                    type="characters"
+                    ideal={{ min: 120, max: 160 }}
+                    max={300}
+                  />
                 </div>
 
                 {/* Content Editor */}
                 <div>
-                  <Label htmlFor="content">
-                    Content <span className="text-destructive">*</span>
-                  </Label>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="content">
+                      Content <span className="text-destructive">*</span>
+                    </Label>
+                    {/* ✅ NEW: Content Word Counter */}
+                    <div className="text-sm text-muted-foreground">
+                      <span className={contentWordCount > 0 ? 'text-green-600 font-medium' : ''}>
+                        {contentWordCount} words
+                      </span>
+                      {contentWordCount < 300 && contentWordCount > 0 && (
+                        <span className="text-amber-600 ml-2">• Aim for 300+ words for better SEO</span>
+                      )}
+                      {contentWordCount >= 300 && (
+                        <span className="text-green-600 ml-2">• Good length! ✓</span>
+                      )}
+                    </div>
+                  </div>
                   <p className="text-xs text-muted-foreground mb-2">
                     Write with rich formatting • Images auto-convert to WebP • Supports Google Drive URLs • Embed YouTube videos
                   </p>
@@ -917,9 +982,12 @@ export default function NewPostPage() {
                     placeholder="Custom title for search results"
                     className="mt-1"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Leave empty to use the post title • Ideal length: 50-60 characters
-                  </p>
+                  <TextCounter 
+                    text={formData.seoTitle} 
+                    type="characters"
+                    ideal={{ min: 50, max: 60 }}
+                    max={70}
+                  />
                 </div>
 
                 <div>
@@ -933,9 +1001,12 @@ export default function NewPostPage() {
                     className="mt-1"
                     rows={2}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Leave empty to use the excerpt • Ideal length: 120-160 characters
-                  </p>
+                  <TextCounter 
+                    text={formData.seoDescription} 
+                    type="characters"
+                    ideal={{ min: 120, max: 160 }}
+                    max={200}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -1025,6 +1096,11 @@ export default function NewPostPage() {
                   required={true}
                   allowCreate={session?.user.role === 'admin'}
                 />
+                {session?.user.role === 'admin' && (
+                  <p className="text-xs text-blue-600 mt-2">
+                    💡 Tip: You can also manage all categories from <Link href="/dashboard/admin/categories" className="underline">Admin → Categories</Link>
+                  </p>
+                )}
               </CardContent>
             </Card>
 

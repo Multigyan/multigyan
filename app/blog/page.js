@@ -247,6 +247,8 @@ export default function BlogPage() {
                           src={featuredPosts[0].featuredImageUrl}
                           alt={featuredPosts[0].featuredImageAlt || featuredPosts[0].title}
                           fill
+                          priority={true}
+                          sizes="(max-width: 1024px) 100vw, 66vw"
                           className="object-cover transition-transform duration-300 group-hover:scale-110"
                         />
                       ) : (
@@ -296,6 +298,7 @@ export default function BlogPage() {
                               src={featuredPosts[1].featuredImageUrl}
                               alt={featuredPosts[1].featuredImageAlt || featuredPosts[1].title}
                               fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                               className="object-cover transition-transform duration-300 group-hover:scale-110"
                             />
                           ) : (
@@ -359,6 +362,7 @@ export default function BlogPage() {
                               src={featuredPosts[2].featuredImageUrl}
                               alt={featuredPosts[2].featuredImageAlt || featuredPosts[2].title}
                               fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                               className="object-cover transition-transform duration-300 group-hover:scale-110"
                             />
                           ) : (
@@ -479,10 +483,8 @@ export default function BlogPage() {
                                     src={post.featuredImageUrl}
                                     alt={post.featuredImageAlt || post.title}
                                     fill
-                                    className="object-cover transition-transform duration-300 group-hover:scale-110"
                                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                    priority={false}
-                                    loading="lazy"
+                                    className="object-cover transition-transform duration-300 group-hover:scale-110"
                                   />
                                 ) : (
                                   <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">

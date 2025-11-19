@@ -30,6 +30,7 @@ import { PostLikeButton } from "@/components/interactions/LikeButton"
 import TableOfContents from "@/components/blog/TableOfContents"
 import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
 import AdSense from "@/components/AdSense" // ✅ Import AdSense component
+import LanguageSwitcher from "@/components/blog/LanguageSwitcher" // ✅ Import Language Switcher
 
 export default function BlogPostClient({ post }) {
   const { data: session } = useSession()
@@ -177,14 +178,19 @@ export default function BlogPostClient({ post }) {
             <div className="lg:flex lg:gap-8 lg:items-start">
               {/* Main Content Column - 2/3 width */}
               <div className="lg:w-2/3 lg:flex-shrink-0">
-                {/* Category Badge */}
-                <div className="flex items-center gap-2 mb-3 sm:mb-4 flex-wrap">
-                  <Badge style={{ backgroundColor: post.category?.color }} className="text-xs sm:text-sm">
-                    {post.category?.name}
-                  </Badge>
-                  {post.isFeatured && (
-                    <Badge variant="secondary" className="text-xs sm:text-sm">Featured</Badge>
-                  )}
+                {/* Category Badge & Language Switcher */}
+                <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge style={{ backgroundColor: post.category?.color }} className="text-xs sm:text-sm">
+                      {post.category?.name}
+                    </Badge>
+                    {post.isFeatured && (
+                      <Badge variant="secondary" className="text-xs sm:text-sm">Featured</Badge>
+                    )}
+                  </div>
+                  
+                  {/* ✅ Language Switcher (EN ⇄ HI) */}
+                  <LanguageSwitcher post={post} />
                 </div>
 
                 {/* Title Section - START OF TOC ALIGNMENT */}
