@@ -171,7 +171,7 @@ export default function BlogPostClient({ post }) {
       <div class="my-8 ad-middle-container" style="text-align: center; min-height: 250px;">
         <ins class="adsbygoogle"
              style="display:block; text-align:center;"
-             data-ad-client="ca-pub-2469893467"
+             data-ad-client="ca-pub-1982960683340318"
              data-ad-slot="2660754715"
              data-ad-format="auto"
              data-full-width-responsive="true"></ins>

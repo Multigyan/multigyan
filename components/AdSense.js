@@ -17,8 +17,8 @@ import { useEffect } from 'react'
  * Get your ad slot IDs from: https://adsense.google.com
  */
 
-export default function AdSense({ 
-  adSlot, 
+export default function AdSense({
+  adSlot,
   adFormat = 'auto',
   fullWidthResponsive = true,
   adStyle = { display: 'block', margin: '20px 0' }
