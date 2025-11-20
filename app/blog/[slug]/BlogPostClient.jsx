@@ -52,33 +52,6 @@ export default function BlogPostClient({ post }) {
     }
   }, [post])
 
-  // ✅ Render AdSense in smart ad placeholder
-  useEffect(() => {
-    const placeholder = document.querySelector('.adsense-placeholder')
-    if (placeholder && !placeholder.hasAttribute('data-ad-rendered')) {
-      placeholder.setAttribute('data-ad-rendered', 'true')
-
-      // Create AdSense script
-      const ins = document.createElement('ins')
-      ins.className = 'adsbygoogle'
-      ins.style.display = 'block'
-      ins.style.textAlign = 'center'
-      ins.setAttribute('data-ad-client', 'ca-pub-2469893467')
-      ins.setAttribute('data-ad-slot', placeholder.getAttribute('data-ad-slot'))
-      ins.setAttribute('data-ad-format', 'auto')
-      ins.setAttribute('data-full-width-responsive', 'true')
-
-      placeholder.appendChild(ins)
-
-      // Push ad
-      try {
-        (window.adsbygoogle = window.adsbygoogle || []).push({})
-      } catch (e) {
-        console.error('AdSense error:', e)
-      }
-    }
-  }, [post])
-
   const fetchRelatedPosts = async () => {
     if (post.author?._id) {
       try {
@@ -141,7 +114,10 @@ export default function BlogPostClient({ post }) {
   // ✅ SMART AD INSERTION: Insert ad after complete elements (tables, images, headings)
   const insertSmartAd = (content) => {
     // Don't insert if content is too short
-    if (content.length < 1000) return content
+    if (content.length < 1000) {
+      console.log('⚠️ Content too short for middle ad:', content.length)
+      return content
+    }
 
     // Find safe insertion points (after closing tags of block elements)
     const safePoints = [
@@ -153,6 +129,7 @@ export default function BlogPostClient({ post }) {
       { tag: '</pre>', weight: 5 },     // After code blocks
       { tag: '</ul>', weight: 4 },      // After lists
       { tag: '</ol>', weight: 4 },
+      { tag: '</p>', weight: 2 },       // Fallback to paragraphs
     ]
 
     // Find all safe insertion points with their positions
@@ -170,7 +147,7 @@ export default function BlogPostClient({ post }) {
     })
 
     if (insertionCandidates.length === 0) {
-      // No safe points found, don't insert ad
+      console.log('⚠️ No safe insertion points found for middle ad')
       return content
     }
 
@@ -187,10 +164,20 @@ export default function BlogPostClient({ post }) {
       return currentScore < bestScore ? current : best
     })
 
-    // Insert ad at the best position
+    console.log('✅ Middle ad will be inserted after:', bestCandidate.tag, 'at position:', bestCandidate.position)
+
+    // Insert ad at the best position with proper AdSense structure
     const adHtml = `
-      <div class="my-8 ad-middle-container">
-        <div class="adsense-placeholder" data-ad-slot="2660754715"></div>
+      <div class="my-8 ad-middle-container" style="text-align: center; min-height: 250px;">
+        <ins class="adsbygoogle"
+             style="display:block; text-align:center;"
+             data-ad-client="ca-pub-2469893467"
+             data-ad-slot="2660754715"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
       </div>
     `
 
