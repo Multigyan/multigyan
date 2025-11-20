@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Eye, 
-  Heart, 
+import {
+  Calendar,
+  Clock,
+  User,
+  Eye,
+  Heart,
   MessageCircle,
   ArrowLeft,
   BookOpen,
@@ -31,12 +31,14 @@ import TableOfContents from "@/components/blog/TableOfContents"
 import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
 import AdSense from "@/components/AdSense" // ✅ Import AdSense component
 import LanguageSwitcher from "@/components/blog/LanguageSwitcher" // ✅ Import Language Switcher
+// ✅ Import KaTeX CSS for formula rendering
+import 'katex/dist/katex.min.css'
 
 export default function BlogPostClient({ post }) {
   const { data: session } = useSession()
   const [relatedPosts, setRelatedPosts] = useState([])
   const [loading, setLoading] = useState(true)
-  
+
   // ✨ State to track live comment stats
   const [commentStats, setCommentStats] = useState({
     approved: post.comments?.filter(c => c.isApproved).length || 0,
@@ -55,7 +57,7 @@ export default function BlogPostClient({ post }) {
       try {
         const response = await fetch(`/api/posts?status=published&author=${post.author._id}&limit=4`)
         const data = await response.json()
-        
+
         if (response.ok) {
           const filtered = data.posts?.filter(p => p._id !== post._id) || []
           setRelatedPosts(filtered.slice(0, 3))
@@ -113,10 +115,10 @@ export default function BlogPostClient({ post }) {
   const insertMiddleAd = (content) => {
     // Split content by paragraphs
     const paragraphs = content.split('</p>')
-    
+
     // Calculate middle position (after ~40% of content)
     const middleIndex = Math.floor(paragraphs.length * 0.4)
-    
+
     if (paragraphs.length > 5 && middleIndex > 2) {
       // Insert ad after the middle paragraph
       paragraphs.splice(middleIndex, 0, `
@@ -126,7 +128,7 @@ export default function BlogPostClient({ post }) {
       `)
       return paragraphs.join('</p>')
     }
-    
+
     return content
   }
 
@@ -153,7 +155,7 @@ export default function BlogPostClient({ post }) {
     <div className="min-h-screen">
       {/* ✨ Add Code Block Copy Buttons */}
       <CodeBlockCopyButton />
-      
+
       <article className="py-6 sm:py-8 md:py-12">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
@@ -188,7 +190,7 @@ export default function BlogPostClient({ post }) {
                       <Badge variant="secondary" className="text-xs sm:text-sm">Featured</Badge>
                     )}
                   </div>
-                  
+
                   {/* ✅ Language Switcher (EN ⇄ HI) */}
                   <LanguageSwitcher post={post} />
                 </div>
@@ -311,7 +313,7 @@ export default function BlogPostClient({ post }) {
 
                 {/* ✅ TOP AD - After Featured Image, Before Content */}
                 <div className="my-8">
-                  <AdSense 
+                  <AdSense
                     adSlot="2469893467"
                     adFormat="auto"
                     adStyle={{ display: 'block', textAlign: 'center' }}
@@ -653,27 +655,69 @@ export default function BlogPostClient({ post }) {
                         margin-top: 0.75rem;
                       }
                     }
+
+                    /* ✅ KaTeX Formula Rendering Styles */
+                    .blog-content .katex {
+                      font-size: 1.1em;
+                    }
+
+                    .blog-content .katex-display {
+                      margin: 1.5rem 0;
+                      overflow-x: auto;
+                      overflow-y: hidden;
+                    }
+
+                    @media (min-width: 640px) {
+                      .blog-content .katex-display {
+                        margin: 2rem 0;
+                      }
+                    }
+
+                    .blog-content .katex-display > .katex {
+                      text-align: center;
+                    }
+
+                    /* Inline formulas */
+                    .blog-content .katex-inline {
+                      display: inline-block;
+                      vertical-align: middle;
+                    }
+
+                    /* Formula scrollbar for long equations */
+                    .blog-content .katex-display::-webkit-scrollbar {
+                      height: 6px;
+                    }
+
+                    .blog-content .katex-display::-webkit-scrollbar-track {
+                      background: var(--muted);
+                      border-radius: 3px;
+                    }
+
+                    .blog-content .katex-display::-webkit-scrollbar-thumb {
+                      background: var(--primary);
+                      border-radius: 3px;
+                    }
                   `}</style>
-                  
+
                   {/* Content - First Half */}
-                  <div 
+                  <div
                     className="text-foreground"
                     dangerouslySetInnerHTML={{ __html: post.content.split('</p>').slice(0, Math.floor(post.content.split('</p>').length * 0.4)).join('</p>') + '</p>' }}
                   />
-                  
+
                   {/* ✅ MIDDLE AD - In the middle of content (40% through) */}
                   {post.content.split('</p>').length > 5 && (
                     <div className="my-8">
-                      <AdSense 
+                      <AdSense
                         adSlot="2660754715"
                         adFormat="auto"
                         adStyle={{ display: 'block', textAlign: 'center' }}
                       />
                     </div>
                   )}
-                  
+
                   {/* Content - Second Half */}
-                  <div 
+                  <div
                     className="text-foreground"
                     dangerouslySetInnerHTML={{ __html: post.content.split('</p>').slice(Math.floor(post.content.split('</p>').length * 0.4)).join('</p>') }}
                   />
@@ -681,7 +725,7 @@ export default function BlogPostClient({ post }) {
 
                 {/* ✅ BOTTOM AD - After Content, Before Tags */}
                 <div className="my-8">
-                  <AdSense 
+                  <AdSense
                     adSlot="1347673049"
                     adFormat="auto"
                     adStyle={{ display: 'block', textAlign: 'center' }}
@@ -694,9 +738,9 @@ export default function BlogPostClient({ post }) {
                     <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Tags</h3>
                     <div className="flex flex-wrap gap-2">
                       {post.tags.map((tag, index) => (
-                        <Badge 
-                          key={index} 
-                          variant="outline" 
+                        <Badge
+                          key={index}
+                          variant="outline"
                           className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer text-xs sm:text-sm min-h-[32px]"
                         >
                           #{tag}
@@ -784,7 +828,7 @@ export default function BlogPostClient({ post }) {
                 ==================================================================
               */}
               <div className="hidden lg:block lg:w-1/3 lg:flex-shrink-0">
-                <div 
+                <div
                   className="sticky custom-scrollbar"
                   style={{
                     top: '5rem',
@@ -806,8 +850,8 @@ export default function BlogPostClient({ post }) {
               {/* Comments Section */}
               <section className="mb-8 sm:mb-12">
                 {/* ✨ Passing callback to update stats */}
-                <CommentSection 
-                  postId={post._id} 
+                <CommentSection
+                  postId={post._id}
                   allowComments={post.allowComments}
                   showStats={true}
                   onStatsUpdate={handleCommentStatsUpdate}
@@ -845,7 +889,7 @@ export default function BlogPostClient({ post }) {
                         {post.author?.bio || 'No bio available.'}
                       </p>
                       {post.author?.twitterHandle && (
-                        <Link 
+                        <Link
                           href={`https://twitter.com/${post.author.twitterHandle}`}
                           target="_blank"
                           className="text-xs sm:text-sm text-primary hover:underline inline-block min-h-[44px] flex items-center justify-center sm:justify-start"
@@ -908,9 +952,9 @@ export default function BlogPostClient({ post }) {
 
               {/* Back Button */}
               <div className="text-center mt-8 sm:mt-12">
-                <Button 
-                  variant="outline" 
-                  asChild 
+                <Button
+                  variant="outline"
+                  asChild
                   className="hover:bg-primary hover:text-primary-foreground transition-colors min-h-[44px] w-full sm:w-auto"
                 >
                   <Link href="/blog">

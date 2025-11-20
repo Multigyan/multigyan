@@ -4,11 +4,11 @@ import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Eye, 
+import {
+  Calendar,
+  Clock,
+  User,
+  Eye,
   Heart,
   MessageCircle,
   BookOpen
@@ -18,10 +18,10 @@ import { formatDate, getPostUrl } from "@/lib/helpers"
 export default function PostCard({ post, featured = false }) {
   // ✅ FALLBACK: Handle both old (imageUrl) and new (featuredImageUrl) field names
   const imageUrl = post.featuredImageUrl || post.imageUrl;
-  
-  // Get counts
-  const likesCount = post.likes?.length || 0
-  const commentsCount = post.comments?.filter(c => c.isApproved).length || 0
+
+  // ✅ FIX: Get counts from API response (likeCount, commentCount) or fallback to array length
+  const likesCount = post.likeCount ?? post.likes?.length ?? 0
+  const commentsCount = post.commentCount ?? post.comments?.filter(c => c.isApproved).length ?? 0
   const viewsCount = post.views || 0
 
   return (
@@ -42,10 +42,10 @@ export default function PostCard({ post, featured = false }) {
               <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-primary/60 transition-transform duration-300 group-hover:scale-110" />
             </div>
           )}
-          
+
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
-          
+
           {/* Featured Badge */}
           {featured && (
             <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-10">
@@ -55,31 +55,31 @@ export default function PostCard({ post, featured = false }) {
             </div>
           )}
         </div>
-        
+
         {/* ✅ IMPROVED: Content with better mobile spacing */}
         <CardContent className="p-4 sm:p-5 md:p-6 flex-1 flex flex-col">
           {/* Category Badge */}
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
-            <Badge 
+            <Badge
               style={{ backgroundColor: post.category?.color }}
               className="text-white text-xs sm:text-sm"
             >
               {post.category?.name}
             </Badge>
           </div>
-          
+
           {/* ✅ IMPROVED: Title with better mobile sizing */}
           <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 line-clamp-2 group-hover:text-primary transition-colors">
             {post.title}
           </h3>
-          
+
           {/* Excerpt */}
           {post.excerpt && (
             <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 flex-1">
               {post.excerpt}
             </p>
           )}
-          
+
           {/* ✅ IMPROVED: Meta Information with better mobile layout */}
           <div className="space-y-2 sm:space-y-3 mt-auto">
             {/* ✅ IMPROVED: Author & Date - Better mobile wrapping */}
@@ -102,7 +102,7 @@ export default function PostCard({ post, featured = false }) {
                   {post.author?.name}
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-1 sm:gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0">
                 <Calendar className="h-3 w-3" />
                 <span className="hidden sm:inline">{formatDate(post.publishedAt)}</span>
@@ -121,7 +121,7 @@ export default function PostCard({ post, featured = false }) {
                   <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
                   <span className="font-medium whitespace-nowrap">{post.readingTime} min</span>
                 </span>
-                
+
                 {viewsCount > 0 && (
                   <span className="flex items-center gap-1 group-hover:text-foreground transition-colors text-muted-foreground">
                     <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
@@ -129,7 +129,7 @@ export default function PostCard({ post, featured = false }) {
                   </span>
                 )}
               </div>
-              
+
               {/* ✅ IMPROVED: Right: Likes & Comments - Better mobile sizing */}
               <div className="flex items-center gap-2">
                 {/* Likes */}
@@ -137,7 +137,7 @@ export default function PostCard({ post, featured = false }) {
                   <Heart className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current flex-shrink-0" />
                   <span className="text-xs font-semibold">{likesCount}</span>
                 </span>
-                
+
                 {/* Comments */}
                 <span className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:scale-105 transition-all">
                   <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
