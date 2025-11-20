@@ -492,20 +492,31 @@ export default function BlogPostClient({ post }) {
 
                     .blog-content table {
                       width: 100%;
+                      min-width: 800px;
                       border-collapse: separate;
                       border-spacing: 0;
                       margin: 1.5rem 0;
-                      overflow-x: auto;
-                      display: block;
                       border-radius: 0.5rem;
                       box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
                       font-size: 0.813rem;
                     }
 
+                    /* Table wrapper for horizontal scroll */
+                    .blog-content table {
+                      display: table;
+                    }
+
+                    @media (max-width: 1024px) {
+                      .blog-content table {
+                        display: block;
+                        overflow-x: auto;
+                        white-space: nowrap;
+                      }
+                    }
+
                     @media (min-width: 640px) {
                       .blog-content table {
                         margin: 2rem 0;
-                        display: table;
                         font-size: 0.938rem;
                       }
                     }
@@ -525,12 +536,14 @@ export default function BlogPostClient({ post }) {
                       border-bottom: 2px solid hsl(var(--primary));
                       white-space: normal;
                       word-wrap: break-word;
+                      min-width: 120px;
                     }
 
                     @media (min-width: 640px) {
                       .blog-content thead th {
                         padding: 1rem 1.25rem;
                         font-size: 0.875rem;
+                        min-width: 150px;
                       }
                     }
 
@@ -561,11 +574,13 @@ export default function BlogPostClient({ post }) {
                       white-space: normal;
                       word-wrap: break-word;
                       vertical-align: top;
+                      min-width: 120px;
                     }
 
                     @media (min-width: 640px) {
                       .blog-content tbody td {
                         padding: 1rem 1.25rem;
+                        min-width: 150px;
                       }
                     }
 
@@ -588,6 +603,27 @@ export default function BlogPostClient({ post }) {
 
                     .blog-content table sub {
                       bottom: -0.25em;
+                    }
+
+                    /* Custom scrollbar for tables */
+                    @media (max-width: 1024px) {
+                      .blog-content table::-webkit-scrollbar {
+                        height: 8px;
+                      }
+
+                      .blog-content table::-webkit-scrollbar-track {
+                        background: var(--muted);
+                        border-radius: 4px;
+                      }
+
+                      .blog-content table::-webkit-scrollbar-thumb {
+                        background: var(--primary);
+                        border-radius: 4px;
+                      }
+
+                      .blog-content table::-webkit-scrollbar-thumb:hover {
+                        background: hsl(var(--primary) / 0.8);
+                      }
                     }
 
                     .blog-content blockquote {
