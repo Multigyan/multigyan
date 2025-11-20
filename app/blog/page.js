@@ -22,9 +22,12 @@ import SearchForm from "@/components/blog/SearchForm"
 export const revalidate = 60
 
 export default async function BlogPage({ searchParams }) {
+  // ✅ FIX: Await searchParams before accessing properties (Next.js 15+ requirement)
+  const resolvedParams = await searchParams
+
   // Get search and pagination params
-  const page = parseInt(searchParams.page) || 1
-  const search = searchParams.search || ''
+  const page = parseInt(resolvedParams.page) || 1
+  const search = resolvedParams.search || ''
 
   // ✅ COST OPTIMIZATION: Fetch data server-side with caching
   // This eliminates 3 API calls per visitor
