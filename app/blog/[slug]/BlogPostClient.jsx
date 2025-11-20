@@ -52,6 +52,33 @@ export default function BlogPostClient({ post }) {
     }
   }, [post])
 
+  // ✅ Render AdSense in smart ad placeholder
+  useEffect(() => {
+    const placeholder = document.querySelector('.adsense-placeholder')
+    if (placeholder && !placeholder.hasAttribute('data-ad-rendered')) {
+      placeholder.setAttribute('data-ad-rendered', 'true')
+
+      // Create AdSense script
+      const ins = document.createElement('ins')
+      ins.className = 'adsbygoogle'
+      ins.style.display = 'block'
+      ins.style.textAlign = 'center'
+      ins.setAttribute('data-ad-client', 'ca-pub-2469893467')
+      ins.setAttribute('data-ad-slot', placeholder.getAttribute('data-ad-slot'))
+      ins.setAttribute('data-ad-format', 'auto')
+      ins.setAttribute('data-full-width-responsive', 'true')
+
+      placeholder.appendChild(ins)
+
+      // Push ad
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({})
+      } catch (e) {
+        console.error('AdSense error:', e)
+      }
+    }
+  }, [post])
+
   const fetchRelatedPosts = async () => {
     if (post.author?._id) {
       try {
@@ -111,26 +138,71 @@ export default function BlogPostClient({ post }) {
     }
   }
 
-  // ✅ NEW: Function to insert middle ad in content
-  const insertMiddleAd = (content) => {
-    // Split content by paragraphs
-    const paragraphs = content.split('</p>')
+  // ✅ SMART AD INSERTION: Insert ad after complete elements (tables, images, headings)
+  const insertSmartAd = (content) => {
+    // Don't insert if content is too short
+    if (content.length < 1000) return content
 
-    // Calculate middle position (after ~40% of content)
-    const middleIndex = Math.floor(paragraphs.length * 0.4)
+    // Find safe insertion points (after closing tags of block elements)
+    const safePoints = [
+      { tag: '</table>', weight: 10 },  // Prefer after tables
+      { tag: '</figure>', weight: 9 },  // After images
+      { tag: '</h2>', weight: 8 },      // After h2 headings
+      { tag: '</h3>', weight: 7 },      // After h3 headings
+      { tag: '</blockquote>', weight: 6 }, // After blockquotes
+      { tag: '</pre>', weight: 5 },     // After code blocks
+      { tag: '</ul>', weight: 4 },      // After lists
+      { tag: '</ol>', weight: 4 },
+    ]
 
-    if (paragraphs.length > 5 && middleIndex > 2) {
-      // Insert ad after the middle paragraph
-      paragraphs.splice(middleIndex, 0, `
-        <div class="my-8 ad-middle-container">
-          <!-- Ad placeholder - will be replaced by AdSense component -->
-        </div>
-      `)
-      return paragraphs.join('</p>')
+    // Find all safe insertion points with their positions
+    const insertionCandidates = []
+    safePoints.forEach(({ tag, weight }) => {
+      let index = content.indexOf(tag)
+      while (index !== -1) {
+        insertionCandidates.push({
+          position: index + tag.length,
+          weight,
+          tag
+        })
+        index = content.indexOf(tag, index + 1)
+      }
+    })
+
+    if (insertionCandidates.length === 0) {
+      // No safe points found, don't insert ad
+      return content
     }
 
-    return content
+    // Find the insertion point closest to 40% of content
+    const targetPosition = content.length * 0.4
+    const bestCandidate = insertionCandidates.reduce((best, current) => {
+      const currentDistance = Math.abs(current.position - targetPosition)
+      const bestDistance = Math.abs(best.position - targetPosition)
+
+      // Prefer closer position, but give bonus to higher weight elements
+      const currentScore = currentDistance - (current.weight * 50)
+      const bestScore = bestDistance - (best.weight * 50)
+
+      return currentScore < bestScore ? current : best
+    })
+
+    // Insert ad at the best position
+    const adHtml = `
+      <div class="my-8 ad-middle-container">
+        <div class="adsense-placeholder" data-ad-slot="2660754715"></div>
+      </div>
+    `
+
+    return (
+      content.substring(0, bestCandidate.position) +
+      adHtml +
+      content.substring(bestCandidate.position)
+    )
   }
+
+  // Process content with smart ad insertion
+  const processedContent = insertSmartAd(post.content)
 
   if (loading) {
     return (
@@ -492,32 +564,43 @@ export default function BlogPostClient({ post }) {
 
                     .blog-content table {
                       width: 100%;
-                      min-width: 800px;
                       border-collapse: separate;
                       border-spacing: 0;
                       margin: 1.5rem 0;
                       border-radius: 0.5rem;
                       box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
                       font-size: 0.813rem;
-                    }
-
-                    /* Table wrapper for horizontal scroll */
-                    .blog-content table {
                       display: table;
-                    }
-
-                    @media (max-width: 1024px) {
-                      .blog-content table {
-                        display: block;
-                        overflow-x: auto;
-                        white-space: nowrap;
-                      }
                     }
 
                     @media (min-width: 640px) {
                       .blog-content table {
                         margin: 2rem 0;
                         font-size: 0.938rem;
+                      }
+                    }
+
+                    /* Wrapper div for horizontal scroll on small screens */
+                    @media (max-width: 768px) {
+                      .blog-content table {
+                        display: block;
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                      }
+
+                      .blog-content table thead,
+                      .blog-content table tbody {
+                        display: table;
+                        width: 100%;
+                      }
+
+                      .blog-content table tr {
+                        display: table-row;
+                      }
+
+                      .blog-content table th,
+                      .blog-content table td {
+                        display: table-cell;
                       }
                     }
 
@@ -536,14 +619,12 @@ export default function BlogPostClient({ post }) {
                       border-bottom: 2px solid hsl(var(--primary));
                       white-space: normal;
                       word-wrap: break-word;
-                      min-width: 120px;
                     }
 
                     @media (min-width: 640px) {
                       .blog-content thead th {
                         padding: 1rem 1.25rem;
                         font-size: 0.875rem;
-                        min-width: 150px;
                       }
                     }
 
@@ -574,20 +655,19 @@ export default function BlogPostClient({ post }) {
                       white-space: normal;
                       word-wrap: break-word;
                       vertical-align: top;
-                      min-width: 120px;
                     }
 
                     @media (min-width: 640px) {
                       .blog-content tbody td {
                         padding: 1rem 1.25rem;
-                        min-width: 150px;
                       }
                     }
 
                     /* ✅ FIX: Allow formulas in table cells */
                     .blog-content table .katex {
                       font-size: 1em;
-                      display: inline-block;
+                      display: inline;
+                      white-space: normal;
                     }
 
                     .blog-content table sup,
@@ -605,8 +685,8 @@ export default function BlogPostClient({ post }) {
                       bottom: -0.25em;
                     }
 
-                    /* Custom scrollbar for tables */
-                    @media (max-width: 1024px) {
+                    /* Custom scrollbar for tables on mobile */
+                    @media (max-width: 768px) {
                       .blog-content table::-webkit-scrollbar {
                         height: 8px;
                       }
@@ -759,27 +839,10 @@ export default function BlogPostClient({ post }) {
                     }
                   `}</style>
 
-                  {/* Content - First Half */}
+                  {/* ✅ Blog Content with Smart Ad Insertion */}
                   <div
                     className="text-foreground"
-                    dangerouslySetInnerHTML={{ __html: post.content.split('</p>').slice(0, Math.floor(post.content.split('</p>').length * 0.4)).join('</p>') + '</p>' }}
-                  />
-
-                  {/* ✅ MIDDLE AD - In the middle of content (40% through) */}
-                  {post.content.split('</p>').length > 5 && (
-                    <div className="my-8">
-                      <AdSense
-                        adSlot="2660754715"
-                        adFormat="auto"
-                        adStyle={{ display: 'block', textAlign: 'center' }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Content - Second Half */}
-                  <div
-                    className="text-foreground"
-                    dangerouslySetInnerHTML={{ __html: post.content.split('</p>').slice(Math.floor(post.content.split('</p>').length * 0.4)).join('</p>') }}
+                    dangerouslySetInnerHTML={{ __html: processedContent }}
                   />
                 </div>
 
