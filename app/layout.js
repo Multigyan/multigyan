@@ -12,7 +12,12 @@ import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+  variable: '--font-inter',
+})
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -95,20 +100,20 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={inter.className}>
-      <body 
+      <body
         className="min-h-screen bg-background font-sans antialiased"
         suppressHydrationWarning={true}
       >
-        
+
         {/* Google Analytics 4 - FIXED: Proper configuration */}
         <Script
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           src="https://www.googletagmanager.com/gtag/js?id=G-HEPC56C10C"
           async
         />
         <Script
           id="google-analytics"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
@@ -121,14 +126,14 @@ export default function RootLayout({ children }) {
             `,
           }}
         />
-        
+
         {/* Google AdSense - FIXED: Removed crossOrigin to avoid warning */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1982960683340318"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        
+
         <AuthProvider>
           <LoadingBar />
           <div className="relative flex min-h-screen flex-col">
@@ -140,7 +145,7 @@ export default function RootLayout({ children }) {
           <BackToTop />
           <Toaster />
         </AuthProvider>
-        
+
         {/* Vercel Analytics */}
         <Analytics />
         <SpeedInsights />

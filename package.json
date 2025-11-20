@@ -25,6 +25,7 @@
     "db:fix-recipe": "node scripts/fix-recipe-post.js",
     "optimize:indexes": "node scripts/add-database-indexes.js",
     "optimize:all": "npm run optimize:indexes",
+    "optimize:performance": "node scripts/add-performance-indexes.js",
     "test:performance": "node scripts/test-performance.js",
     "verify:setup": "node scripts/verify-optimization-setup.js",
     "fix:references": "node scripts/fix-post-references.js",
@@ -32,6 +33,7 @@
     "newsletter:fix-subscribers": "node scripts/fix-newsletter-subscribers.js"
   },
   "dependencies": {
+    "@next/bundle-analyzer": "^16.0.3",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.10",
