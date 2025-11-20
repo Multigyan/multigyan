@@ -1,4 +1,12 @@
 /** @type {import('next').NextConfig} */
+
+// ⚡ PHASE 3: Bundle Analyzer Configuration
+import bundleAnalyzer from '@next/bundle-analyzer'
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 const nextConfig = {
   // ============================================
   // COMPILER OPTIMIZATIONS
@@ -7,16 +15,52 @@ const nextConfig = {
     // Remove console.log in production (reduces bundle size)
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  
+
+  // ⚡ PHASE 3: Experimental Optimizations
+  experimental: {
+    // Optimize package imports (reduces bundle size)
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', '@radix-ui/react-dialog'],
+  },
+
   // ============================================
   // OUTPUT OPTIMIZATION
   // ============================================
   // Standalone output reduces deployment size by 80%
   output: 'standalone',
-  
+
   // Enable Gzip/Brotli compression (reduces file size by 60-80%)
   compress: true,
-  
+
+  // ⚡ PHASE 3: Webpack Optimization
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          default: false,
+          vendors: false,
+          // Vendor chunk
+          vendor: {
+            name: 'vendor',
+            chunks: 'all',
+            test: /node_modules/,
+            priority: 20
+          },
+          // Common chunk
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            priority: 10,
+            reuseExistingChunk: true,
+            enforce: true
+          }
+        }
+      }
+    }
+    return config
+  },
+
   // ============================================
   // CACHING & SECURITY HEADERS
   // ============================================
@@ -108,7 +152,7 @@ const nextConfig = {
       },
     ]
   },
-  
+
   // ============================================
   // IMAGE OPTIMIZATION
   // ============================================
@@ -146,16 +190,16 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
-    
+
     // Image formats - AVIF is 30% smaller than WebP, WebP is 30% smaller than JPEG
     formats: ['image/avif', 'image/webp'],
-    
+
     // Device sizes for responsive images
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    
+
     // Image sizes for different breakpoints
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

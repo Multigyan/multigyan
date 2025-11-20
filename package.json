@@ -33,7 +33,6 @@
     "newsletter:fix-subscribers": "node scripts/fix-newsletter-subscribers.js"
   },
   "dependencies": {
-    "@next/bundle-analyzer": "^16.0.3",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -103,6 +102,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^16.0.3",
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",

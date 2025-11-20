@@ -6,33 +6,37 @@ import Category from "@/models/Category" // ✅ FIX: Import Category model for p
 import User from "@/models/User" // ✅ FIX: Import User model for populate()
 import { generateSEOMetadata } from "@/lib/seo"
 // ✅ Import bilingual SEO utilities
-import { 
-  generateArticleSchema, 
-  generateBreadcrumbSchema 
+import {
+  generateArticleSchema,
+  generateBreadcrumbSchema
 } from "@/lib/seo-enhanced"
 import EnhancedSchema from "@/components/seo/EnhancedSchema"
 
 // ========================================
 // DYNAMIC RENDERING CONFIGURATION
 // ========================================
-// This tells Next.js to use dynamic rendering (fetch data on each request)
-// and revalidate the page every 60 seconds
-export const dynamic = 'force-dynamic'
-export const revalidate = 60 // Revalidate every 60 seconds
+// ISR: Revalidate static pages every 3600 seconds (1 hour)
+// This allows static generation while keeping content fresh
+export const revalidate = 3600 // Revalidate every hour
 
 // ========================================
 // GENERATE STATIC PARAMS FOR BUILD TIME
 // ========================================
-// This function pre-generates static pages for all published posts during build
+// Pre-generate static pages for top 100 most viewed posts during build
+// Other posts will be generated on-demand with ISR
 export async function generateStaticParams() {
   try {
     await connectDB()
-    
-    // Get all published posts
+
+    // Get top 100 most viewed published posts
     const posts = await Post.find({ status: 'published' })
+      .sort({ views: -1 }) // Sort by views descending
+      .limit(100) // Only pre-render top 100
       .select('slug')
       .lean()
-    
+
+    console.log(`[Static Generation] Pre-rendering ${posts.length} most viewed posts`)
+
     // Return array of slugs for static generation
     return posts.map((post) => ({
       slug: post.slug,
@@ -50,12 +54,12 @@ export async function generateStaticParams() {
 // This function handles dates that might be strings or Date objects
 function toISOStringSafe(dateValue) {
   if (!dateValue) return null
-  
+
   // If it's already a Date object, use it directly
   if (dateValue instanceof Date) {
     return dateValue.toISOString()
   }
-  
+
   // If it's a string or number, convert to Date first
   try {
     const date = new Date(dateValue)
@@ -78,33 +82,33 @@ export async function generateMetadata({ params }) {
   try {
     // ✅ FIX 1: Await params before using it (Next.js 15+ requirement)
     const resolvedParams = await params
-    
+
     await connectDB()
-    
+
     // ✅ FIX 2: Use resolvedParams.slug instead of params.slug
-    const post = await Post.findOne({ 
-      slug: resolvedParams.slug, 
-      status: 'published' 
+    const post = await Post.findOne({
+      slug: resolvedParams.slug,
+      status: 'published'
     })
       .populate('author', 'name profilePictureUrl')
       .populate('category', 'name')
       .lean()
-    
+
     if (!post) {
       return {
         title: 'Post Not Found | Multigyan',
         description: 'The requested blog post could not be found.'
       }
     }
-    
+
     // ✅ NEW: Find translation for hreflang
-    const translation = post.translationOf 
+    const translation = post.translationOf
       ? await Post.findById(post.translationOf).select('slug lang').lean()
       : await Post.findOne({ translationOf: post._id }).select('slug lang').lean()
-    
+
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const postUrl = `${siteUrl}/blog/${post.slug}`
-    
+
     const metadata = generateSEOMetadata({
       title: post.seoTitle || post.title,
       description: post.seoDescription || post.excerpt,
@@ -120,7 +124,7 @@ export async function generateMetadata({ params }) {
       category: post.category?.name,
       tags: post.tags
     })
-    
+
     // ✅ NEW: Add language alternates for hreflang
     if (translation) {
       metadata.alternates = {
@@ -132,7 +136,7 @@ export async function generateMetadata({ params }) {
         }
       }
     }
-    
+
     return metadata
   } catch (error) {
     console.error('Error generating metadata:', error)
@@ -150,41 +154,41 @@ export default async function BlogPostPage({ params }) {
   try {
     // ✅ FIX 1: Await params before using it (Next.js 15+ requirement)
     const resolvedParams = await params
-    
+
     await connectDB()
-    
+
     // ✅ FIX 2: Use resolvedParams.slug instead of params.slug
-    const post = await Post.findOne({ 
-      slug: resolvedParams.slug, 
-      status: 'published' 
+    const post = await Post.findOne({
+      slug: resolvedParams.slug,
+      status: 'published'
     })
       .populate('author', 'name email username profilePictureUrl bio twitterHandle')
       .populate('category', 'name slug color')
       .populate('comments.author', 'name profilePictureUrl role')
       .populate('reviewedBy', 'name')
       .lean()
-    
+
     if (!post) {
       notFound()
     }
-    
+
     // 🐛 NEW: Redirect recipes to /recipe/[slug]
     if (post.contentType === 'recipe') {
       redirect(`/recipe/${post.slug}`)
     }
-    
+
     // Increment view count (we'll do this async to not block rendering)
     Post.findByIdAndUpdate(post._id, { $inc: { views: 1 } }).exec()
-    
+
     // ✅ NEW: Find translation for language switcher
-    const translation = post.translationOf 
+    const translation = post.translationOf
       ? await Post.findById(post.translationOf).select('slug lang').lean()
       : await Post.findOne({ translationOf: post._id }).select('slug lang').lean()
-    
+
     // Generate structured data - Using Enhanced Schema Only
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const postUrl = `${siteUrl}/blog/${post.slug}`
-    
+
     // ✅ Generate enhanced schemas for bilingual SEO (includes author URL)
     const enhancedArticleSchema = generateArticleSchema(post)
     const breadcrumbSchema = generateBreadcrumbSchema([
@@ -193,7 +197,7 @@ export default async function BlogPostPage({ params }) {
       { name: post.category?.name || 'Uncategorized', url: `${siteUrl}/category/${post.category?.slug || 'uncategorized'}` },
       { name: post.title, url: postUrl }
     ])
-    
+
     // Serialize the post for client component (NO SPREAD OPERATOR!)
     const serializedPost = {
       // Basic fields
@@ -204,7 +208,7 @@ export default async function BlogPostPage({ params }) {
       slug: post.slug,
       featuredImageUrl: post.featuredImageUrl,
       featuredImageAlt: post.featuredImageAlt,
-      
+
       // Serialized author
       author: post.author ? {
         _id: post.author._id.toString(),
@@ -215,7 +219,7 @@ export default async function BlogPostPage({ params }) {
         bio: post.author.bio,
         twitterHandle: post.author.twitterHandle
       } : null,
-      
+
       // Serialized category
       category: post.category ? {
         _id: post.category._id.toString(),
@@ -223,11 +227,11 @@ export default async function BlogPostPage({ params }) {
         slug: post.category.slug,
         color: post.category.color
       } : null,
-      
+
       // Arrays
       tags: post.tags || [],
       likes: post.likes?.map(like => like.toString()) || [],
-      
+
       // Dates
       publishedAt: toISOStringSafe(post.publishedAt),
       updatedAt: toISOStringSafe(post.updatedAt),
@@ -265,19 +269,19 @@ export default async function BlogPostPage({ params }) {
         _id: post.reviewedBy._id.toString(),
         name: post.reviewedBy.name
       } : null,
-      
+
       // Metadata
       status: post.status,
       views: post.views || 0,
       readingTime: post.readingTime || 0,
       isFeatured: post.isFeatured || false,
       allowComments: post.allowComments !== false, // Default to true
-      
+
       // SEO fields
       seoTitle: post.seoTitle || post.title,
       seoDescription: post.seoDescription || post.excerpt,
       seoKeywords: post.seoKeywords || post.tags || [],
-      
+
       // ✅ NEW: Add language and translation data
       lang: post.lang || 'en',
       translationOf: post.translationOf ? post.translationOf.toString() : null, // ✨ ADD THIS!
@@ -285,10 +289,10 @@ export default async function BlogPostPage({ params }) {
         slug: translation.slug,
         lang: translation.lang
       } : null,
-      
+
       // DO NOT include revision, hasRevision, or other MongoDB internal fields!
     }
-    
+
     return (
       <>
         {/* ✅ Using Enhanced Schema with author URL */}
