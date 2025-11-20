@@ -523,7 +523,8 @@ export default function BlogPostClient({ post }) {
                       letter-spacing: 0.05em;
                       font-size: 0.75rem;
                       border-bottom: 2px solid hsl(var(--primary));
-                      white-space: nowrap;
+                      white-space: normal;
+                      word-wrap: break-word;
                     }
 
                     @media (min-width: 640px) {
@@ -557,13 +558,36 @@ export default function BlogPostClient({ post }) {
                     .blog-content tbody td {
                       padding: 0.75rem 1rem;
                       border-bottom: 1px solid var(--border);
-                      white-space: nowrap;
+                      white-space: normal;
+                      word-wrap: break-word;
+                      vertical-align: top;
                     }
 
                     @media (min-width: 640px) {
                       .blog-content tbody td {
                         padding: 1rem 1.25rem;
                       }
+                    }
+
+                    /* ✅ FIX: Allow formulas in table cells */
+                    .blog-content table .katex {
+                      font-size: 1em;
+                      display: inline-block;
+                    }
+
+                    .blog-content table sup,
+                    .blog-content table sub {
+                      vertical-align: baseline;
+                      position: relative;
+                      font-size: 0.75em;
+                    }
+
+                    .blog-content table sup {
+                      top: -0.5em;
+                    }
+
+                    .blog-content table sub {
+                      bottom: -0.25em;
                     }
 
                     .blog-content blockquote {
