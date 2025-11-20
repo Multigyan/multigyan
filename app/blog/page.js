@@ -371,11 +371,11 @@ export default async function BlogPage({ searchParams }) {
                                     <div className="flex items-center gap-2">
                                       <span className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-full bg-red-50 text-red-600 group-hover:bg-red-100 group-hover:scale-105 transition-all">
                                         <Heart className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current" />
-                                        <span className="text-xs font-semibold">{post.likes?.length || 0}</span>
+                                        <span className="text-xs font-semibold">{post.likeCount ?? post.likes?.length ?? 0}</span>
                                       </span>
                                       <span className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:scale-105 transition-all">
                                         <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                                        <span className="text-xs font-semibold">{post.comments?.filter(c => c.isApproved).length || 0}</span>
+                                        <span className="text-xs font-semibold">{post.commentCount ?? post.comments?.filter(c => c.isApproved).length ?? 0}</span>
                                       </span>
                                     </div>
                                   </div>
