@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/.nyc_output
 
 # next.js
 /.next/
@@ -19,6 +20,7 @@
 
 # production
 /build
+dist/
 
 # misc
 .DS_Store
@@ -30,8 +32,16 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# local env files (secrets - NEVER commit these!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Allow example env files (safe to commit)
+!.env.example
+!.env.template
 
 # vercel
 .vercel
@@ -39,3 +49,69 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# turbo
+.turbo
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IDE - WebStorm/IntelliJ
+.idea/
+*.iml
+*.iws
+
+# IDE - Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# OS Files - macOS
+.AppleDouble
+.LSOverride
+._*
+
+# OS Files - Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# OS Files - Linux
+*~
+.directory
+.Trash-*
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Logs
+logs/
+*.log
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.BACKUP
+*_backup.js
+*_backup.jsx
+*-backup.js
+*-backup.jsx
+page_improved_backup.js
+
+# Optimized/Alternative versions (keep only active version)
+*-optimized.js
+*-optimized.jsx
+*.BACKUP.js
+
+# Test files (unless in __tests__ directory)
+*.test.local.js
+*.test.local.jsx
