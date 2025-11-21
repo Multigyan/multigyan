@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, Scale, Users, AlertTriangle, Copyright, UserX } from 'lucide-react'
 
@@ -34,8 +35,8 @@ export default function TermsOfServicePage() {
         <Card className="blog-card mb-8">
           <CardContent className="p-6">
             <p className="text-muted-foreground leading-relaxed">
-              Welcome to Multigyan. These Terms of Service govern your use of our website and services. 
-              By accessing or using Multigyan, you agree to be bound by these terms. If you disagree with 
+              Welcome to Multigyan. These Terms of Service govern your use of our website and services.
+              By accessing or using Multigyan, you agree to be bound by these terms. If you disagree with
               any part of these terms, you may not access our service.
             </p>
           </CardContent>
@@ -51,11 +52,11 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              By creating an account, publishing content, or using any part of our services, you acknowledge 
+              By creating an account, publishing content, or using any part of our services, you acknowledge
               that you have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy.
             </p>
             <p className="text-muted-foreground">
-              We reserve the right to modify these terms at any time. Continued use of the service after changes 
+              We reserve the right to modify these terms at any time. Continued use of the service after changes
               constitutes acceptance of the modified terms.
             </p>
           </CardContent>
@@ -136,8 +137,8 @@ export default function TermsOfServicePage() {
             <div>
               <h3 className="font-semibold text-lg mb-2">Content Moderation</h3>
               <p className="text-muted-foreground">
-                We reserve the right to review, remove, or modify any content that violates these terms. 
-                Published content may be subject to approval before becoming public. We may suspend or 
+                We reserve the right to review, remove, or modify any content that violates these terms.
+                Published content may be subject to approval before becoming public. We may suspend or
                 terminate accounts that repeatedly violate our content policy.
               </p>
             </div>
@@ -173,11 +174,11 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              The Multigyan platform, including its design, features, and functionality, is owned by us and 
+              The Multigyan platform, including its design, features, and functionality, is owned by us and
               protected by international copyright, trademark, and other intellectual property laws.
             </p>
             <p className="text-muted-foreground mb-4">
-              You may not copy, modify, distribute, sell, or lease any part of our services without explicit 
+              You may not copy, modify, distribute, sell, or lease any part of our services without explicit
               written permission. Our trademarks and trade dress may not be used without our prior written consent.
             </p>
           </CardContent>
@@ -193,7 +194,7 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              Multigyan is provided &#34;as is&#34; and &#34;as available&#34; without warranties of any kind, either express 
+              Multigyan is provided &#34;as is&#34; and &#34;as available&#34; without warranties of any kind, either express
               or implied. We do not warrant that:
             </p>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
@@ -203,7 +204,7 @@ export default function TermsOfServicePage() {
               <li>The service meets your specific requirements</li>
             </ul>
             <p className="text-muted-foreground mt-4">
-              You use the service at your own risk. We are not responsible for any damages or losses resulting 
+              You use the service at your own risk. We are not responsible for any damages or losses resulting
               from your use of the service.
             </p>
           </CardContent>
@@ -216,9 +217,9 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              To the maximum extent permitted by law, Multigyan and its affiliates, officers, employees, 
-              agents, and licensors shall not be liable for any indirect, incidental, special, consequential, 
-              or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, 
+              To the maximum extent permitted by law, Multigyan and its affiliates, officers, employees,
+              agents, and licensors shall not be liable for any indirect, incidental, special, consequential,
+              or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly,
               or any loss of data, use, goodwill, or other intangible losses resulting from your use of the service.
             </p>
           </CardContent>
@@ -234,7 +235,7 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              We reserve the right to suspend or terminate your account and access to the service at any time, 
+              We reserve the right to suspend or terminate your account and access to the service at any time,
               with or without notice, for any reason, including but not limited to:
             </p>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
@@ -244,7 +245,7 @@ export default function TermsOfServicePage() {
               <li>Technical or security reasons</li>
             </ul>
             <p className="text-muted-foreground mt-4">
-              Upon termination, your right to use the service will immediately cease. You may delete your 
+              Upon termination, your right to use the service will immediately cease. You may delete your
               account at any time through your account settings.
             </p>
           </CardContent>
@@ -257,12 +258,12 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              These Terms shall be governed by and construed in accordance with the laws of India, without 
+              These Terms shall be governed by and construed in accordance with the laws of India, without
               regard to its conflict of law provisions.
             </p>
             <p className="text-muted-foreground">
-              Any dispute arising from or relating to these Terms or your use of the service shall be resolved 
-              through good faith negotiation. If no resolution is reached, disputes shall be subject to the 
+              Any dispute arising from or relating to these Terms or your use of the service shall be resolved
+              through good faith negotiation. If no resolution is reached, disputes shall be subject to the
               exclusive jurisdiction of the courts in Telangana, India.
             </p>
           </CardContent>
@@ -275,9 +276,9 @@ export default function TermsOfServicePage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              We reserve the right to modify or replace these Terms at any time. If a revision is material, 
-              we will provide at least 30 days notice before any new terms take effect. What constitutes a 
-              material change will be determined at our sole discretion. By continuing to access or use our 
+              We reserve the right to modify or replace these Terms at any time. If a revision is material,
+              we will provide at least 30 days notice before any new terms take effect. What constitutes a
+              material change will be determined at our sole discretion. By continuing to access or use our
               service after revisions become effective, you agree to be bound by the revised terms.
             </p>
           </CardContent>
@@ -301,9 +302,9 @@ export default function TermsOfServicePage() {
               </li>
               <li>
                 <strong>Website:</strong>{' '}
-                <a href="/contact" className="text-primary hover:underline">
+                <Link href="/contact" className="text-primary hover:underline">
                   Contact Form
-                </a>
+                </Link>
               </li>
             </ul>
           </CardContent>

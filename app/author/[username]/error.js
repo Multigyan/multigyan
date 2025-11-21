@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 export default function Error({ error, reset }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50">
@@ -23,7 +25,7 @@ export default function Error({ error, reset }) {
             </details>
           )}
         </div>
-        
+
         <div className="flex gap-4 justify-center">
           <button
             onClick={() => reset()}
@@ -31,12 +33,12 @@ export default function Error({ error, reset }) {
           >
             Try Again
           </button>
-          <a
+          <Link
             href="/authors"
             className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
           >
             Browse Authors
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Metadata } from 'next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -229,9 +230,9 @@ export default function ContactPage() {
                   Check out our Help & Support page for answers to common questions.
                 </p>
                 <Button variant="outline" className="w-full" asChild>
-                  <a href="/help">
+                  <Link href="/help">
                     Visit Help Center
-                  </a>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>

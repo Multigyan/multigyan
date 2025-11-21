@@ -1,16 +1,17 @@
 "use client"
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  HelpCircle, 
-  Search, 
-  BookOpen, 
-  User, 
-  Lock, 
-  FileText, 
+import {
+  HelpCircle,
+  Search,
+  BookOpen,
+  User,
+  Lock,
+  FileText,
   MessageCircle,
   Mail,
   ChevronDown,
@@ -143,14 +144,14 @@ export default function HelpPage() {
     }
   ]
 
-  const filteredFAQs = searchQuery 
+  const filteredFAQs = searchQuery
     ? faqs.map(category => ({
-        ...category,
-        questions: category.questions.filter(faq => 
-          faq.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          faq.a.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      })).filter(category => category.questions.length > 0)
+      ...category,
+      questions: category.questions.filter(faq =>
+        faq.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        faq.a.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    })).filter(category => category.questions.length > 0)
     : faqs
 
   const toggleFAQ = (categoryIndex, questionIndex) => {
@@ -311,10 +312,10 @@ export default function HelpPage() {
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
-              <a href="/contact">
+              <Link href="/contact">
                 <Mail className="mr-2 h-5 w-5" />
                 Contact Support
-              </a>
+              </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <a href="mailto:support@multigyan.com">

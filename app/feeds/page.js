@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Rss, Check, Copy, ExternalLink } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useState } from 'react'
@@ -19,7 +20,7 @@ export default function FeedsPage() {
       toast.error('Failed to copy URL')
     }
   }
-  
+
   const feeds = [
     {
       title: 'RSS Feed (Static)',
@@ -74,7 +75,7 @@ export default function FeedsPage() {
         </CardHeader>
         <CardContent>
           <p className="text-gray-700 mb-4">
-            RSS (Really Simple Syndication) allows you to stay updated with your favorite websites without visiting them individually. 
+            RSS (Really Simple Syndication) allows you to stay updated with your favorite websites without visiting them individually.
             Subscribe to our feed using any RSS reader, and you&apos;ll get notified whenever we publish new content.
           </p>
           <div className="grid md:grid-cols-3 gap-4 mt-6">
@@ -134,11 +135,10 @@ export default function FeedsPage() {
                       </div>
                       <button
                         onClick={() => copyToClipboard(feed.url)}
-                        className={`flex-shrink-0 p-3 rounded-lg transition-colors ${
-                          copiedUrl === feed.url
+                        className={`flex-shrink-0 p-3 rounded-lg transition-colors ${copiedUrl === feed.url
                             ? 'bg-green-600 text-white'
                             : 'bg-gray-800 text-white hover:bg-gray-700'
-                        }`}
+                          }`}
                         title={copiedUrl === feed.url ? 'Copied!' : 'Copy URL'}
                       >
                         {copiedUrl === feed.url ? (
@@ -248,13 +248,13 @@ export default function FeedsPage() {
         <p className="text-gray-600 mb-4">
           Having trouble subscribing to our feeds? We&apos;re here to help!
         </p>
-        <a
+        <Link
           href="/contact"
           className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
         >
           Contact Support
           <ExternalLink className="ml-2 w-4 h-4" />
-        </a>
+        </Link>
       </div>
     </div>
   )

@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Shield, Lock, Eye, Database, Mail, UserCheck } from 'lucide-react'
 
@@ -34,9 +35,9 @@ export default function PrivacyPolicyPage() {
         <Card className="blog-card mb-8">
           <CardContent className="p-6">
             <p className="text-muted-foreground leading-relaxed">
-              At Multigyan, we take your privacy seriously. This Privacy Policy explains how we collect, 
-              use, disclose, and safeguard your information when you visit our website and use our services. 
-              Please read this privacy policy carefully. If you do not agree with the terms of this privacy 
+              At Multigyan, we take your privacy seriously. This Privacy Policy explains how we collect,
+              use, disclose, and safeguard your information when you visit our website and use our services.
+              Please read this privacy policy carefully. If you do not agree with the terms of this privacy
               policy, please do not access the site.
             </p>
           </CardContent>
@@ -64,7 +65,7 @@ export default function PrivacyPolicyPage() {
                 <li>Contact us directly</li>
               </ul>
               <p className="text-muted-foreground mt-2">
-                This information may include: name, email address, username, profile picture, and any other 
+                This information may include: name, email address, username, profile picture, and any other
                 information you choose to provide.
               </p>
             </div>
@@ -121,7 +122,7 @@ export default function PrivacyPolicyPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              We implement appropriate technical and organizational security measures to protect your personal 
+              We implement appropriate technical and organizational security measures to protect your personal
               information against unauthorized access, alteration, disclosure, or destruction. These measures include:
             </p>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
@@ -132,8 +133,8 @@ export default function PrivacyPolicyPage() {
               <li>NextAuth.js for secure authentication</li>
             </ul>
             <p className="text-muted-foreground mt-4">
-              However, no method of transmission over the Internet or electronic storage is 100% secure. 
-              While we strive to use commercially acceptable means to protect your personal information, 
+              However, no method of transmission over the Internet or electronic storage is 100% secure.
+              While we strive to use commercially acceptable means to protect your personal information,
               we cannot guarantee its absolute security.
             </p>
           </CardContent>
@@ -149,13 +150,13 @@ export default function PrivacyPolicyPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              We do not sell, trade, or rent your personal information to third parties. We may share your 
+              We do not sell, trade, or rent your personal information to third parties. We may share your
               information only in the following circumstances:
             </p>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
               <li><strong>With your consent:</strong> When you explicitly agree to share your information</li>
-              <li><strong>Service providers:</strong> With third-party vendors who assist us in operating our platform 
-              (e.g., Cloudinary for image hosting, MongoDB Atlas for database services)</li>
+              <li><strong>Service providers:</strong> With third-party vendors who assist us in operating our platform
+                (e.g., Cloudinary for image hosting, MongoDB Atlas for database services)</li>
               <li><strong>Legal requirements:</strong> When required by law or to protect our rights and safety</li>
               <li><strong>Business transfers:</strong> In connection with any merger, sale, or acquisition</li>
             </ul>
@@ -169,11 +170,11 @@ export default function PrivacyPolicyPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              We use cookies and similar tracking technologies to track activity on our website and hold certain information. 
+              We use cookies and similar tracking technologies to track activity on our website and hold certain information.
               Cookies are files with small amount of data that are sent to your browser from a website and stored on your device.
             </p>
             <p className="text-muted-foreground mb-4">
-              You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. 
+              You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
               However, if you do not accept cookies, you may not be able to use some portions of our website.
             </p>
           </CardContent>
@@ -212,8 +213,8 @@ export default function PrivacyPolicyPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Our website may contain links to third-party websites. We have no control over and assume no 
-              responsibility for the content, privacy policies, or practices of any third-party sites or services. 
+              Our website may contain links to third-party websites. We have no control over and assume no
+              responsibility for the content, privacy policies, or practices of any third-party sites or services.
               We encourage you to review the privacy policies of any third-party sites you visit.
             </p>
           </CardContent>
@@ -226,9 +227,9 @@ export default function PrivacyPolicyPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Our services are not intended for children under the age of 13. We do not knowingly collect personal 
-              information from children under 13. If you become aware that a child has provided us with personal 
-              information, please contact us. If we discover that we have collected personal information from a 
+              Our services are not intended for children under the age of 13. We do not knowingly collect personal
+              information from children under 13. If you become aware that a child has provided us with personal
+              information, please contact us. If we discover that we have collected personal information from a
               child under 13, we will delete that information immediately.
             </p>
           </CardContent>
@@ -241,9 +242,9 @@ export default function PrivacyPolicyPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              We may update our Privacy Policy from time to time. We will notify you of any changes by posting the 
-              new Privacy Policy on this page and updating the &#34;Last updated&#34; date. You are advised to review this 
-              Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they 
+              We may update our Privacy Policy from time to time. We will notify you of any changes by posting the
+              new Privacy Policy on this page and updating the &#34;Last updated&#34; date. You are advised to review this
+              Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they
               are posted on this page.
             </p>
           </CardContent>
@@ -270,9 +271,9 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 <strong>Website:</strong>{' '}
-                <a href="/contact" className="text-primary hover:underline">
+                <Link href="/contact" className="text-primary hover:underline">
                   Contact Form
-                </a>
+                </Link>
               </li>
             </ul>
           </CardContent>
