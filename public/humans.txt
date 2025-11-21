@@ -1,0 +1,78 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    Founder & Lead Developer -- Vishal
+    Contact: hello [at] multigyan.in
+    Twitter: @multigyan
+    Location: India
+
+# THANKS
+
+    All our amazing authors and contributors
+    The open-source community
+    Our readers and supporters
+
+# TECHNOLOGY COLOPHON
+
+    ## Frontend
+    Next.js 15.5.3
+    React 19.1.0
+    Tailwind CSS 3.4
+    Radix UI Components
+    Lucide Icons
+
+    ## Backend
+    Node.js
+    MongoDB with Mongoose
+    NextAuth.js for Authentication
+    Cloudinary for Image Management
+
+    ## Editor
+    TipTap Rich Text Editor
+    Highlight.js for Code Syntax
+    KaTeX for Math Rendering
+
+    ## Performance & Analytics
+    Vercel Analytics
+    Vercel Speed Insights
+    Upstash Redis for Caching
+    Google Analytics 4
+
+    ## SEO & Discovery
+    Dynamic Sitemaps
+    RSS & Atom Feeds
+    JSON-LD Structured Data
+    Open Graph & Twitter Cards
+
+    ## Hosting & Deployment
+    Vercel Edge Network
+    MongoDB Atlas
+    Cloudinary CDN
+
+# STANDARDS
+
+    HTML5
+    CSS3
+    ECMAScript 2024
+    Semantic Web
+    Progressive Web App (PWA)
+    Responsive Design
+    Accessibility (WCAG)
+    SEO Best Practices
+
+# SITE
+
+    Last update: 2025/11/21
+    Language: English / हिंदी
+    Doctype: HTML5
+    IDE: Visual Studio Code
+    Version Control: Git
+
+# CONTACT
+
+    Website: https://www.multigyan.in
+    Email: hello@multigyan.in
+    Support: support@multigyan.in
+    Security: security@multigyan.in
