@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 
-// Generate a unique API key for IndexNow
-// This key should be consistent across requests
-const INDEXNOW_KEY = process.env.INDEXNOW_API_KEY || crypto.randomBytes(32).toString('hex')
+// Use Bing's generated IndexNow API key
+// This key should match the one in your .env.local file
+const INDEXNOW_KEY = process.env.INDEXNOW_API_KEY || 'ee437560fbb74237a0d9806a081fc980'
 
 /**
  * IndexNow API Key Endpoint
