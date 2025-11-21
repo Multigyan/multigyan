@@ -31,6 +31,9 @@ export const metadata = {
   creator: 'Multigyan',
   verification: {
     google: 'pub-1982960683340318',
+    yandex: '3001730bbdc2c04a93',
+    // Add Bing verification code after signing up at https://www.bing.com/webmasters
+    // bing: 'YOUR_BING_CODE_HERE',
   },
   other: {
     'google-analytics': 'G-HEPC56C10C',
