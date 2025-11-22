@@ -3,8 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Notification from '@/models/Notification'
-import Post from '@/models/Post' // ✅ Import Post model for populate()
-import User from '@/models/User' // ✅ Import User model for populate()
+import Post from '@/models/Post'
+import User from '@/models/User'
 
 // GET - Get notifications for current user
 export async function GET(request) {
@@ -46,6 +46,9 @@ export async function GET(request) {
       Notification.getUnreadCount(session.user.id)
     ])
 
+    // Add debug logging
+    console.log(`[NOTIFICATIONS] User ${session.user.id}: ${unreadCount} unread, ${total} total`)
+
     return NextResponse.json({
       notifications,
       pagination: {
@@ -83,20 +86,32 @@ export async function PUT(request) {
     const body = await request.json()
     const { notificationIds, markAll } = body
 
+    // Get count BEFORE update for logging
+    const beforeCount = await Notification.countDocuments({
+      recipient: session.user.id,
+      isRead: false
+    })
+
     if (markAll) {
       // Mark all notifications as read
       const result = await Notification.markAllAsRead(session.user.id)
-      console.log(`Marked ${result.modifiedCount} notifications as read for user ${session.user.id}`)
+      console.log(`[MARK ALL READ] User ${session.user.id}: ${beforeCount} unread before, ${result.modifiedCount} marked as read`)
     } else if (notificationIds && notificationIds.length > 0) {
       await Notification.markAsRead(notificationIds, session.user.id)
+      console.log(`[MARK READ] User ${session.user.id}: Marked ${notificationIds.length} notifications as read`)
     }
 
     // Get fresh unread count after update
     const unreadCount = await Notification.getUnreadCount(session.user.id)
+    console.log(`[AFTER UPDATE] User ${session.user.id}: ${unreadCount} unread remaining`)
 
     return NextResponse.json({
       success: true,
-      unreadCount
+      unreadCount,
+      debug: {
+        beforeCount,
+        afterCount: unreadCount
+      }
     })
 
   } catch (error) {
