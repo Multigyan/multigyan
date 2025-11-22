@@ -41,7 +41,7 @@ export default function NotificationBell() {
   useEffect(() => {
     if (session?.user) {
       fetchNotifications()
-      
+
       // Poll for new notifications every 30 seconds
       const interval = setInterval(fetchNotifications, 30000)
       return () => clearInterval(interval)
@@ -66,11 +66,11 @@ export default function NotificationBell() {
       if (response.ok) {
         const data = await response.json()
         setUnreadCount(data.unreadCount || 0)
-        
+
         // Update notifications in state
-        setNotifications(prev => 
-          prev.map(notif => 
-            notificationIds.includes(notif._id) 
+        setNotifications(prev =>
+          prev.map(notif =>
+            notificationIds.includes(notif._id)
               ? { ...notif, isRead: true }
               : notif
           )
@@ -91,13 +91,21 @@ export default function NotificationBell() {
       })
 
       if (response.ok) {
+        const data = await response.json()
+        // Immediately update UI
         setUnreadCount(0)
-        setNotifications(prev => 
+        setNotifications(prev =>
           prev.map(notif => ({ ...notif, isRead: true }))
         )
         toast.success('All notifications marked as read')
+
+        // Refetch to ensure sync with server
+        await fetchNotifications()
+      } else {
+        toast.error('Failed to mark notifications as read')
       }
     } catch (error) {
+      console.error('Error marking all as read:', error)
       toast.error('Failed to mark notifications as read')
     } finally {
       setLoading(false)
@@ -111,7 +119,7 @@ export default function NotificationBell() {
       })
 
       if (response.ok) {
-        setNotifications(prev => 
+        setNotifications(prev =>
           prev.filter(notif => notif._id !== notificationId)
         )
         toast.success('Notification deleted')
@@ -161,13 +169,13 @@ export default function NotificationBell() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      
+
       <DropdownMenuContent align="end" className="w-[95vw] sm:w-96 max-h-[80vh] sm:max-h-[600px] overflow-y-auto">
         <div className="flex items-center justify-between px-4 py-3 border-b sticky top-0 bg-background z-10">
           <DropdownMenuLabel className="p-0 font-bold text-lg">
             Notifications
           </DropdownMenuLabel>
-          
+
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -203,7 +211,7 @@ export default function NotificationBell() {
                 onClick={() => handleNotificationClick(notification)}
                 className="block"
               >
-                <div 
+                <div
                   className={cn(
                     "px-4 py-3 hover:bg-muted/50 transition-colors relative group",
                     !notification.isRead && "bg-primary/5"
@@ -245,14 +253,14 @@ export default function NotificationBell() {
                           <p className="text-sm leading-snug break-words">
                             {notification.message}
                           </p>
-                          
+
                           {/* Post Title */}
                           {notification.post?.title && (
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-1 break-words">
                               "{notification.post.title}"
                             </p>
                           )}
-                          
+
                           {/* Time */}
                           <p className="text-xs text-muted-foreground mt-1">
                             {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
@@ -286,8 +294,8 @@ export default function NotificationBell() {
             <DropdownMenuSeparator />
             <div className="p-2">
               <Link href="/dashboard/notifications">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="w-full"
                   onClick={() => setOpen(false)}
                 >

@@ -8,14 +8,14 @@ const NotificationSchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  
+
   // Who triggered this notification
   sender: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
-  
+
   // Type of notification
   type: {
     type: String,
@@ -32,44 +32,44 @@ const NotificationSchema = new mongoose.Schema({
     ],
     required: true
   },
-  
+
   // Related content
   post: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Post'
   },
-  
+
   comment: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment'
   },
-  
+
   // Notification message
   message: {
     type: String,
     required: true
   },
-  
+
   // Link to go to when clicked
   link: {
     type: String,
     required: true
   },
-  
+
   // Additional metadata for notifications
   metadata: {
     editReason: String,      // Reason for editing (admin only)
     changes: String,         // Description of changes made
     postTitle: String        // Title of the post for context
   },
-  
+
   // Read status
   isRead: {
     type: Boolean,
     default: false,
     index: true
   },
-  
+
   // Email sent status
   emailSent: {
     type: Boolean,
@@ -84,7 +84,7 @@ NotificationSchema.index({ recipient: 1, createdAt: -1 })
 NotificationSchema.index({ recipient: 1, isRead: 1, createdAt: -1 })
 
 // Static method to create notification
-NotificationSchema.statics.createNotification = async function({
+NotificationSchema.statics.createNotification = async function ({
   recipient,
   sender,
   type,
@@ -97,19 +97,19 @@ NotificationSchema.statics.createNotification = async function({
   if (recipient.toString() === sender.toString()) {
     return null
   }
-  
+
   // Check if user has notification settings enabled
   const User = mongoose.model('User')
   const recipientUser = await User.findById(recipient)
-  
+
   if (!recipientUser || !recipientUser.settings) {
     return null
   }
-  
+
   // Check notification preferences
   const { settings } = recipientUser
   let shouldCreate = false
-  
+
   switch (type) {
     case 'comment_post':
     case 'reply_comment':
@@ -125,11 +125,11 @@ NotificationSchema.statics.createNotification = async function({
     default:
       shouldCreate = settings.emailNotifications !== false
   }
-  
+
   if (!shouldCreate) {
     return null
   }
-  
+
   // Create the notification
   const notification = await this.create({
     recipient,
@@ -140,14 +140,14 @@ NotificationSchema.statics.createNotification = async function({
     message,
     link
   })
-  
+
   return notification
 }
 
 // Static method to mark as read
-NotificationSchema.statics.markAsRead = async function(notificationIds, userId) {
+NotificationSchema.statics.markAsRead = async function (notificationIds, userId) {
   await this.updateMany(
-    { 
+    {
       _id: { $in: notificationIds },
       recipient: userId
     },
@@ -156,26 +156,27 @@ NotificationSchema.statics.markAsRead = async function(notificationIds, userId) 
 }
 
 // Static method to mark all as read for a user
-NotificationSchema.statics.markAllAsRead = async function(userId) {
-  await this.updateMany(
+NotificationSchema.statics.markAllAsRead = async function (userId) {
+  const result = await this.updateMany(
     { recipient: userId, isRead: false },
-    { isRead: true }
+    { $set: { isRead: true } }
   )
+  return result
 }
 
 // Static method to get unread count
-NotificationSchema.statics.getUnreadCount = async function(userId) {
-  return await this.countDocuments({ 
-    recipient: userId, 
-    isRead: false 
+NotificationSchema.statics.getUnreadCount = async function (userId) {
+  return await this.countDocuments({
+    recipient: userId,
+    isRead: false
   })
 }
 
 // Static method to delete old notifications
-NotificationSchema.statics.deleteOldNotifications = async function(daysOld = 90) {
+NotificationSchema.statics.deleteOldNotifications = async function (daysOld = 90) {
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysOld)
-  
+
   await this.deleteMany({
     createdAt: { $lt: cutoffDate },
     isRead: true
