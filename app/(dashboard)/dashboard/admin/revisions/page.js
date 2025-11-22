@@ -32,6 +32,8 @@ export default function AdminRevisionsPage() {
   const [selectedPost, setSelectedPost] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pagination, setPagination] = useState(null)
 
   // Debounce search
   useEffect(() => {
@@ -44,8 +46,10 @@ export default function AdminRevisionsPage() {
   const fetchPostsWithRevisions = useCallback(async () => {
     try {
       setLoading(true)
-      // Use dedicated API endpoint for pending revisions
+      // Use dedicated API endpoint for pending revisions with pagination
       const params = new URLSearchParams()
+      params.append('page', currentPage)
+      params.append('limit', '10')
       if (debouncedSearch.trim()) {
         params.append('search', debouncedSearch)
       }
@@ -55,6 +59,7 @@ export default function AdminRevisionsPage() {
 
       if (response.ok) {
         setPostsWithRevisions(data.posts || [])
+        setPagination(data.pagination)
       } else {
         toast.error(data.error || 'Failed to fetch revisions')
       }
@@ -63,7 +68,7 @@ export default function AdminRevisionsPage() {
     } finally {
       setLoading(false)
     }
-  }, [debouncedSearch])
+  }, [debouncedSearch, currentPage])
 
   useEffect(() => {
     if (session?.user?.role !== 'admin') {
@@ -72,7 +77,7 @@ export default function AdminRevisionsPage() {
     }
     fetchPostsWithRevisions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, router, debouncedSearch])
+  }, [session, router, debouncedSearch, currentPage])
 
   const handleApproveRevision = async (postId) => {
     try {
@@ -328,6 +333,57 @@ export default function AdminRevisionsPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1 || loading}
+          >
+            Previous
+          </Button>
+
+          <div className="flex items-center gap-2">
+            {[...Array(pagination.totalPages)].map((_, index) => {
+              const pageNum = index + 1
+              // Show first page, last page, current page, and pages around current
+              if (
+                pageNum === 1 ||
+                pageNum === pagination.totalPages ||
+                (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+              ) {
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    onClick={() => setCurrentPage(pageNum)}
+                    disabled={loading}
+                    className="w-10"
+                  >
+                    {pageNum}
+                  </Button>
+                )
+              } else if (
+                pageNum === currentPage - 2 ||
+                pageNum === currentPage + 2
+              ) {
+                return <span key={pageNum} className="px-2">...</span>
+              }
+              return null
+            })}
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+            disabled={currentPage === pagination.totalPages || loading}
+          >
+            Next
+          </Button>
         </div>
       )}
     </div>
