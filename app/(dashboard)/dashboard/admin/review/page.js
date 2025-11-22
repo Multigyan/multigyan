@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -30,10 +32,14 @@ import {
   FileText,
   MessageSquare,
   Trash2,
-  Edit
+  Edit,
+  Check,
+  X,
+  Loader2
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
+import { BulkConfirmDialog } from "@/components/ConfirmDialog"
 
 export default function AdminReviewPage() {
   const { data: session } = useSession()
@@ -46,6 +52,12 @@ export default function AdminReviewPage() {
   const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState(null)
+
+  // Bulk operations state
+  const [selectedPosts, setSelectedPosts] = useState([])
+  const [bulkAction, setBulkAction] = useState('')
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false)
+  const [bulkActionType, setBulkActionType] = useState('')
 
   useEffect(() => {
     if (session?.user?.role !== 'admin') {
@@ -146,8 +158,8 @@ export default function AdminReviewPage() {
    * FUNCTION: Delete a post
    * Permanently removes the post from the database
    */
-  const handleDelete = async (postId, postTitle) => {
-    if (!confirm(`Are you sure you want to delete &quot;${postTitle}&quot;? This action cannot be undone.`)) {
+  const handleDelete = async (postId) => {
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       return
     }
 
@@ -159,14 +171,73 @@ export default function AdminReviewPage() {
 
       if (response.ok) {
         toast.success('Post deleted successfully')
-        fetchPendingPosts() // Refresh the list
+        fetchPendingPosts()
       } else {
         const data = await response.json()
         toast.error(data.error || 'Failed to delete post')
       }
     } catch (error) {
-      console.error('Delete error:', error)
       toast.error('Failed to delete post')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Bulk operation handlers
+  const togglePostSelection = (postId) => {
+    setSelectedPosts(prev =>
+      prev.includes(postId)
+        ? prev.filter(id => id !== postId)
+        : [...prev, postId]
+    )
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedPosts.length === pendingPosts.length) {
+      setSelectedPosts([])
+    } else {
+      setSelectedPosts(pendingPosts.map(post => post._id))
+    }
+  }
+
+  const handleBulkAction = (action) => {
+    if (selectedPosts.length === 0) {
+      toast.error('Please select at least one post')
+      return
+    }
+    setBulkActionType(action)
+    setShowBulkConfirm(true)
+  }
+
+  const executeBulkAction = async () => {
+    try {
+      setActionLoading(true)
+      const promises = selectedPosts.map(postId => {
+        if (bulkActionType === 'approve') {
+          return fetch(`/api/posts/${postId}/actions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'approve' })
+          })
+        } else if (bulkActionType === 'reject') {
+          return fetch(`/api/posts/${postId}/actions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'reject', reason: 'Bulk rejection' })
+          })
+        } else if (bulkActionType === 'delete') {
+          return fetch(`/api/posts/${postId}`, { method: 'DELETE' })
+        }
+      })
+
+      await Promise.all(promises)
+
+      toast.success(`Successfully ${bulkActionType}d ${selectedPosts.length} posts`)
+      setSelectedPosts([])
+      setShowBulkConfirm(false)
+      fetchPendingPosts()
+    } catch (error) {
+      toast.error(`Failed to ${bulkActionType} posts`)
     } finally {
       setActionLoading(false)
     }
@@ -235,6 +306,62 @@ export default function AdminReviewPage() {
         </Card>
       </div>
 
+      {/* Bulk Operations Toolbar */}
+      {pendingPosts.length > 0 && (
+        <Card className="mb-6 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  checked={selectedPosts.length === pendingPosts.length && pendingPosts.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                  id="select-all"
+                />
+                <Label htmlFor="select-all" className="cursor-pointer font-medium">
+                  {selectedPosts.length > 0
+                    ? `${selectedPosts.length} selected`
+                    : 'Select All'}
+                </Label>
+              </div>
+
+              {selectedPosts.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleBulkAction('approve')}
+                    disabled={actionLoading}
+                    className="gap-2"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    Approve ({selectedPosts.length})
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleBulkAction('reject')}
+                    disabled={actionLoading}
+                    className="gap-2"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Reject ({selectedPosts.length})
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleBulkAction('delete')}
+                    disabled={actionLoading}
+                    className="gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete ({selectedPosts.length})
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Posts List */}
       {pendingPosts.length === 0 ? (
         <Card>
@@ -254,9 +381,18 @@ export default function AdminReviewPage() {
       ) : (
         <div className="space-y-6">
           {pendingPosts.map((post) => (
-            <Card key={post._id} className="overflow-hidden">
+            <Card key={post._id} className={`overflow-hidden ${selectedPosts.includes(post._id) ? 'border-primary border-2' : ''}`}>
               <CardContent className="p-0">
                 <div className="flex flex-col lg:flex-row">
+                  {/* Selection Checkbox */}
+                  <div className="flex items-center justify-center p-4 border-r">
+                    <Checkbox
+                      checked={selectedPosts.includes(post._id)}
+                      onCheckedChange={() => togglePostSelection(post._id)}
+                      id={`select-${post._id}`}
+                    />
+                  </div>
+
                   {/* Post Image */}
                   <div className="lg:w-64 h-48 lg:h-auto relative bg-muted flex-shrink-0">
                     {post.featuredImageUrl ? (
@@ -456,6 +592,17 @@ export default function AdminReviewPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Action Confirmation Dialog */}
+      <BulkConfirmDialog
+        open={showBulkConfirm}
+        onOpenChange={setShowBulkConfirm}
+        onConfirm={executeBulkAction}
+        action={bulkActionType}
+        count={selectedPosts.length}
+        itemType="posts"
+        loading={actionLoading}
+      />
     </div>
   )
 }

@@ -92,6 +92,7 @@
     "react-dom": "19.1.0",
     "react-easy-crop": "^5.5.2",
     "react-hot-toast": "^2.6.0",
+    "recharts": "^3.4.1",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
     "resend": "^6.1.1",
