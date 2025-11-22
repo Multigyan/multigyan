@@ -2,15 +2,17 @@ import './globals.css'
 import 'nprogress/nprogress.css'
 import { Inter } from 'next/font/google'
 import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from 'sonner'
 import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
-import AuthProvider from "@/components/AuthProvider"
+import { AuthProvider } from '@/components/providers/AuthProvider'
 import LoadingBar from "@/components/LoadingBar"
 import FloatingSocialSidebar from "@/components/layout/FloatingSocialSidebar"
 import BackToTop from "@/components/ui/BackToTop"
 import Script from 'next/script'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { useServiceWorker } from './register-sw'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -18,6 +20,12 @@ const inter = Inter({
   preload: true,
   variable: '--font-inter',
 })
+
+// Service Worker Registration Component
+function ServiceWorkerRegistration() {
+  useServiceWorker()
+  return null
+}
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
