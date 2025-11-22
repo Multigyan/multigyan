@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { 
-  User as UserIcon, 
-  Mail, 
-  Globe, 
-  Twitter, 
+import useSWR from 'swr'
+import {
+  User as UserIcon,
+  Mail,
+  Globe,
+  Twitter,
   Linkedin,
   Calendar,
   Shield,
@@ -29,6 +30,45 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 
+// ⚡ OPTIMIZATION: Helper function to safely format dates
+const formatDate = (dateString) => {
+  if (!dateString) return 'Recently'
+
+  try {
+    const date = new Date(dateString)
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Recently'
+    }
+
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric'
+    })
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return 'Recently'
+  }
+}
+
+// ⚡ OPTIMIZATION: Helper function to format post dates
+const formatPostDate = (dateString) => {
+  if (!dateString) return ''
+
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return ''
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  } catch (error) {
+    return ''
+  }
+}
+
 export default function ProfileClientPage({ initialUser, initialPosts, initialStats }) {
   const { data: session } = useSession()
   const [user, setUser] = useState(initialUser)
@@ -37,7 +77,50 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
   const [isFollowing, setIsFollowing] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
   const [loadingPosts, setLoadingPosts] = useState(false)
-  
+
+  // ⚡ OPTIMIZATION: SWR caching for profile data
+  const fetcher = (url) => fetch(url).then((res) => res.json())
+
+  const { data: cachedStats, mutate: mutateStats } = useSWR(
+    `/api/users/${user._id}/stats`,
+    fetcher,
+    {
+      fallbackData: initialStats,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60000, // 1 minute
+    }
+  )
+
+  // Update stats when cache updates
+  useEffect(() => {
+    if (cachedStats) {
+      setStats(cachedStats)
+    }
+  }, [cachedStats])
+
+  // ⚡ ANALYTICS: Track profile views
+  useEffect(() => {
+    const trackProfileView = async () => {
+      try {
+        await fetch('/api/analytics/profile-view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profileId: user._id,
+            username: user.username,
+            timestamp: new Date().toISOString(),
+          }),
+        })
+      } catch (error) {
+        // Silently fail - analytics shouldn't break the page
+        console.error('Analytics tracking failed:', error)
+      }
+    }
+
+    trackProfileView()
+  }, [user._id, user.username])
+
   const getInitials = (name) => {
     return name
       ?.split(' ')
@@ -45,14 +128,14 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
       .join('')
       .toUpperCase() || 'U'
   }
-  
+
   // Check if current user is following this profile
   useEffect(() => {
     if (session?.user && user._id !== session.user.id) {
       checkFollowStatus()
     }
   }, [session, user])
-  
+
   const checkFollowStatus = async () => {
     try {
       const response = await fetch(`/api/users/${user._id}/follow`)
@@ -62,26 +145,31 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
       console.error('Error checking follow status:', error)
     }
   }
-  
+
   const handleFollow = async () => {
     if (!session) {
       toast.error('Please sign in to follow users')
       return
     }
-    
+
     setFollowLoading(true)
     try {
       const response = await fetch(`/api/users/${user._id}/follow`, {
         method: 'POST'
       })
       const data = await response.json()
-      
+
       if (data.success) {
         setIsFollowing(data.isFollowing)
         setStats(prev => ({
           ...prev,
           followersCount: data.followersCount
         }))
+        // ⚡ OPTIMIZATION: Mutate SWR cache
+        mutateStats({
+          ...stats,
+          followersCount: data.followersCount
+        }, false)
         toast.success(data.message)
       } else {
         toast.error(data.error)
@@ -92,11 +180,11 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
       setFollowLoading(false)
     }
   }
-  
+
   const handleShare = async () => {
     const shareUrl = window.location.href
     const shareText = `Check out ${user.name}'s profile on Multigyan!`
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -113,12 +201,12 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
       copyToClipboard(shareUrl)
     }
   }
-  
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
     toast.success('Profile link copied to clipboard!')
   }
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Hero Section */}
@@ -129,10 +217,20 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
               {/* Profile Picture */}
               <div className="relative">
                 <Avatar className="h-32 w-32 border-4 border-white shadow-lg">
-                  <AvatarImage src={user.profilePictureUrl} alt={user.name} />
-                  <AvatarFallback className="bg-white text-blue-600 text-3xl font-bold">
-                    {getInitials(user.name)}
-                  </AvatarFallback>
+                  {user.profilePictureUrl ? (
+                    <Image
+                      src={user.profilePictureUrl}
+                      alt={user.name}
+                      width={128}
+                      height={128}
+                      className="rounded-full object-cover"
+                      priority
+                    />
+                  ) : (
+                    <AvatarFallback className="bg-white text-blue-600 text-3xl font-bold">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 {user.role === 'admin' && (
                   <div className="absolute -bottom-2 -right-2 bg-yellow-400 rounded-full p-2">
@@ -140,12 +238,12 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                   </div>
                 )}
               </div>
-              
+
               {/* Profile Info */}
               <div className="flex-1 text-center md:text-left">
                 <h1 className="text-4xl font-bold mb-2">{user.name}</h1>
                 <p className="text-blue-100 mb-4">@{user.username}</p>
-                
+
                 <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
                   <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="text-sm">
                     {user.role === 'admin' ? (
@@ -160,20 +258,20 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                       </>
                     )}
                   </Badge>
-                  
+
                   {user.emailVerified && (
                     <Badge variant="outline" className="bg-white/20 border-white text-white">
                       ✓ Verified
                     </Badge>
                   )}
                 </div>
-                
+
                 {user.bio && (
                   <p className="text-lg text-blue-50 max-w-2xl mb-4">
                     {user.bio}
                   </p>
                 )}
-                
+
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                   {session?.user?.id !== user._id && (
@@ -193,7 +291,7 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                       {isFollowing ? 'Unfollow' : 'Follow'}
                     </Button>
                   )}
-                  
+
                   <Button
                     onClick={handleShare}
                     variant="outline"
@@ -208,7 +306,7 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
           </div>
         </div>
       </div>
-      
+
       {/* Stats Bar */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4">
@@ -246,7 +344,7 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
           </div>
         </div>
       </div>
-      
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -261,7 +359,7 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                 {user.email && (
                   <div className="flex items-center gap-3 text-sm">
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    <a 
+                    <a
                       href={`mailto:${user.email}`}
                       className="text-blue-600 hover:underline break-all"
                     >
@@ -269,11 +367,11 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                     </a>
                   </div>
                 )}
-                
+
                 {user.website && (
                   <div className="flex items-center gap-3 text-sm">
                     <Globe className="h-4 w-4 text-muted-foreground" />
-                    <a 
+                    <a
                       href={user.website}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -283,11 +381,11 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                     </a>
                   </div>
                 )}
-                
+
                 {user.twitterHandle && (
                   <div className="flex items-center gap-3 text-sm">
                     <Twitter className="h-4 w-4 text-muted-foreground" />
-                    <a 
+                    <a
                       href={`https://twitter.com/${user.twitterHandle.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -297,11 +395,11 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                     </a>
                   </div>
                 )}
-                
+
                 {user.linkedinUrl && (
                   <div className="flex items-center gap-3 text-sm">
                     <Linkedin className="h-4 w-4 text-muted-foreground" />
-                    <a 
+                    <a
                       href={user.linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -313,7 +411,7 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                 )}
               </CardContent>
             </Card>
-            
+
             {/* Member Since */}
             <Card>
               <CardHeader>
@@ -322,17 +420,12 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
               <CardContent>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>
-                    {new Date(user.createdAt).toLocaleDateString('en-US', {
-                      month: 'long',
-                      year: 'numeric'
-                    })}
-                  </span>
+                  <span>{formatDate(user.createdAt)}</span>
                 </div>
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Main Content Area */}
           <div className="md:col-span-2 space-y-6">
             {/* About Section */}
@@ -354,7 +447,7 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                 )}
               </CardContent>
             </Card>
-            
+
             {/* Posts Section */}
             <Card>
               <CardHeader>
@@ -378,8 +471,10 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                               <Image
                                 src={post.featuredImageUrl}
                                 alt={post.title}
-                                fill
+                                width={96}
+                                height={96}
                                 className="object-cover group-hover:scale-110 transition-transform"
+                                loading="lazy"
                               />
                             </div>
                           )}
@@ -395,11 +490,7 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
+                                {formatPostDate(post.publishedAt)}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
@@ -423,7 +514,7 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
                         </div>
                       </Link>
                     ))}
-                    
+
                     {posts.length < stats.totalPosts && (
                       <div className="text-center pt-4">
                         <Button variant="outline" asChild>
