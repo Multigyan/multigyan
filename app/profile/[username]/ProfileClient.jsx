@@ -99,11 +99,15 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
     }
   }, [cachedStats])
 
-  // ⚡ ANALYTICS: Track profile views
+  // ⚡ ANALYTICS: Track profile views (non-blocking)
   useEffect(() => {
     const trackProfileView = async () => {
       try {
-        await fetch('/api/analytics/profile-view', {
+        // Use AbortController for timeout
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
+
+        fetch('/api/analytics/profile-view', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -111,14 +115,20 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
             username: user.username,
             timestamp: new Date().toISOString(),
           }),
-        })
+          signal: controller.signal
+        }).then(() => clearTimeout(timeoutId))
+          .catch(() => {
+            // Silently fail - analytics shouldn't break the page
+            clearTimeout(timeoutId)
+          })
       } catch (error) {
-        // Silently fail - analytics shouldn't break the page
-        console.error('Analytics tracking failed:', error)
+        // Silently fail
       }
     }
 
-    trackProfileView()
+    // Delay tracking to not block page load
+    const timer = setTimeout(trackProfileView, 1000)
+    return () => clearTimeout(timer)
   }, [user._id, user.username])
 
   const getInitials = (name) => {

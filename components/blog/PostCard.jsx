@@ -14,6 +14,7 @@ import {
   BookOpen
 } from "lucide-react"
 import { formatDate, getPostUrl } from "@/lib/helpers"
+import { prefetchProfileData } from "@/lib/prefetch-profile"
 
 export default function PostCard({ post, featured = false }) {
   // ✅ FALLBACK: Handle both old (imageUrl) and new (featuredImageUrl) field names
@@ -84,7 +85,12 @@ export default function PostCard({ post, featured = false }) {
           <div className="space-y-2 sm:space-y-3 mt-auto">
             {/* ✅ IMPROVED: Author & Date - Better mobile wrapping */}
             <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
-              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <Link
+                href={`/profile/${post.author?.username}`}
+                {...prefetchProfileData(post.author?.username, post.author?._id)}
+                className="flex items-center gap-1.5 sm:gap-2 min-w-0 hover:text-primary transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {post.author?.profilePictureUrl ? (
                   <Image
                     src={post.author.profilePictureUrl}
@@ -98,10 +104,10 @@ export default function PostCard({ post, featured = false }) {
                     <User className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
                   </div>
                 )}
-                <span className="text-muted-foreground group-hover:text-foreground transition-colors truncate">
+                <span className="text-muted-foreground truncate">
                   {post.author?.name}
                 </span>
-              </div>
+              </Link>
 
               <div className="flex items-center gap-1 sm:gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0">
                 <Calendar className="h-3 w-3" />
