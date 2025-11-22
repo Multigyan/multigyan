@@ -8,13 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { 
-  Bell, 
-  Heart, 
-  MessageCircle, 
-  UserPlus, 
-  Check, 
-  Trash2, 
+import {
+  Bell,
+  Heart,
+  MessageCircle,
+  UserPlus,
+  Check,
+  Trash2,
   Loader2,
   User,
   FileText,
@@ -38,9 +38,11 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
 
+  // ✅ FIX: Remove fetchNotifications from dependency array to prevent infinite loop
   useEffect(() => {
     fetchNotifications()
-  }, [filter, typeFilter, fetchNotifications])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, typeFilter])
 
   const fetchNotifications = useCallback(async (loadMore = false) => {
     if (loadMore) {
@@ -52,15 +54,15 @@ export default function NotificationsPage() {
     try {
       const currentPage = loadMore ? page + 1 : 1
       let url = `/api/notifications?limit=20&page=${currentPage}`
-      
+
       if (filter === 'unread') {
         url += '&unreadOnly=true'
       }
-      
+
       const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
-        
+
         if (loadMore) {
           setNotifications(prev => [...prev, ...(data.notifications || [])])
           setPage(currentPage)
@@ -68,7 +70,7 @@ export default function NotificationsPage() {
           setNotifications(data.notifications || [])
           setPage(1)
         }
-        
+
         setUnreadCount(data.unreadCount || 0)
         setHasMore(data.pagination?.page < data.pagination?.pages)
       }
@@ -79,6 +81,7 @@ export default function NotificationsPage() {
       setLoading(false)
       setActionLoading(false)
     }
+    // ✅ FIX: Include filter in dependencies, but not in useEffect deps to avoid circular dependency
   }, [filter, page])
 
   const refreshNotifications = async () => {
@@ -99,10 +102,10 @@ export default function NotificationsPage() {
       if (response.ok) {
         const data = await response.json()
         setUnreadCount(data.unreadCount || 0)
-        
-        setNotifications(prev => 
-          prev.map(notif => 
-            notificationIds.includes(notif._id) 
+
+        setNotifications(prev =>
+          prev.map(notif =>
+            notificationIds.includes(notif._id)
               ? { ...notif, isRead: true }
               : notif
           )
@@ -124,7 +127,7 @@ export default function NotificationsPage() {
 
       if (response.ok) {
         setUnreadCount(0)
-        setNotifications(prev => 
+        setNotifications(prev =>
           prev.map(notif => ({ ...notif, isRead: true }))
         )
         toast.success('All notifications marked as read')
@@ -143,16 +146,16 @@ export default function NotificationsPage() {
       })
 
       if (response.ok) {
-        setNotifications(prev => 
+        setNotifications(prev =>
           prev.filter(notif => notif._id !== notificationId)
         )
-        
+
         // Update unread count if the deleted notification was unread
         const deletedNotif = notifications.find(n => n._id === notificationId)
         if (deletedNotif && !deletedNotif.isRead) {
           setUnreadCount(prev => Math.max(0, prev - 1))
         }
-        
+
         toast.success('Notification deleted')
       }
     } catch (error) {
@@ -202,8 +205,8 @@ export default function NotificationsPage() {
     }
   }
 
-  const filteredNotifications = typeFilter === 'all' 
-    ? notifications 
+  const filteredNotifications = typeFilter === 'all'
+    ? notifications
     : notifications.filter(n => n.type === typeFilter)
 
   return (
@@ -301,14 +304,14 @@ export default function NotificationsPage() {
                 {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
               </h3>
               <p className="text-sm sm:text-base text-muted-foreground mb-6">
-                {filter === 'unread' 
-                  ? "You're all caught up!" 
+                {filter === 'unread'
+                  ? "You're all caught up!"
                   : "When you get notifications, they'll show up here"
                 }
               </p>
               {filter === 'unread' && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setFilter('all')}
                 >
                   View all notifications
@@ -321,7 +324,7 @@ export default function NotificationsPage() {
         <>
           <div className="space-y-2">
             {filteredNotifications.map((notification) => (
-              <Card 
+              <Card
                 key={notification._id}
                 className={cn(
                   "transition-all hover:shadow-md",
@@ -359,7 +362,7 @@ export default function NotificationsPage() {
                             <Badge variant="default" className="text-xs">New</Badge>
                           )}
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                           {!notification.isRead && (
                             <Button
@@ -383,7 +386,7 @@ export default function NotificationsPage() {
                         </div>
                       </div>
 
-                      <Link 
+                      <Link
                         href={notification.link}
                         onClick={() => handleNotificationClick(notification)}
                         className="block group"
@@ -391,13 +394,13 @@ export default function NotificationsPage() {
                         <p className="text-sm sm:text-base mb-2 group-hover:text-primary transition-colors break-words">
                           {notification.message}
                         </p>
-                        
+
                         {notification.post?.title && (
                           <p className="text-xs sm:text-sm text-muted-foreground mb-2 italic line-clamp-2 break-words">
                             &quot;{notification.post.title}&quot;
                           </p>
                         )}
-                        
+
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span>
                             {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
