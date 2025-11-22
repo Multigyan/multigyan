@@ -3,6 +3,7 @@ import { Wrench } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
+import Category from '@/models/Category' // ✅ FIX: Import Category model for populate()
 import DIYListingClient from './DIYListingClient'
 
 // =========================================
@@ -28,14 +29,14 @@ export default async function DIYPage() {
   try {
     // Add timeout to database connection
     const dbPromise = connectDB()
-    const timeoutPromise = new Promise((_, reject) => 
+    const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Database connection timeout')), 5000)
     )
-    
+
     await Promise.race([dbPromise, timeoutPromise])
-    
+
     // Fetch all DIY posts with timeout
-    const queryPromise = Post.find({ 
+    const queryPromise = Post.find({
       status: 'published',
       contentType: 'diy'
     })
@@ -45,52 +46,52 @@ export default async function DIYPage() {
       .limit(100)
       .maxTimeMS(5000) // MongoDB query timeout
       .lean()
-    
-    const queryTimeoutPromise = new Promise((_, reject) => 
+
+    const queryTimeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Query timeout')), 6000)
     )
-    
+
     const diyPosts = await Promise.race([queryPromise, queryTimeoutPromise])
 
     // Serialize ObjectIds and Dates COMPLETELY
     const serializedPosts = diyPosts.map(post => {
       // Helper function to convert ObjectId to string
       const serializeId = (id) => id ? id.toString() : null
-      
+
       // Helper function to serialize array of ObjectIds
       const serializeIdArray = (arr) => arr ? arr.map(id => serializeId(id)) : []
-      
+
       return {
         ...post,
         _id: serializeId(post._id),
-        
+
         // Author
         author: post.author ? {
           ...post.author,
           _id: serializeId(post.author._id)
         } : null,
-        
+
         // Category
         category: post.category ? {
           ...post.category,
           _id: serializeId(post.category._id)
         } : null,
-        
+
         // Dates
         publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
         createdAt: post.createdAt ? post.createdAt.toISOString() : null,
         updatedAt: post.updatedAt ? post.updatedAt.toISOString() : null,
         reviewedAt: post.reviewedAt ? post.reviewedAt.toISOString() : null,
-        
+
         // ObjectId fields
         reviewedBy: serializeId(post.reviewedBy),
         translationOf: serializeId(post.translationOf),
         lastEditedBy: serializeId(post.lastEditedBy),
-        
+
         // Arrays of ObjectIds
         likes: serializeIdArray(post.likes),
         saves: serializeIdArray(post.saves),
-        
+
         // Comments array
         comments: post.comments ? post.comments.map(comment => ({
           ...comment,
@@ -102,7 +103,7 @@ export default async function DIYPage() {
           updatedAt: comment.updatedAt ? comment.updatedAt.toISOString() : null,
           editedAt: comment.editedAt ? comment.editedAt.toISOString() : null
         })) : [],
-        
+
         // Ratings array
         ratings: post.ratings ? post.ratings.map(rating => ({
           ...rating,
@@ -111,7 +112,7 @@ export default async function DIYPage() {
           helpful: serializeIdArray(rating.helpful),
           createdAt: rating.createdAt ? rating.createdAt.toISOString() : null
         })) : [],
-        
+
         // User photos array
         userPhotos: post.userPhotos ? post.userPhotos.map(photo => ({
           ...photo,
@@ -120,7 +121,7 @@ export default async function DIYPage() {
           likes: serializeIdArray(photo.likes),
           createdAt: photo.createdAt ? photo.createdAt.toISOString() : null
         })) : [],
-        
+
         // Include additional fields for filtering
         averageRating: post.averageRating || 0
       }
@@ -171,20 +172,20 @@ export default async function DIYPage() {
     )
   } catch (error) {
     console.error('Error loading DIY posts:', error)
-    
+
     // Determine error type for better messaging
-    const errorType = error.message.includes('timeout') 
-      ? 'timeout' 
+    const errorType = error.message.includes('timeout')
+      ? 'timeout'
       : error.message.includes('connection')
-      ? 'connection'
-      : 'unknown'
-    
+        ? 'connection'
+        : 'unknown'
+
     const errorMessages = {
       timeout: 'The request is taking too long. Please try again.',
       connection: 'Unable to connect to the database. Please try again later.',
       unknown: 'We couldn\'t load the DIY tutorials. Please try again later.'
     }
-    
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-orange-50/30">
         <Card className="max-w-md m-4">

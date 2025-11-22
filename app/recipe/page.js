@@ -3,6 +3,7 @@ import { ChefHat } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
+import Category from '@/models/Category' // ✅ FIX: Import Category model for populate()
 import RecipeListingClient from './RecipeListingClient'
 import { Suspense } from 'react'
 
@@ -29,14 +30,14 @@ export default async function RecipePage() {
   try {
     // Add timeout to database connection
     const dbPromise = connectDB()
-    const timeoutPromise = new Promise((_, reject) => 
+    const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Database connection timeout')), 5000)
     )
-    
+
     await Promise.race([dbPromise, timeoutPromise])
-    
+
     // Fetch all recipe posts with timeout
-    const queryPromise = Post.find({ 
+    const queryPromise = Post.find({
       status: 'published',
       contentType: 'recipe'
     })
@@ -46,13 +47,13 @@ export default async function RecipePage() {
       .limit(100)
       .maxTimeMS(5000) // ✨ MongoDB query timeout
       .lean()
-    
-    const queryTimeoutPromise = new Promise((_, reject) => 
+
+    const queryTimeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Query timeout')), 6000)
     )
-    
+
     const recipePosts = await Promise.race([queryPromise, queryTimeoutPromise])
-    
+
     // If no recipes found, show empty state instead of error
     if (recipePosts.length === 0) {
       return (
@@ -72,7 +73,7 @@ export default async function RecipePage() {
               </p>
             </div>
           </div>
-          
+
           {/* Empty State */}
           <div className="container mx-auto px-4 py-12">
             <div className="text-center py-16">
@@ -83,7 +84,7 @@ export default async function RecipePage() {
               <p className="text-gray-500 mb-6">
                 Check back soon for delicious cooking guides!
               </p>
-              <Link 
+              <Link
                 href="/blog"
                 className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
               >
@@ -99,41 +100,41 @@ export default async function RecipePage() {
     const serializedPosts = recipePosts.map(post => {
       // Helper function to convert ObjectId to string
       const serializeId = (id) => id ? id.toString() : null
-      
+
       // Helper function to serialize array of ObjectIds
       const serializeIdArray = (arr) => arr ? arr.map(id => serializeId(id)) : []
-      
+
       return {
         ...post,
         _id: serializeId(post._id),
-        
+
         // Author
         author: post.author ? {
           ...post.author,
           _id: serializeId(post.author._id)
         } : null,
-        
+
         // Category
         category: post.category ? {
           ...post.category,
           _id: serializeId(post.category._id)
         } : null,
-        
+
         // Dates
         publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
         createdAt: post.createdAt ? post.createdAt.toISOString() : null,
         updatedAt: post.updatedAt ? post.updatedAt.toISOString() : null,
         reviewedAt: post.reviewedAt ? post.reviewedAt.toISOString() : null,
-        
+
         // ObjectId fields
         reviewedBy: serializeId(post.reviewedBy),
         translationOf: serializeId(post.translationOf),
         lastEditedBy: serializeId(post.lastEditedBy),
-        
+
         // Arrays of ObjectIds
         likes: serializeIdArray(post.likes),
         saves: serializeIdArray(post.saves),
-        
+
         // Comments array
         comments: post.comments ? post.comments.map(comment => ({
           ...comment,
@@ -145,7 +146,7 @@ export default async function RecipePage() {
           updatedAt: comment.updatedAt ? comment.updatedAt.toISOString() : null,
           editedAt: comment.editedAt ? comment.editedAt.toISOString() : null
         })) : [],
-        
+
         // Ratings array
         ratings: post.ratings ? post.ratings.map(rating => ({
           ...rating,
@@ -154,7 +155,7 @@ export default async function RecipePage() {
           helpful: serializeIdArray(rating.helpful),
           createdAt: rating.createdAt ? rating.createdAt.toISOString() : null
         })) : [],
-        
+
         // User photos array
         userPhotos: post.userPhotos ? post.userPhotos.map(photo => ({
           ...photo,
@@ -163,7 +164,7 @@ export default async function RecipePage() {
           likes: serializeIdArray(photo.likes),
           createdAt: photo.createdAt ? photo.createdAt.toISOString() : null
         })) : [],
-        
+
         // Include additional fields for filtering
         averageRating: post.averageRating || 0
       }
@@ -231,20 +232,20 @@ export default async function RecipePage() {
     )
   } catch (error) {
     console.error('Error loading recipe posts:', error)
-    
+
     // Determine error type for better user messaging
-    const errorType = error.message.includes('timeout') 
-      ? 'timeout' 
+    const errorType = error.message.includes('timeout')
+      ? 'timeout'
       : error.message.includes('connection')
-      ? 'connection'
-      : 'unknown'
-    
+        ? 'connection'
+        : 'unknown'
+
     const errorMessages = {
       timeout: 'The request is taking too long. Please try again.',
       connection: 'Unable to connect to the database. Please try again later.',
       unknown: 'We couldn\'t load the recipes. Please try again later.'
     }
-    
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-green-50/30">
         <Card className="max-w-md m-4">
