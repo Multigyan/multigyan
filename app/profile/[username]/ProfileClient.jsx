@@ -131,6 +131,56 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
     return () => clearTimeout(timer)
   }, [user._id, user.username])
 
+  // ⚡ ANALYTICS: Track time on profile
+  useEffect(() => {
+    const startTime = Date.now()
+
+    return () => {
+      const timeSpent = Math.floor((Date.now() - startTime) / 1000)
+
+      // Only track if user spent more than 5 seconds
+      if (timeSpent > 5) {
+        fetch('/api/analytics/profile-view/time', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profileId: user._id,
+            timeSpent
+          })
+        }).catch(() => { })
+      }
+    }
+  }, [user._id])
+
+  // ⚡ ANALYTICS: Track sections viewed
+  useEffect(() => {
+    const trackSection = (sectionName) => {
+      fetch('/api/analytics/profile-view/section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profileId: user._id,
+          section: sectionName
+        })
+      }).catch(() => { })
+    }
+
+    // Use Intersection Observer to track section views
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.target.dataset.section) {
+          trackSection(entry.target.dataset.section)
+        }
+      })
+    }, { threshold: 0.5 })
+
+    // Observe all sections
+    const sections = document.querySelectorAll('[data-section]')
+    sections.forEach(el => observer.observe(el))
+
+    return () => observer.disconnect()
+  }, [user._id])
+
   const getInitials = (name) => {
     return name
       ?.split(' ')
@@ -180,6 +230,16 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
           ...stats,
           followersCount: data.followersCount
         }, false)
+
+        // ⚡ ANALYTICS: Track conversion if user followed
+        if (data.isFollowing) {
+          fetch('/api/analytics/profile-view/conversion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ profileId: user._id })
+          }).catch(() => { })
+        }
+
         toast.success(data.message)
       } else {
         toast.error(data.error)

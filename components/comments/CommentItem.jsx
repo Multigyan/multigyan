@@ -3,16 +3,17 @@
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { 
-  Reply, 
-  MoreHorizontal, 
-  User, 
-  Check, 
-  X, 
-  Edit, 
+import {
+  Reply,
+  MoreHorizontal,
+  User,
+  Check,
+  X,
+  Edit,
   Trash2,
   Flag,
   Clock,
@@ -29,13 +30,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { prefetchProfileData } from '@/lib/prefetch-profile'
 
-export default function CommentItem({ 
-  comment, 
-  postId, 
-  onUpdate, 
+export default function CommentItem({
+  comment,
+  postId,
+  onUpdate,
   showUnapproved = false,
-  isReply = false 
+  isReply = false
 }) {
   const { data: session } = useSession()
   const [showReplyForm, setShowReplyForm] = useState(false)
@@ -146,55 +148,92 @@ export default function CommentItem({
           {/* Comment Header */}
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
-              {/* Author Avatar */}
-              <div className="relative">
-                {authorImage ? (
-                  <Image
-                    src={authorImage}
-                    alt={authorName}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                    <User className="h-5 w-5 text-muted-foreground" />
+              {/* Author Avatar & Info with Prefetching */}
+              {comment.author ? (
+                <Link
+                  href={`/profile/${comment.author.username}`}
+                  {...prefetchProfileData(comment.author.username, comment.author._id)}
+                  className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="relative">
+                    {authorImage ? (
+                      <Image
+                        src={authorImage}
+                        alt={authorName}
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    {comment.author.role === 'admin' && (
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                        <Shield className="h-2.5 w-2.5 text-white" />
+                      </div>
+                    )}
                   </div>
-                )}
-                {comment.author?.role === 'admin' && (
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
-                    <Shield className="h-2.5 w-2.5 text-white" />
-                  </div>
-                )}
-              </div>
 
-              {/* Author Info */}
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-foreground">{authorName}</span>
-                  {comment.author?.role === 'admin' && (
-                    <Badge variant="secondary" className="text-xs">Admin</Badge>
-                  )}
-                  {!comment.author && (
-                    <Badge variant="outline" className="text-xs">Guest</Badge>
-                  )}
-                  {!comment.isApproved && showUnapproved && (
-                    <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
-                      Pending
-                    </Badge>
-                  )}
-                  {comment.isEdited && (
-                    <Badge variant="outline" className="text-xs">Edited</Badge>
-                  )}
+                  {/* Author Info */}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">{authorName}</span>
+                      {comment.author.role === 'admin' && (
+                        <Badge variant="secondary" className="text-xs">Admin</Badge>
+                      )}
+                      {!comment.isApproved && showUnapproved && (
+                        <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                          Pending
+                        </Badge>
+                      )}
+                      {comment.isEdited && (
+                        <Badge variant="outline" className="text-xs">Edited</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{timeAgo}</span>
+                      {comment.isEdited && comment.editedAt && (
+                        <span>• edited {formatDistanceToNow(new Date(comment.editedAt), { addSuffix: true })}</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  </div>
+
+                  {/* Guest Author Info */}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">{authorName}</span>
+                      <Badge variant="outline" className="text-xs">Guest</Badge>
+                      {!comment.isApproved && showUnapproved && (
+                        <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                          Pending
+                        </Badge>
+                      )}
+                      {comment.isEdited && (
+                        <Badge variant="outline" className="text-xs">Edited</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{timeAgo}</span>
+                      {comment.isEdited && comment.editedAt && (
+                        <span>• edited {formatDistanceToNow(new Date(comment.editedAt), { addSuffix: true })}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span>{timeAgo}</span>
-                  {comment.isEdited && comment.editedAt && (
-                    <span>• edited {formatDistanceToNow(new Date(comment.editedAt), { addSuffix: true })}</span>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Actions Menu */}

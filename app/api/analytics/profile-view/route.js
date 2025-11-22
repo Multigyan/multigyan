@@ -37,71 +37,45 @@ function parseUserAgent(userAgent) {
 }
 
 export async function POST(request) {
+    // Return success immediately to not block anything
     try {
-        // Set a timeout for database operations
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout')), 5000)
-        )
+        const { profileId, username } = await request.json()
 
-        const analyticsPromise = (async () => {
-            await connectDB()
+        if (!profileId || !username) {
+            return NextResponse.json({ success: true }, { status: 200 })
+        }
 
-            const session = await getServerSession(authOptions)
-            const { profileId, username, timestamp, sessionId } = await request.json()
+        // Track analytics in background (fire and forget)
+        setImmediate(async () => {
+            try {
+                await connectDB()
+                const session = await getServerSession(authOptions)
+                const referrer = request.headers.get('referer')
+                const userAgent = request.headers.get('user-agent')
+                const { deviceType, browser, os } = parseUserAgent(userAgent)
 
-            if (!profileId || !username) {
-                return NextResponse.json(
-                    { error: 'Missing required fields' },
-                    { status: 400 }
-                )
+                if (ProfileView) {
+                    await ProfileView.create({
+                        profileId,
+                        username,
+                        timestamp: new Date(),
+                        referrer,
+                        userAgent,
+                        viewerUserId: session?.user?.id || null,
+                        deviceType,
+                        browser,
+                        os
+                    })
+                    console.log(`📊 Profile View: ${username}`)
+                }
+            } catch (error) {
+                // Silently fail
             }
+        })
 
-            // Get request metadata
-            const referrer = request.headers.get('referer')
-            const userAgent = request.headers.get('user-agent')
-            const { deviceType, browser, os } = parseUserAgent(userAgent)
-
-            // Create profile view record
-            const profileView = await ProfileView.create({
-                profileId,
-                username,
-                timestamp: timestamp || new Date(),
-                referrer,
-                userAgent,
-                viewerUserId: session?.user?.id || null,
-                sessionId: sessionId || null,
-                deviceType,
-                browser,
-                os
-            })
-
-            // Get today's view count
-            const today = new Date()
-            today.setHours(0, 0, 0, 0)
-            const viewCount = await ProfileView.countDocuments({
-                profileId,
-                timestamp: { $gte: today }
-            })
-
-            console.log(`📊 Profile View: ${username} (${profileId}) - Today: ${viewCount} views`)
-
-            return NextResponse.json({
-                success: true,
-                views: viewCount,
-                viewId: profileView._id
-            })
-        })()
-
-        // Race between timeout and analytics
-        return await Promise.race([analyticsPromise, timeoutPromise])
-
+        return NextResponse.json({ success: true }, { status: 200 })
     } catch (error) {
-        console.error('Analytics error:', error)
-        // Return success even on error to not block the page
-        return NextResponse.json({
-            success: false,
-            error: 'Analytics tracking failed'
-        }, { status: 200 }) // Return 200 to not break the page
+        return NextResponse.json({ success: true }, { status: 200 })
     }
 }
 
@@ -111,7 +85,7 @@ export async function GET(request) {
 
         const { searchParams } = new URL(request.url)
         const profileId = searchParams.get('profileId')
-        const period = searchParams.get('period') || 'today' // today, week, month, all
+        const period = searchParams.get('period') || 'today'
 
         if (!profileId) {
             return NextResponse.json(
