@@ -3,6 +3,8 @@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useCallback } from "react"
+import useSWR from "swr"
+import { dashboardStatsConfig } from "@/lib/swr-config"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PenTool, Users, BarChart3, Settings, Plus, FileText, Folder } from "lucide-react"
@@ -11,59 +13,27 @@ import Link from "next/link"
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [stats, setStats] = useState({
+
+  // ⚡ SWR OPTIMIZATION: Automatic caching, revalidation, and loading states
+  // Data is cached and instantly available on revisit
+  const { data: statsData, error, isLoading } = useSWR(
+    session ? '/api/users/dashboard/stats' : null,
+    dashboardStatsConfig
+  )
+
+  const stats = statsData?.stats || {
     totalPosts: 0,
     publishedPosts: 0,
     draftPosts: 0,
     totalUsers: 0
-  })
-  const [loading, setLoading] = useState(true)
+  }
 
-  const fetchStats = useCallback(async () => {
-    try {
-      setLoading(true)
-      
-      // ✅ FIX: Fetch ONLY current user's posts (not all platform posts)
-      const postsResponse = await fetch(`/api/posts?author=${session.user.id}&limit=1000`)
-      const postsData = await postsResponse.json()
-      
-      if (postsResponse.ok && postsData.posts) {
-        const allPosts = postsData.posts
-        const published = allPosts.filter(p => p.status === 'published').length
-        const drafts = allPosts.filter(p => p.status === 'draft').length
-        
-        setStats(prev => ({
-          ...prev,
-          totalPosts: allPosts.length,
-          publishedPosts: published,
-          draftPosts: drafts
-        }))
-      }
-
-      // Fetch total users (admin only)
-      if (session?.user?.role === 'admin') {
-        const usersResponse = await fetch('/api/users')
-        const usersData = await usersResponse.json()
-        
-        if (usersResponse.ok && usersData.users) {
-          setStats(prev => ({
-            ...prev,
-            totalUsers: usersData.users.length
-          }))
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching stats:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [session])  // Depends on session to check role
+  const loading = isLoading || status === "loading"
 
   useEffect(() => {
     if (status === "loading") return
     if (!session) router.push("/login")
-    else fetchStats()
-  }, [session, status, router, fetchStats])
+  }, [session, status, router])
 
   if (status === "loading" || loading) {
     return (
@@ -296,8 +266,8 @@ export default function DashboardPage() {
             {!isAdmin && (
               <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-muted/50 rounded-lg border border-border scale-in" style={{ animationDelay: '300ms' }}>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  <strong>Note:</strong> You&apos;re currently an Author. 
-                  If you need admin access, please contact an existing administrator 
+                  <strong>Note:</strong> You&apos;re currently an Author.
+                  If you need admin access, please contact an existing administrator
                   to promote your account.
                 </p>
               </div>

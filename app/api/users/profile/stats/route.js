@@ -4,11 +4,12 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import User from '@/models/User'
+import mongoose from 'mongoose'
 
 export async function GET(request) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,58 +19,134 @@ export async function GET(request) {
 
     await connectDB()
 
-    // Get user's posts statistics
-    const posts = await Post.find({ author: session.user.id })
+    const userId = new mongoose.Types.ObjectId(session.user.id)
 
-    // Calculate statistics
-    const totalPosts = posts.length
-    const publishedPosts = posts.filter(p => p.status === 'published').length
-    const draftPosts = posts.filter(p => p.status === 'draft').length
-    const pendingPosts = posts.filter(p => p.status === 'pending_review').length
-    const rejectedPosts = posts.filter(p => p.status === 'rejected').length
+    // ⚡ OPTIMIZATION 1: Use MongoDB aggregation instead of fetching all posts
+    // Before: Fetches ALL posts with ALL fields (5-10 MB for 100 posts)
+    // After: Returns only aggregated stats (~100 bytes)
+    const [statsResult, user] = await Promise.all([
+      // Aggregation pipeline for post statistics
+      Post.aggregate([
+        { $match: { author: userId } },
+        {
+          $facet: {
+            // Count posts by status
+            statusCounts: [
+              {
+                $group: {
+                  _id: '$status',
+                  count: { $sum: 1 }
+                }
+              }
+            ],
+            // Calculate total views, likes, and comments
+            totals: [
+              {
+                $group: {
+                  _id: null,
+                  totalViews: { $sum: '$views' },
+                  totalLikes: { $sum: { $size: { $ifNull: ['$likes', []] } } },
+                  totalComments: {
+                    $sum: {
+                      $size: {
+                        $filter: {
+                          input: { $ifNull: ['$comments', []] },
+                          cond: { $eq: ['$$this.isApproved', true] }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            // Get recent posts (last 5)
+            recentPosts: [
+              { $sort: { updatedAt: -1 } },
+              { $limit: 5 },
+              {
+                $project: {
+                  _id: 1,
+                  title: 1,
+                  status: 1,
+                  views: 1,
+                  updatedAt: 1,
+                  likeCount: { $size: { $ifNull: ['$likes', []] } },
+                  commentCount: {
+                    $size: {
+                      $filter: {
+                        input: { $ifNull: ['$comments', []] },
+                        cond: { $eq: ['$$this.isApproved', true] }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]),
+      // ⚡ OPTIMIZATION 2: Parallel query execution + .lean() for speed
+      User.findById(session.user.id)
+        .select('name email profilePictureUrl bio createdAt')
+        .lean()
+    ])
 
-    // Calculate total views
-    const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0)
+    // Process aggregation results
+    const aggregationData = statsResult[0] || { statusCounts: [], totals: [], recentPosts: [] }
 
-    // Calculate total likes
-    const totalLikes = posts.reduce((sum, post) => sum + (post.likes?.length || 0), 0)
+    // Build stats object from aggregation
+    const stats = {
+      totalPosts: 0,
+      publishedPosts: 0,
+      draftPosts: 0,
+      pendingPosts: 0,
+      rejectedPosts: 0,
+      totalViews: 0,
+      totalLikes: 0,
+      totalComments: 0
+    }
 
-    // Calculate total comments (only approved comments)
-    const totalComments = posts.reduce((sum, post) => {
-      const approvedComments = post.comments?.filter(c => c.isApproved) || []
-      return sum + approvedComments.length
-    }, 0)
+    // Process status counts
+    aggregationData.statusCounts.forEach(item => {
+      stats.totalPosts += item.count
+      switch (item._id) {
+        case 'published':
+          stats.publishedPosts = item.count
+          break
+        case 'draft':
+          stats.draftPosts = item.count
+          break
+        case 'pending_review':
+          stats.pendingPosts = item.count
+          break
+        case 'rejected':
+          stats.rejectedPosts = item.count
+          break
+      }
+    })
 
-    // Get recent activity (last 5 posts)
-    const recentPosts = posts
-      .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-      .slice(0, 5)
-      .map(post => ({
-        _id: post._id,
-        title: post.title,
-        status: post.status,
-        views: post.views || 0,
-        likes: post.likes?.length || 0,
-        comments: post.comments?.filter(c => c.isApproved).length || 0,
-        updatedAt: post.updatedAt
-      }))
+    // Process totals
+    if (aggregationData.totals.length > 0) {
+      const totals = aggregationData.totals[0]
+      stats.totalViews = totals.totalViews || 0
+      stats.totalLikes = totals.totalLikes || 0
+      stats.totalComments = totals.totalComments || 0
+    }
 
-    // Get user info
-    const user = await User.findById(session.user.id)
-      .select('name email profilePictureUrl bio createdAt')
+    // Format recent posts
+    const recentPosts = aggregationData.recentPosts.map(post => ({
+      _id: post._id,
+      title: post.title,
+      status: post.status,
+      views: post.views || 0,
+      likes: post.likeCount || 0,
+      comments: post.commentCount || 0,
+      updatedAt: post.updatedAt
+    }))
 
     return NextResponse.json({
       success: true,
-      stats: {
-        totalPosts,
-        publishedPosts,
-        draftPosts,
-        pendingPosts,
-        rejectedPosts,
-        totalViews,
-        totalLikes,
-        totalComments
-      },
+      stats,
       recentPosts,
       user: {
         name: user?.name,
@@ -77,6 +154,11 @@ export async function GET(request) {
         profilePictureUrl: user?.profilePictureUrl,
         bio: user?.bio,
         memberSince: user?.createdAt
+      }
+    }, {
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'X-Performance-Optimized': 'true'
       }
     })
 

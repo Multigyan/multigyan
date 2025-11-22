@@ -5,6 +5,9 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
+import dynamic from "next/dynamic"
+import useSWR from "swr"
+import { profileStatsConfig } from "@/lib/swr-config"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,12 +15,16 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import ImageUploader from "@/components/upload/ImageUploader"
-import { 
-  User, 
-  Mail, 
-  Save, 
-  Shield, 
+// ⚡ OPTIMIZATION: Lazy load heavy ImageUploader component
+const ImageUploader = dynamic(() => import('@/components/upload/ImageUploader'), {
+  loading: () => <div className="h-32 bg-muted animate-pulse rounded-lg"></div>,
+  ssr: false
+})
+import {
+  User,
+  Mail,
+  Save,
+  Shield,
   PenTool,
   Calendar,
   Eye,
@@ -33,12 +40,20 @@ export default function ProfilePage() {
   const { data: session, status, update } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [profileStats, setProfileStats] = useState({
+
+  // ⚡ SWR OPTIMIZATION: Cache profile stats for instant loads
+  const { data: profileData } = useSWR(
+    session ? '/api/users/profile/stats' : null,
+    profileStatsConfig
+  )
+
+  const profileStats = profileData?.stats || {
     totalPosts: 0,
     totalViews: 0,
     totalLikes: 0,
     totalComments: 0
-  })
+  }
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -55,7 +70,7 @@ export default function ProfilePage() {
     message: ''
   })
   const [usernameTimeout, setUsernameTimeout] = useState(null)
-  
+
   const getInitials = (name) => {
     return name
       ?.split(' ')
@@ -81,22 +96,9 @@ export default function ProfilePage() {
         linkedinUrl: session.user.linkedinUrl || "",
         website: session.user.website || ""
       })
-      fetchProfileStats()
+      // SWR automatically fetches profile stats
     }
   }, [session, status, router])
-
-  const fetchProfileStats = async () => {
-    try {
-      const response = await fetch('/api/users/profile/stats')
-      const data = await response.json()
-      
-      if (response.ok) {
-        setProfileStats(data.stats)
-      }
-    } catch (error) {
-      console.error('Error fetching profile stats:', error)
-    }
-  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -104,32 +106,32 @@ export default function ProfilePage() {
       ...prev,
       [name]: value
     }))
-    
+
     // Check username availability as user types
     if (name === 'username') {
       // Clear previous timeout
       if (usernameTimeout) {
         clearTimeout(usernameTimeout)
       }
-      
+
       // Reset check state
       setUsernameCheck({ checking: true, available: null, message: '' })
-      
+
       // Don't check if empty or same as current username
       if (!value.trim() || value.trim() === session?.user?.username) {
         setUsernameCheck({ checking: false, available: null, message: '' })
         return
       }
-      
+
       // Set new timeout for checking
       const timeout = setTimeout(() => {
         checkUsernameAvailability(value.trim())
       }, 500) // Wait 500ms after user stops typing
-      
+
       setUsernameTimeout(timeout)
     }
   }
-  
+
   const checkUsernameAvailability = async (username) => {
     if (!username || username.length < 3) {
       setUsernameCheck({
@@ -139,7 +141,7 @@ export default function ProfilePage() {
       })
       return
     }
-    
+
     try {
       const response = await fetch('/api/users/check-username', {
         method: 'POST',
@@ -148,9 +150,9 @@ export default function ProfilePage() {
         },
         body: JSON.stringify({ username }),
       })
-      
+
       const data = await response.json()
-      
+
       setUsernameCheck({
         checking: false,
         available: data.available,
@@ -167,7 +169,7 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!formData.name.trim()) {
       toast.error('Name is required')
       return
@@ -188,7 +190,7 @@ export default function ProfilePage() {
 
       if (response.ok) {
         toast.success('Profile updated successfully!')
-        
+
         // Update the session with new data
         await update({
           ...session,
@@ -319,10 +321,9 @@ export default function ProfilePage() {
                       value={formData.username}
                       onChange={handleInputChange}
                       placeholder="your-unique-username"
-                      className={`pr-10 ${
-                        usernameCheck.available === false ? 'border-red-500' : 
+                      className={`pr-10 ${usernameCheck.available === false ? 'border-red-500' :
                         usernameCheck.available === true ? 'border-green-500' : ''
-                      }`}
+                        }`}
                     />
                     {usernameCheck.checking && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -337,11 +338,10 @@ export default function ProfilePage() {
                     )}
                   </div>
                   {usernameCheck.message && (
-                    <p className={`text-xs mt-1 ${
-                      usernameCheck.available === false ? 'text-red-500' : 
-                      usernameCheck.available === true ? 'text-green-500' : 
-                      'text-muted-foreground'
-                    }`}>
+                    <p className={`text-xs mt-1 ${usernameCheck.available === false ? 'text-red-500' :
+                      usernameCheck.available === true ? 'text-green-500' :
+                        'text-muted-foreground'
+                      }`}>
                       {usernameCheck.message}
                     </p>
                   )}
@@ -464,7 +464,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-              
+
               {formData.bio && (
                 <p className="text-sm text-muted-foreground line-clamp-3">
                   {formData.bio}
@@ -477,7 +477,7 @@ export default function ProfilePage() {
                   {formData.email}
                 </span>
               </div>
-              
+
               {formData.username && (
                 <div className="pt-3 border-t">
                   <Button variant="outline" size="sm" asChild className="w-full">

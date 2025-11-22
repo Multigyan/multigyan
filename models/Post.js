@@ -57,12 +57,12 @@ const CommentSchema = new mongoose.Schema({
 })
 
 // Virtual for comment like count
-CommentSchema.virtual('likeCount').get(function() {
+CommentSchema.virtual('likeCount').get(function () {
   return this.likes ? this.likes.length : 0
 })
 
 // Virtual for comment author name (works for both users and guests)
-CommentSchema.virtual('authorName').get(function() {
+CommentSchema.virtual('authorName').get(function () {
   if (this.author && this.author.name) {
     return this.author.name
   }
@@ -70,7 +70,7 @@ CommentSchema.virtual('authorName').get(function() {
 })
 
 // Virtual for comment author email
-CommentSchema.virtual('authorEmail').get(function() {
+CommentSchema.virtual('authorEmail').get(function () {
   if (this.author && this.author.email) {
     return this.author.email
   }
@@ -78,7 +78,7 @@ CommentSchema.virtual('authorEmail').get(function() {
 })
 
 // Instance method to add like to comment
-CommentSchema.methods.addLike = function(userId) {
+CommentSchema.methods.addLike = function (userId) {
   if (!this.likes.includes(userId)) {
     this.likes.push(userId)
   }
@@ -86,26 +86,26 @@ CommentSchema.methods.addLike = function(userId) {
 }
 
 // Instance method to remove like from comment
-CommentSchema.methods.removeLike = function(userId) {
+CommentSchema.methods.removeLike = function (userId) {
   this.likes = this.likes.filter(id => !id.equals(userId))
   return this
 }
 
 // Instance method to approve comment
-CommentSchema.methods.approve = function() {
+CommentSchema.methods.approve = function () {
   this.isApproved = true
   return this
 }
 
 // Instance method to report comment
-CommentSchema.methods.report = function() {
+CommentSchema.methods.report = function () {
   this.isReported = true
   this.reportCount += 1
   return this
 }
 
 // Instance method to edit comment
-CommentSchema.methods.editContent = function(newContent) {
+CommentSchema.methods.editContent = function (newContent) {
   this.content = newContent
   this.isEdited = true
   this.editedAt = new Date()
@@ -255,7 +255,7 @@ const PostSchema = new mongoose.Schema({
   },
   lastEditedAt: Date,
   editReason: String,  // Admin must provide reason for editing author's post
-  
+
   // ========================================
   // ✨ CONTENT TYPE IDENTIFICATION
   // ========================================
@@ -268,7 +268,7 @@ const PostSchema = new mongoose.Schema({
   // ========================================
   // ✨ DIY-SPECIFIC FIELDS (Enhanced)
   // ========================================
-  
+
   // ===== EXISTING DIY FIELDS (Keep for backward compatibility) =====
   diyDifficulty: {
     type: String,
@@ -280,20 +280,20 @@ const PostSchema = new mongoose.Schema({
   diyEstimatedTime: String, // e.g., "2 hours"
 
   // ===== NEW ENHANCED DIY FIELDS =====
-  
+
   // Project Overview
   projectType: {
     type: String,
     enum: ['electronics', 'woodworking', 'crafts', '3dprinting', 'programming', 'robotics', 'iot', 'home-improvement', 'other'],
     default: 'other'
   },
-  
+
   whatYouWillLearn: [{
     type: String,
     trim: true,
     maxlength: [200, 'Learning outcome cannot exceed 200 characters']
   }],
-  
+
   estimatedCost: {
     min: {
       type: Number,
@@ -309,30 +309,30 @@ const PostSchema = new mongoose.Schema({
       enum: ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD']
     }
   },
-  
+
   prerequisites: [{
     type: String,
     trim: true,
     maxlength: [200, 'Prerequisite cannot exceed 200 characters']
   }],
-  
+
   safetyWarnings: [{
     type: String,
     trim: true,
     maxlength: [300, 'Safety warning cannot exceed 300 characters']
   }],
-  
+
   targetAudience: [{
     type: String,
     enum: ['kids', 'teens', 'adults', 'professionals', 'beginners', 'intermediate', 'advanced']
   }],
-  
+
   inspirationStory: {
     type: String,
     trim: true,
     maxlength: [1000, 'Inspiration story cannot exceed 1000 characters']
   },
-  
+
   // Enhanced Requirements
   hardwareRequirements: [{
     name: {
@@ -364,7 +364,7 @@ const PostSchema = new mongoose.Schema({
       url: String
     }]
   }],
-  
+
   softwareRequirements: [{
     name: {
       type: String,
@@ -383,7 +383,7 @@ const PostSchema = new mongoose.Schema({
       maxlength: 500
     }
   }],
-  
+
   toolRequirements: [{
     name: {
       type: String,
@@ -397,7 +397,7 @@ const PostSchema = new mongoose.Schema({
       default: false
     }
   }],
-  
+
   // Step-by-Step Instructions
   steps: [{
     stepNumber: {
@@ -444,19 +444,19 @@ const PostSchema = new mongoose.Schema({
     tips: [String],
     warnings: [String]
   }],
-  
+
   // Technical Documentation
   githubRepo: {
     type: String,
     trim: true,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         return !v || /^https:\/\/github\.com\//.test(v);
       },
       message: 'Must be a valid GitHub URL'
     }
   },
-  
+
   designFiles: [{
     type: {
       type: String,
@@ -482,7 +482,7 @@ const PostSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  
+
   circuits: [{
     name: String,
     imageUrl: String,
@@ -492,21 +492,21 @@ const PostSchema = new mongoose.Schema({
       enum: ['schematic', 'wiring', 'pcb', 'breadboard']
     }
   }],
-  
+
   // Testing & Results
   performanceMetrics: [{
     metric: String,
     value: String,
     unit: String
   }],
-  
+
   testResults: {
     description: String,
     images: [String],
     videos: [String],
     date: Date
   },
-  
+
   troubleshootingGuide: [{
     problem: {
       type: String,
@@ -520,7 +520,7 @@ const PostSchema = new mongoose.Schema({
     },
     preventiveMeasures: [String]
   }],
-  
+
   versionHistory: [{
     version: String,
     date: {
@@ -530,11 +530,11 @@ const PostSchema = new mongoose.Schema({
     changes: [String],
     improvements: [String]
   }],
-  
+
   // Community & Use Cases
   useCases: [String],
   futureImprovements: [String],
-  
+
   partSubstitutions: [{
     originalPart: String,
     substitutePart: String,
@@ -544,11 +544,11 @@ const PostSchema = new mongoose.Schema({
       ref: 'User'
     }
   }],
-  
+
   // ========================================
   // ✨ RECIPE-SPECIFIC FIELDS
   // ========================================
-  
+
   // ===== EXISTING RECIPE FIELDS (Keep for backward compatibility) =====
   recipePrepTime: String, // e.g., "15 mins"
   recipeCookTime: String, // e.g., "30 mins"
@@ -590,7 +590,7 @@ const PostSchema = new mongoose.Schema({
     type: String,
     enum: ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Keto', 'Paleo', 'Low-Carb', 'High-Protein']
   }],
-  
+
   // ========================================
   // ✨ NEW: RATINGS & REVIEWS
   // ========================================
@@ -625,7 +625,7 @@ const PostSchema = new mongoose.Schema({
     min: 0,
     max: 5
   },
-  
+
   // ========================================
   // ✨ NEW: USER ENGAGEMENT
   // ========================================
@@ -633,7 +633,7 @@ const PostSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  
+
   // "I Made This" feature
   userPhotos: [{
     user: {
@@ -658,7 +658,7 @@ const PostSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  
+
   // ========================================
   // ✨ NEW: AFFILIATE LINKS
   // ========================================
@@ -702,30 +702,39 @@ PostSchema.index({ createdAt: -1 })
 PostSchema.index({ tags: 1 })
 PostSchema.index({ title: 'text', content: 'text' }) // Text search index
 
+// ⚡ PERFORMANCE: Composite indexes for common query patterns
+// These dramatically improve dashboard and listing queries
+PostSchema.index({ author: 1, status: 1 }) // Dashboard stats by author + status
+PostSchema.index({ author: 1, createdAt: -1 }) // User's posts sorted by date
+PostSchema.index({ status: 1, publishedAt: -1 }) // Public posts listing
+PostSchema.index({ status: 1, isFeatured: 1, publishedAt: -1 }) // Featured posts
+PostSchema.index({ status: 1, category: 1, publishedAt: -1 }) // Category pages
+PostSchema.index({ lang: 1, status: 1, publishedAt: -1 }) // Language-specific posts
+
 // Virtual for post URL
-PostSchema.virtual('url').get(function() {
+PostSchema.virtual('url').get(function () {
   return `/blog/${this.slug}`
 })
 
 // Virtual for like count
-PostSchema.virtual('likeCount').get(function() {
+PostSchema.virtual('likeCount').get(function () {
   return this.likes ? this.likes.length : 0
 })
 
 // Virtual for comment count (approved only)
-PostSchema.virtual('commentCount').get(function() {
+PostSchema.virtual('commentCount').get(function () {
   return this.comments ? this.comments.filter(comment => comment.isApproved).length : 0
 })
 
 // Virtual for reading time calculation
-PostSchema.virtual('estimatedReadingTime').get(function() {
+PostSchema.virtual('estimatedReadingTime').get(function () {
   const wordsPerMinute = 200
   const words = this.content ? this.content.trim().split(/\s+/).length : 0
   return Math.ceil(words / wordsPerMinute)
 })
 
 // Generate slug and reading time before saving
-PostSchema.pre('save', async function(next) {
+PostSchema.pre('save', async function (next) {
   if (this.isModified('title')) {
     // ✅ IMPROVED: Use transliteration for better URL compatibility
     // Convert Hindi text to English characters for SEO-friendly URLs
@@ -734,7 +743,7 @@ PostSchema.pre('save', async function(next) {
       strict: true,   // ✅ CHANGED: Use strict mode to remove special characters
       locale: 'en'    // ✅ CHANGED: Use English locale for better compatibility
     })
-    
+
     if (this.isNew) {
       let slug = baseSlug
       let counter = 1
@@ -745,40 +754,40 @@ PostSchema.pre('save', async function(next) {
       this.slug = slug
     }
   }
-  
+
   // Calculate reading time
   if (this.isModified('content')) {
     this.readingTime = this.estimatedReadingTime
   }
-  
+
   // Generate excerpt if not provided
   if (this.isModified('content') && !this.excerpt) {
     const plainText = this.content.replace(/<[^>]*>/g, '') // Remove HTML tags
     this.excerpt = plainText.slice(0, 297) + (plainText.length > 297 ? '...' : '')
   }
-  
+
   // Set published date when status changes to published
   if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
     this.publishedAt = new Date()
   }
-  
+
   // Clear published date if status changes from published
   if (this.isModified('status') && this.status !== 'published' && this.publishedAt) {
     this.publishedAt = null
   }
-  
+
   next()
 })
 
 // Static method to get published posts with pagination
-PostSchema.statics.getPublished = function(page = 1, limit = 10, category = null) {
+PostSchema.statics.getPublished = function (page = 1, limit = 10, category = null) {
   const skip = (page - 1) * limit
   const query = { status: 'published' }
-  
+
   if (category) {
     query.category = category
   }
-  
+
   return this.find(query)
     .populate('author', 'name profilePictureUrl')
     .populate('category', 'name slug color')
@@ -789,7 +798,7 @@ PostSchema.statics.getPublished = function(page = 1, limit = 10, category = null
 }
 
 // Static method to get featured posts
-PostSchema.statics.getFeatured = function(limit = 5) {
+PostSchema.statics.getFeatured = function (limit = 5) {
   return this.find({ status: 'published', isFeatured: true })
     .populate('author', 'name profilePictureUrl')
     .populate('category', 'name slug color')
@@ -799,9 +808,9 @@ PostSchema.statics.getFeatured = function(limit = 5) {
 }
 
 // Static method to search posts
-PostSchema.statics.searchPosts = function(query, page = 1, limit = 10) {
+PostSchema.statics.searchPosts = function (query, page = 1, limit = 10) {
   const skip = (page - 1) * limit
-  
+
   return this.find({
     status: 'published',
     $text: { $search: query }
@@ -817,14 +826,14 @@ PostSchema.statics.searchPosts = function(query, page = 1, limit = 10) {
 }
 
 // Static method to get posts by author
-PostSchema.statics.getByAuthor = function(authorId, status = 'published', page = 1, limit = 10) {
+PostSchema.statics.getByAuthor = function (authorId, status = 'published', page = 1, limit = 10) {
   const skip = (page - 1) * limit
   const query = { author: authorId }
-  
+
   if (status) {
     query.status = status
   }
-  
+
   return this.find(query)
     .populate('category', 'name slug color')
     .select('title slug excerpt featuredImageUrl status publishedAt readingTime views likeCount')
@@ -834,7 +843,7 @@ PostSchema.statics.getByAuthor = function(authorId, status = 'published', page =
 }
 
 // Static method to get posts pending review
-PostSchema.statics.getPendingReview = function() {
+PostSchema.statics.getPendingReview = function () {
   return this.find({ status: 'pending_review' })
     .populate('author', 'name email')
     .populate('category', 'name')
@@ -843,7 +852,7 @@ PostSchema.statics.getPendingReview = function() {
 }
 
 // Instance method to approve post
-PostSchema.methods.approve = function(reviewerId) {
+PostSchema.methods.approve = function (reviewerId) {
   this.status = 'published'
   this.reviewedBy = reviewerId
   this.reviewedAt = new Date()
@@ -853,7 +862,7 @@ PostSchema.methods.approve = function(reviewerId) {
 }
 
 // Instance method to reject post
-PostSchema.methods.reject = function(reviewerId, reason) {
+PostSchema.methods.reject = function (reviewerId, reason) {
   this.status = 'rejected'
   this.reviewedBy = reviewerId
   this.reviewedAt = new Date()
@@ -863,16 +872,16 @@ PostSchema.methods.reject = function(reviewerId, reason) {
 }
 
 // Instance method to submit for review
-PostSchema.methods.submitForReview = function() {
+PostSchema.methods.submitForReview = function () {
   this.status = 'pending_review'
   return this.save()
 }
 
 // Instance method to add like
-PostSchema.methods.addLike = async function(userId) {
+PostSchema.methods.addLike = async function (userId) {
   if (!this.likes.includes(userId)) {
     this.likes.push(userId)
-    
+
     // Create notification for post author (don't notify yourself)
     // ✅ FIX: Check if author exists before accessing toString()
     if (this.author && this.author.toString() !== userId.toString()) {
@@ -896,14 +905,14 @@ PostSchema.methods.addLike = async function(userId) {
 }
 
 // Instance method to remove like
-PostSchema.methods.removeLike = function(userId) {
+PostSchema.methods.removeLike = function (userId) {
   this.likes = this.likes.filter(id => !id.equals(userId))
   // ✅ FIX: Skip validation when saving (avoids SEO field validation)
   return this.save({ validateBeforeSave: false })
 }
 
 // Instance method to increment views
-PostSchema.methods.incrementViews = function() {
+PostSchema.methods.incrementViews = function () {
   this.views += 1
   return this.save()
 }
@@ -911,11 +920,11 @@ PostSchema.methods.incrementViews = function() {
 // Comment Management Methods
 
 // Instance method to add comment to post
-PostSchema.methods.addComment = async function(commentData) {
+PostSchema.methods.addComment = async function (commentData) {
   this.comments.push(commentData)
   // ✅ FIX: Skip validation when saving comments (avoids SEO field validation)
   const savedPost = await this.save({ validateBeforeSave: false })
-  
+
   // Create notification for post author (don't notify yourself)
   // ✅ FIX: Check if both author and this.author exist before comparing
   if (commentData.author && this.author && this.author.toString() !== commentData.author.toString()) {
@@ -933,13 +942,13 @@ PostSchema.methods.addComment = async function(commentData) {
       console.error('Error creating comment notification:', error)
     }
   }
-  
+
   // Create notification for parent comment author (if this is a reply)
   if (commentData.parentComment) {
     const parentComment = this.comments.id(commentData.parentComment)
-    if (parentComment && parentComment.author && 
-        commentData.author && 
-        parentComment.author.toString() !== commentData.author.toString()) {
+    if (parentComment && parentComment.author &&
+      commentData.author &&
+      parentComment.author.toString() !== commentData.author.toString()) {
       try {
         const Notification = mongoose.model('Notification')
         await Notification.createNotification({
@@ -956,21 +965,21 @@ PostSchema.methods.addComment = async function(commentData) {
       }
     }
   }
-  
+
   return savedPost
 }
 
 // Instance method to get approved comments with nested structure
-PostSchema.methods.getCommentsWithReplies = function() {
+PostSchema.methods.getCommentsWithReplies = function () {
   const approvedComments = this.comments.filter(comment => comment.isApproved)
-  
+
   // Separate top-level comments and replies
   const topLevelComments = approvedComments.filter(comment => !comment.parentComment)
   const replies = approvedComments.filter(comment => comment.parentComment)
-  
+
   // Attach replies to their parent comments
   const commentsWithReplies = topLevelComments.map(comment => {
-    const commentReplies = replies.filter(reply => 
+    const commentReplies = replies.filter(reply =>
       reply.parentComment && reply.parentComment.equals(comment._id)
     )
     return {
@@ -978,12 +987,12 @@ PostSchema.methods.getCommentsWithReplies = function() {
       replies: commentReplies.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
     }
   })
-  
+
   return commentsWithReplies.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 }
 
 // Instance method to approve comment by ID
-PostSchema.methods.approveComment = function(commentId) {
+PostSchema.methods.approveComment = function (commentId) {
   const comment = this.comments.id(commentId)
   if (comment) {
     comment.approve()
@@ -994,23 +1003,23 @@ PostSchema.methods.approveComment = function(commentId) {
 }
 
 // Instance method to delete comment by ID
-PostSchema.methods.deleteComment = function(commentId) {
+PostSchema.methods.deleteComment = function (commentId) {
   this.comments = this.comments.filter(comment => !comment._id.equals(commentId))
   // ✅ FIX: Skip validation when saving (avoids SEO field validation)
   return this.save({ validateBeforeSave: false })
 }
 
 // Instance method to like/unlike comment
-PostSchema.methods.toggleCommentLike = async function(commentId, userId) {
+PostSchema.methods.toggleCommentLike = async function (commentId, userId) {
   const comment = this.comments.id(commentId)
   if (comment) {
     const wasLiked = comment.likes.includes(userId)
-    
+
     if (wasLiked) {
       comment.removeLike(userId)
     } else {
       comment.addLike(userId)
-      
+
       // Create notification for comment author (don't notify yourself)
       if (comment.author && comment.author.toString() !== userId.toString()) {
         try {
@@ -1036,14 +1045,14 @@ PostSchema.methods.toggleCommentLike = async function(commentId, userId) {
 }
 
 // Instance method to get comment statistics
-PostSchema.methods.getCommentStats = function() {
+PostSchema.methods.getCommentStats = function () {
   const allComments = this.comments || []
   const approvedComments = allComments.filter(c => c.isApproved)
   const pendingComments = allComments.filter(c => !c.isApproved && !c.isReported)
   const reportedComments = allComments.filter(c => c.isReported)
   const topLevelComments = approvedComments.filter(c => !c.parentComment)
   const replies = approvedComments.filter(c => c.parentComment)
-  
+
   return {
     total: allComments.length,
     approved: approvedComments.length,
@@ -1060,12 +1069,12 @@ PostSchema.methods.getCommentStats = function() {
 // ========================================
 
 // Instance method to add/update rating
-PostSchema.methods.addRating = async function(userId, rating, review = '') {
+PostSchema.methods.addRating = async function (userId, rating, review = '') {
   // Check if user already rated
   const existingRatingIndex = this.ratings.findIndex(
     r => r.user.toString() === userId.toString()
   )
-  
+
   if (existingRatingIndex !== -1) {
     // Update existing rating
     this.ratings[existingRatingIndex].rating = rating
@@ -1081,15 +1090,15 @@ PostSchema.methods.addRating = async function(userId, rating, review = '') {
       createdAt: new Date()
     })
   }
-  
+
   // Recalculate average rating
   this.averageRating = this.ratings.reduce((sum, r) => sum + r.rating, 0) / this.ratings.length
-  
+
   return this.save({ validateBeforeSave: false })
 }
 
 // Instance method to mark rating as helpful
-PostSchema.methods.markRatingHelpful = function(ratingId, userId) {
+PostSchema.methods.markRatingHelpful = function (ratingId, userId) {
   const rating = this.ratings.id(ratingId)
   if (rating && !rating.helpful.includes(userId)) {
     rating.helpful.push(userId)
@@ -1103,7 +1112,7 @@ PostSchema.methods.markRatingHelpful = function(ratingId, userId) {
 // ========================================
 
 // Instance method to add bookmark/save
-PostSchema.methods.addSave = function(userId) {
+PostSchema.methods.addSave = function (userId) {
   if (!this.saves.includes(userId)) {
     this.saves.push(userId)
     return this.save({ validateBeforeSave: false })
@@ -1112,7 +1121,7 @@ PostSchema.methods.addSave = function(userId) {
 }
 
 // Instance method to remove bookmark/save
-PostSchema.methods.removeSave = function(userId) {
+PostSchema.methods.removeSave = function (userId) {
   this.saves = this.saves.filter(id => !id.equals(userId))
   return this.save({ validateBeforeSave: false })
 }
@@ -1122,7 +1131,7 @@ PostSchema.methods.removeSave = function(userId) {
 // ========================================
 
 // Instance method to add user photo
-PostSchema.methods.addUserPhoto = function(userId, photoUrl, caption = '') {
+PostSchema.methods.addUserPhoto = function (userId, photoUrl, caption = '') {
   this.userPhotos.push({
     user: userId,
     photoUrl,
@@ -1134,7 +1143,7 @@ PostSchema.methods.addUserPhoto = function(userId, photoUrl, caption = '') {
 }
 
 // Instance method to like user photo
-PostSchema.methods.likeUserPhoto = function(photoId, userId) {
+PostSchema.methods.likeUserPhoto = function (photoId, userId) {
   const photo = this.userPhotos.id(photoId)
   if (photo && !photo.likes.includes(userId)) {
     photo.likes.push(userId)
@@ -1144,7 +1153,7 @@ PostSchema.methods.likeUserPhoto = function(photoId, userId) {
 }
 
 // Instance method to remove user photo like
-PostSchema.methods.unlikeUserPhoto = function(photoId, userId) {
+PostSchema.methods.unlikeUserPhoto = function (photoId, userId) {
   const photo = this.userPhotos.id(photoId)
   if (photo) {
     photo.likes = photo.likes.filter(id => !id.equals(userId))
@@ -1158,27 +1167,27 @@ PostSchema.methods.unlikeUserPhoto = function(photoId, userId) {
 // ========================================
 
 // Virtual for save count
-PostSchema.virtual('saveCount').get(function() {
+PostSchema.virtual('saveCount').get(function () {
   return this.saves ? this.saves.length : 0
 })
 
 // Virtual for total time (prep + cook for recipes)
-PostSchema.virtual('totalTime').get(function() {
+PostSchema.virtual('totalTime').get(function () {
   return (this.prepTime || 0) + (this.cookTime || 0)
 })
 
 // Virtual for rating count
-PostSchema.virtual('ratingCount').get(function() {
+PostSchema.virtual('ratingCount').get(function () {
   return this.ratings ? this.ratings.length : 0
 })
 
 // Virtual for user photo count
-PostSchema.virtual('userPhotoCount').get(function() {
+PostSchema.virtual('userPhotoCount').get(function () {
   return this.userPhotos ? this.userPhotos.length : 0
 })
 
 // Static method to get posts with comment counts
-PostSchema.statics.getPostsWithCommentStats = function(query = {}) {
+PostSchema.statics.getPostsWithCommentStats = function (query = {}) {
   return this.aggregate([
     { $match: query },
     {
@@ -1195,7 +1204,7 @@ PostSchema.statics.getPostsWithCommentStats = function(query = {}) {
           $size: {
             $filter: {
               input: '$comments',
-              cond: { 
+              cond: {
                 $and: [
                   { $eq: ['$this.isApproved', false] },
                   { $eq: ['$this.isReported', false] }

@@ -9,11 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Settings, 
-  Bell, 
-  Shield, 
-  Eye, 
+import {
+  Settings,
+  Bell,
+  Shield,
+  Eye,
   Save,
   Trash2,
   Download,
@@ -59,24 +59,24 @@ export default function SettingsPage() {
     likeNotifications: false,
     newFollowerNotifications: true,
     weeklyDigest: true,
-    
+
     // Privacy Settings
     profileVisibility: true,
     showEmail: false,
     showJoinDate: true,
     allowFollowing: true,
-    
+
     // Content Settings
     autoSaveDrafts: true,
     defaultPostVisibility: 'public',
     allowComments: true,
     moderateComments: false,
-    
+
     // Display Settings
     theme: 'system',
     language: 'en',
     postsPerPage: 10,
-    
+
     // Security Settings
     twoFactorEnabled: false,
     loginAlerts: true
@@ -109,7 +109,7 @@ export default function SettingsPage() {
     try {
       const response = await fetch('/api/users/settings')
       const data = await response.json()
-      
+
       if (response.ok && data.settings) {
         setSettings(prev => ({ ...prev, ...data.settings }))
       }
@@ -118,11 +118,41 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSettingChange = (key, value) => {
+  const handleSettingChange = async (key, value) => {
+    // ⚡ OPTIMISTIC UPDATE: Update UI immediately for better UX
+    const previousValue = settings[key]
     setSettings(prev => ({
       ...prev,
       [key]: value
     }))
+
+    // Sync with server in background
+    try {
+      const response = await fetch('/api/users/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ settings: { ...settings, [key]: value } }),
+      })
+
+      if (!response.ok) {
+        // Revert on error
+        setSettings(prev => ({
+          ...prev,
+          [key]: previousValue
+        }))
+        const data = await response.json()
+        toast.error(data.error || 'Failed to update setting')
+      }
+    } catch (error) {
+      // Revert on error
+      setSettings(prev => ({
+        ...prev,
+        [key]: previousValue
+      }))
+      toast.error('Failed to update setting')
+    }
   }
 
   const handleSaveSettings = async () => {
@@ -204,11 +234,11 @@ export default function SettingsPage() {
     try {
       toast.info('Preparing your data export...')
       const response = await fetch('/api/users/export')
-      
+
       if (!response.ok) {
         throw new Error('Export failed')
       }
-      
+
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -673,9 +703,9 @@ export default function SettingsPage() {
                     <p className="text-sm text-blue-700 dark:text-blue-300">
                       Download a copy of all your data including posts, comments, and profile information
                     </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="mt-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40"
                       onClick={handleExportData}
                     >
@@ -712,7 +742,7 @@ export default function SettingsPage() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
+                          <AlertDialogAction
                             onClick={handleDeleteAccount}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
