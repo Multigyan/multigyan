@@ -10,13 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { 
-  FileText, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Clock, 
+import {
+  FileText,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  Clock,
   CheckCircle,
   User,
   Calendar,
@@ -54,7 +54,7 @@ import { formatDate } from "@/lib/helpers"
 export default function PublishedPostsPage() {
   const { data: session } = useSession()
   const router = useRouter()
-  
+
   // State management
   const [posts, setPosts] = useState([])
   const [categories, setCategories] = useState([])
@@ -87,42 +87,26 @@ export default function PublishedPostsPage() {
    */
   useEffect(() => {
     if (session?.user?.role === 'admin') {
-      fetchCategories()
-      fetchPosts()
-      fetchStats()
+      fetchAllData()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, categoryFilter, sortBy, session])
 
   /**
-   * FUNCTION: Fetch all categories
-   * Used for the category filter dropdown
+   * ✅ OPTIMIZATION: Combine all API calls for better performance
+   * Fetches categories, posts, and stats in parallel
    */
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/categories')
-      const data = await response.json()
-      
-      if (response.ok) {
-        setCategories(data.categories || [])
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
-
-  /**
-   * FUNCTION: Fetch published posts with filters
-   */
-  const fetchPosts = async () => {
+  const fetchAllData = async () => {
     try {
       setLoading(true)
+
+      // Build posts query params
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: '12',
         status: 'published'
       })
-      
+
       if (categoryFilter !== 'all') {
         params.append('category', categoryFilter)
       }
@@ -142,39 +126,39 @@ export default function PublishedPostsPage() {
         params.append('sort', 'likeCount')
         params.append('order', 'desc')
       } else {
-        // Default: newest first
         params.append('sort', 'publishedAt')
         params.append('order', 'desc')
       }
 
-      const response = await fetch(`/api/posts?${params}`)
-      const data = await response.json()
+      // ✅ Fetch all data in parallel
+      const [categoriesRes, postsRes, statsRes] = await Promise.all([
+        fetch('/api/categories'),
+        fetch(`/api/posts?${params}`),
+        fetch('/api/posts?status=published&limit=1000')
+      ])
 
-      if (response.ok) {
-        setPosts(data.posts)
-        setPagination(data.pagination)
-      } else {
-        toast.error(data.error || 'Failed to fetch posts')
+      const [categoriesData, postsData, statsData] = await Promise.all([
+        categoriesRes.json(),
+        postsRes.json(),
+        statsRes.json()
+      ])
+
+      // Update categories
+      if (categoriesRes.ok) {
+        setCategories(categoriesData.categories || [])
       }
-    } catch (error) {
-      console.error('Error fetching posts:', error)
-      toast.error('Failed to fetch posts')
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  /**
-   * FUNCTION: Fetch statistics
-   * Get totals for views, likes, and comments
-   */
-  const fetchStats = async () => {
-    try {
-      const response = await fetch('/api/posts?status=published&limit=1000')
-      const data = await response.json()
+      // Update posts
+      if (postsRes.ok) {
+        setPosts(postsData.posts)
+        setPagination(postsData.pagination)
+      } else {
+        toast.error(postsData.error || 'Failed to fetch posts')
+      }
 
-      if (response.ok) {
-        const allPosts = data.posts
+      // Update stats
+      if (statsRes.ok) {
+        const allPosts = statsData.posts
         setStats({
           totalPosts: allPosts.length,
           totalViews: allPosts.reduce((sum, post) => sum + (post.views || 0), 0),
@@ -183,9 +167,14 @@ export default function PublishedPostsPage() {
         })
       }
     } catch (error) {
-      console.error('Error fetching stats:', error)
+      console.error('Error fetching data:', error)
+      toast.error('Failed to load data')
+    } finally {
+      setLoading(false)
     }
   }
+
+
 
   /**
    * FUNCTION: Handle search
@@ -194,7 +183,7 @@ export default function PublishedPostsPage() {
   const handleSearch = (e) => {
     e.preventDefault()
     setCurrentPage(1)
-    fetchPosts()
+    fetchAllData()
   }
 
   /**
@@ -213,8 +202,7 @@ export default function PublishedPostsPage() {
 
       if (response.ok) {
         toast.success('Post deleted successfully')
-        fetchPosts()
-        fetchStats()
+        fetchAllData()
       } else {
         const data = await response.json()
         toast.error(data.error || 'Failed to delete post')
@@ -390,8 +378,8 @@ export default function PublishedPostsPage() {
             <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Posts Found</h3>
             <p className="text-muted-foreground mb-4">
-              {searchTerm || categoryFilter !== 'all' 
-                ? 'Try adjusting your search criteria or filters.' 
+              {searchTerm || categoryFilter !== 'all'
+                ? 'Try adjusting your search criteria or filters.'
                 : 'No published posts available yet.'}
             </p>
             <Button variant="outline" onClick={resetFilters}>
@@ -483,16 +471,16 @@ export default function PublishedPostsPage() {
                       Edit
                     </Link>
                   </Button>
-                  
+
                   <Button variant="outline" size="sm" className="flex-1" asChild>
                     <Link href={`/blog/${post.slug}`} target="_blank">
                       <ExternalLink className="h-3 w-3 mr-1" />
                       View
                     </Link>
                   </Button>
-                  
-                  <Button 
-                    variant="outline" 
+
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleDelete(post._id, post.title)}
                     className="text-destructive hover:text-destructive"
@@ -516,11 +504,11 @@ export default function PublishedPostsPage() {
           >
             Previous
           </Button>
-          
+
           <span className="px-4 text-sm text-muted-foreground">
             Page {pagination.current} of {pagination.pages}
           </span>
-          
+
           <Button
             variant="outline"
             onClick={() => setCurrentPage(prev => prev + 1)}

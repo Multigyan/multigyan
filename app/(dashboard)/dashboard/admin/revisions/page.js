@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import DiffViewer from "@/components/DiffViewer"
-import { 
+import { Input } from "@/components/ui/input"
+import {
   GitBranch,
   CheckCircle,
   XCircle,
@@ -16,7 +17,8 @@ import {
   User,
   Calendar,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Search
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
@@ -28,18 +30,31 @@ export default function AdminRevisionsPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [selectedPost, setSelectedPost] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   const fetchPostsWithRevisions = useCallback(async () => {
     try {
       setLoading(true)
-      // Fetch all published posts to check for revisions
-      const response = await fetch('/api/posts?status=published')
+      // Use dedicated API endpoint for pending revisions
+      const params = new URLSearchParams()
+      if (debouncedSearch.trim()) {
+        params.append('search', debouncedSearch)
+      }
+
+      const response = await fetch(`/api/posts/revisions/pending?${params}`)
       const data = await response.json()
 
       if (response.ok) {
-        // Filter posts that actually have pending revisions
-        const withRevisions = (data.posts || []).filter(post => post.hasRevision && post.revision)
-        setPostsWithRevisions(withRevisions)
+        setPostsWithRevisions(data.posts || [])
       } else {
         toast.error(data.error || 'Failed to fetch revisions')
       }
@@ -48,7 +63,7 @@ export default function AdminRevisionsPage() {
     } finally {
       setLoading(false)
     }
-  }, [])  // Empty dependency array - function won't change
+  }, [debouncedSearch])
 
   useEffect(() => {
     if (session?.user?.role !== 'admin') {
@@ -56,7 +71,8 @@ export default function AdminRevisionsPage() {
       return
     }
     fetchPostsWithRevisions()
-  }, [session, router, fetchPostsWithRevisions])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, router, debouncedSearch])
 
   const handleApproveRevision = async (postId) => {
     try {
@@ -96,7 +112,7 @@ export default function AdminRevisionsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           rejectRevision: true,
           rejectionReason: 'Revision did not meet quality standards'
         }),
@@ -142,12 +158,26 @@ export default function AdminRevisionsPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <GitBranch className="h-8 w-8 text-orange-600" />
-          <h1 className="text-3xl font-bold text-foreground">Revision Review</h1>
+          <GitBranch className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold">Content Revisions</h1>
         </div>
         <p className="text-muted-foreground">
-          Review and approve changes submitted by authors to published posts
+          Review and approve pending revisions to published posts
         </p>
+      </div>
+
+      {/* Search */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search revisions by title or author..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       {/* Stats Card */}

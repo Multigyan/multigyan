@@ -3,9 +3,12 @@
 
 # TEAM
 
-    Founder & Lead Developer -- Vishal
-    Contact: hello [at] multigyan.in
-    Twitter: @multigyan
+    Founder & Lead Developer -- Vishal Kumar Sharma
+    Co-Founder -- Raghavendra T
+    Co-Founder -- Priya Kumari
+    Co-Founder -- Pranjal Tripathi
+    Contact: contact [at] multigyan.in
+    Twitter: @Multigyan_in
     Location: India
 
 # THANKS
@@ -64,7 +67,7 @@
 
 # SITE
 
-    Last update: 2025/11/21
+    Last update: 2025/11/22
     Language: English / हिंदी
     Doctype: HTML5
     IDE: Visual Studio Code
@@ -73,6 +76,6 @@
 # CONTACT
 
     Website: https://www.multigyan.in
-    Email: hello@multigyan.in
+    Email: contact@multigyan.in
     Support: support@multigyan.in
     Security: security@multigyan.in

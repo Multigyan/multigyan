@@ -7,7 +7,7 @@ import User from '@/models/User'
 export async function GET(request) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
@@ -17,20 +17,53 @@ export async function GET(request) {
 
     await connectDB()
 
-    // Get all users with basic info
-    const users = await User.find({})
-      .select('name email role isActive emailVerified createdAt lastLoginAt')
-      .sort({ createdAt: -1 })
+    // ✅ OPTIMIZATION: Add pagination and search support
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const search = searchParams.get('search') || ''
 
-    // Get admin count
-    const adminCount = await User.getAdminCount()
+    const skip = (page - 1) * limit
+
+    // Build search query
+    let query = {}
+    if (search.trim()) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { username: { $regex: search, $options: 'i' } }
+        ]
+      }
+    }
+
+    // ✅ OPTIMIZATION: Fetch users and total count in parallel
+    const [users, total, adminCount] = await Promise.all([
+      User.find(query)
+        .select('name email role isActive emailVerified createdAt lastLoginAt profilePictureUrl')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      User.countDocuments(query),
+      User.getAdminCount()
+    ])
+
     const maxAdmins = process.env.MAX_ADMINS || 3
 
     return NextResponse.json({
       users,
       adminCount,
       maxAdmins,
-      canPromoteMore: adminCount < maxAdmins
+      canPromoteMore: adminCount < maxAdmins,
+      pagination: {
+        current: page,
+        pages: Math.ceil(total / limit),
+        total,
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1,
+        limit
+      }
     })
 
   } catch (error) {
@@ -45,7 +78,7 @@ export async function GET(request) {
 export async function PATCH(request) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
@@ -126,10 +159,10 @@ export async function PATCH(request) {
 
   } catch (error) {
     console.error('Error updating user:', error)
-    
+
     // Handle specific error messages
-    if (error.message.includes('Cannot demote yourself') || 
-        error.message.includes('Cannot deactivate your own account')) {
+    if (error.message.includes('Cannot demote yourself') ||
+      error.message.includes('Cannot deactivate your own account')) {
       return NextResponse.json(
         { error: error.message },
         { status: 400 }
