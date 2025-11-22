@@ -21,7 +21,9 @@ import {
   AlertTriangle,
   Activity,
   Mail,
-  Folder
+  Folder,
+  BarChart3,
+  GitBranch
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 
@@ -326,6 +328,23 @@ export default function AdminDashboardPage() {
                 Review Pending Posts ({stats.posts.pending})
               </Link>
             </Button>
+
+            {/* NEW: Analytics Dashboard */}
+            <Button className="w-full justify-start bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" asChild>
+              <Link href="/dashboard/admin/analytics">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Analytics Dashboard
+              </Link>
+            </Button>
+
+            {/* NEW: Revisions */}
+            <Button variant="outline" className="w-full justify-start border-orange-200 hover:bg-orange-50" asChild>
+              <Link href="/dashboard/admin/revisions">
+                <GitBranch className="mr-2 h-4 w-4 text-orange-600" />
+                Review Revisions
+              </Link>
+            </Button>
+
             <Button variant="outline" className="w-full justify-start" asChild>
               <Link href="/dashboard/admin/comments">
                 <MessageCircle className="mr-2 h-4 w-4" />
