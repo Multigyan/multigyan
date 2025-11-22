@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner"
 
 import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
-import { AuthProvider } from '@/components/providers/AuthProvider'
+import AuthProvider from "@/components/AuthProvider"
 import LoadingBar from "@/components/LoadingBar"
 import FloatingSocialSidebar from "@/components/layout/FloatingSocialSidebar"
 import BackToTop from "@/components/ui/BackToTop"
