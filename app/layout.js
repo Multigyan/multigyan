@@ -2,7 +2,7 @@ import './globals.css'
 import 'nprogress/nprogress.css'
 import { Inter } from 'next/font/google'
 import { Toaster } from "@/components/ui/sonner"
-import { Toaster } from 'sonner'
+
 import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
 import { AuthProvider } from '@/components/providers/AuthProvider'

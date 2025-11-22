@@ -6,7 +6,7 @@ import { useState } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { 
+import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Menu, X, PenTool, BookOpen, Users, Home, User, Settings, LogOut, Shield, LayoutDashboard, Wrench, ChefHat, Bookmark } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import { cn } from "@/lib/utils"
+import { prefetchOnHover } from "@/lib/prefetch"
 
 export default function Navbar() {
   const { data: session, status } = useSession()
@@ -87,7 +88,7 @@ export default function Navbar() {
             <NavigationMenu>
               <NavigationMenuList className="flex items-center">
                 <NavigationMenuItem>
-                  <Link 
+                  <Link
                     href="/"
                     className={cn(
                       "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground hover:scale-105 focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
@@ -100,7 +101,7 @@ export default function Navbar() {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger 
+                  <NavigationMenuTrigger
                     className={cn(
                       "h-10 px-4 py-2 transition-all hover:scale-105",
                       (isActiveLink('/blog') || isActiveLink('/categories')) && "bg-accent text-accent-foreground"
@@ -111,8 +112,8 @@ export default function Navbar() {
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="grid gap-3 p-6 w-[400px]">
-                      <Link 
-                        href="/blog" 
+                      <Link
+                        href="/blog"
                         className={cn(
                           "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-all hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground hover:scale-105",
                           isActiveLink('/blog') && "bg-accent/50"
@@ -126,8 +127,8 @@ export default function Navbar() {
                           Browse all published blog posts
                         </p>
                       </Link>
-                      <Link 
-                        href="/categories" 
+                      <Link
+                        href="/categories"
                         className={cn(
                           "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-all hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground hover:scale-105",
                           isActiveLink('/categories') && "bg-accent/50"
@@ -147,7 +148,7 @@ export default function Navbar() {
 
                 {/* 🎨 NEW: DIY Link */}
                 <NavigationMenuItem>
-                  <Link 
+                  <Link
                     href="/diy"
                     className={cn(
                       "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground hover:scale-105 focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
@@ -161,7 +162,7 @@ export default function Navbar() {
 
                 {/* 🍳 NEW: Recipe Link */}
                 <NavigationMenuItem>
-                  <Link 
+                  <Link
                     href="/recipe"
                     className={cn(
                       "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground hover:scale-105 focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
@@ -174,7 +175,7 @@ export default function Navbar() {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link 
+                  <Link
                     href="/authors"
                     className={cn(
                       "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground hover:scale-105 focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
@@ -208,9 +209,9 @@ export default function Navbar() {
             ) : session ? (
               <div className="flex items-center space-x-4">
                 {/* 🔖 NEW: Bookmarks Link */}
-                <Button 
-                  variant={isActiveLink('/bookmarks') ? "default" : "ghost"} 
-                  size="sm" 
+                <Button
+                  variant={isActiveLink('/bookmarks') ? "default" : "ghost"}
+                  size="sm"
                   asChild
                   className="transition-all hover:scale-105"
                 >
@@ -219,16 +220,19 @@ export default function Navbar() {
                     Bookmarks
                   </Link>
                 </Button>
-                
+
                 <NotificationBell />
-                
-                <Button 
-                  variant={isActiveLink('/dashboard') ? "default" : "ghost"} 
-                  size="sm" 
+
+                <Button
+                  variant={isActiveLink('/dashboard') ? "default" : "ghost"}
+                  size="sm"
                   asChild
                   className="transition-all hover:scale-105"
                 >
-                  <Link href="/dashboard">
+                  <Link
+                    href="/dashboard"
+                    {...prefetchOnHover('/api/users/dashboard/stats')}
+                  >
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     Dashboard
                   </Link>
@@ -275,7 +279,10 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
-                      <Link href="/dashboard">
+                      <Link
+                        href="/dashboard"
+                        {...prefetchOnHover('/api/users/dashboard/stats')}
+                      >
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         Dashboard
                       </Link>
@@ -357,13 +364,13 @@ export default function Navbar() {
                   placeholder="Search posts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12 text-base" 
+                  className="pl-10 h-12 text-base"
                 />
               </form>
 
               {/* ✅ IMPROVED: Mobile Navigation Links with better touch targets (min 44px) */}
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md hover:bg-accent transition-all hover:scale-105 min-h-[44px]",
                   isActiveLink('/') && pathname === '/' && "bg-accent"
@@ -373,9 +380,9 @@ export default function Navbar() {
                 <Home className="h-5 w-5" />
                 <span>Home</span>
               </Link>
-              
-              <Link 
-                href="/blog" 
+
+              <Link
+                href="/blog"
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md hover:bg-accent transition-all hover:scale-105 min-h-[44px]",
                   isActiveLink('/blog') && "bg-accent"
@@ -385,9 +392,9 @@ export default function Navbar() {
                 <BookOpen className="h-5 w-5" />
                 <span>All Posts</span>
               </Link>
-              
-              <Link 
-                href="/categories" 
+
+              <Link
+                href="/categories"
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md hover:bg-accent transition-all hover:scale-105 min-h-[44px]",
                   isActiveLink('/categories') && "bg-accent"
@@ -397,10 +404,10 @@ export default function Navbar() {
                 <BookOpen className="h-5 w-5" />
                 <span>Categories</span>
               </Link>
-              
+
               {/* 🎨 NEW: DIY Link - Mobile */}
-              <Link 
-                href="/diy" 
+              <Link
+                href="/diy"
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md hover:bg-accent transition-all hover:scale-105 min-h-[44px]",
                   isActiveLink('/diy') && "bg-accent"
@@ -410,10 +417,10 @@ export default function Navbar() {
                 <Wrench className="h-5 w-5" />
                 <span>DIY Tutorials</span>
               </Link>
-              
+
               {/* 🍳 NEW: Recipe Link - Mobile */}
-              <Link 
-                href="/recipe" 
+              <Link
+                href="/recipe"
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md hover:bg-accent transition-all hover:scale-105 min-h-[44px]",
                   isActiveLink('/recipe') && "bg-accent"
@@ -423,9 +430,9 @@ export default function Navbar() {
                 <ChefHat className="h-5 w-5" />
                 <span>Recipes</span>
               </Link>
-              
-              <Link 
-                href="/authors" 
+
+              <Link
+                href="/authors"
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md hover:bg-accent transition-all hover:scale-105 min-h-[44px]",
                   isActiveLink('/authors') && "bg-accent"
@@ -457,10 +464,10 @@ export default function Navbar() {
                         )}
                       </div>
                     </div>
-                    
-                    <Button 
-                      variant={isActiveLink('/bookmarks') ? "default" : "ghost"} 
-                      asChild 
+
+                    <Button
+                      variant={isActiveLink('/bookmarks') ? "default" : "ghost"}
+                      asChild
                       className="justify-start h-12 text-base"
                     >
                       <Link href="/bookmarks" onClick={() => setIsOpen(false)}>
@@ -468,32 +475,36 @@ export default function Navbar() {
                         My Bookmarks
                       </Link>
                     </Button>
-                    
-                    <Button 
-                      variant={isActiveLink('/dashboard') ? "default" : "ghost"} 
-                      asChild 
+
+                    <Button
+                      variant={isActiveLink('/dashboard') ? "default" : "ghost"}
+                      asChild
                       className="justify-start h-12 text-base"
                     >
-                      <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsOpen(false)}
+                        {...prefetchOnHover('/api/users/dashboard/stats')}
+                      >
                         <LayoutDashboard className="mr-3 h-5 w-5" />
                         Dashboard
                       </Link>
                     </Button>
-                    
+
                     <Button variant="ghost" asChild className="justify-start h-12 text-base">
                       <Link href="/dashboard/profile" onClick={() => setIsOpen(false)}>
                         <User className="mr-3 h-5 w-5" />
                         Profile
                       </Link>
                     </Button>
-                    
+
                     <Button variant="ghost" asChild className="justify-start h-12 text-base">
                       <Link href="/dashboard/settings" onClick={() => setIsOpen(false)}>
                         <Settings className="mr-3 h-5 w-5" />
                         Settings
                       </Link>
                     </Button>
-                    
+
                     {session.user.role === 'admin' && (
                       <Button variant="ghost" asChild className="justify-start h-12 text-base">
                         <Link href="/dashboard/admin" onClick={() => setIsOpen(false)}>
@@ -502,7 +513,7 @@ export default function Navbar() {
                         </Link>
                       </Button>
                     )}
-                    
+
                     <Button variant="ghost" onClick={handleSignOut} className="justify-start h-12 text-base">
                       <LogOut className="mr-3 h-5 w-5" />
                       Sign Out
