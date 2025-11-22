@@ -99,37 +99,37 @@ export default function ProfileClientPage({ initialUser, initialPosts, initialSt
     }
   }, [cachedStats])
 
-  // ⚡ ANALYTICS: Track profile views (non-blocking)
-  useEffect(() => {
-    const trackProfileView = async () => {
-      try {
-        // Use AbortController for timeout
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
+  // ⚡ ANALYTICS: Track profile views (TEMPORARILY DISABLED)
+  // useEffect(() => {
+  //   const trackProfileView = async () => {
+  //     try {
+  //       // Use AbortController for timeout
+  //       const controller = new AbortController()
+  //       const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
 
-        fetch('/api/analytics/profile-view', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            profileId: user._id,
-            username: user.username,
-            timestamp: new Date().toISOString(),
-          }),
-          signal: controller.signal
-        }).then(() => clearTimeout(timeoutId))
-          .catch(() => {
-            // Silently fail - analytics shouldn't break the page
-            clearTimeout(timeoutId)
-          })
-      } catch (error) {
-        // Silently fail
-      }
-    }
+  //       fetch('/api/analytics/profile-view', {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify({
+  //           profileId: user._id,
+  //           username: user.username,
+  //           timestamp: new Date().toISOString(),
+  //         }),
+  //         signal: controller.signal
+  //       }).then(() => clearTimeout(timeoutId))
+  //         .catch(() => {
+  //           // Silently fail - analytics shouldn't break the page
+  //           clearTimeout(timeoutId)
+  //         })
+  //     } catch (error) {
+  //       // Silently fail
+  //     }
+  //   }
 
-    // Delay tracking to not block page load
-    const timer = setTimeout(trackProfileView, 1000)
-    return () => clearTimeout(timer)
-  }, [user._id, user.username])
+  //   // Delay tracking to not block page load
+  //   const timer = setTimeout(trackProfileView, 1000)
+  //   return () => clearTimeout(timer)
+  // }, [user._id, user.username])
 
   // ⚡ ANALYTICS: Track time on profile
   useEffect(() => {
