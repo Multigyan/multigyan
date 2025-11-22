@@ -10,21 +10,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog"
-import { 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Eye, 
-  User, 
+import {
+  Clock,
+  CheckCircle,
+  XCircle,
+  Eye,
+  User,
   Calendar,
   AlertCircle,
   FileText,
@@ -113,7 +113,7 @@ export default function AdminReviewPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           action: 'reject',
           reason: rejectionReason.trim()
         }),
@@ -203,7 +203,7 @@ export default function AdminReviewPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
@@ -216,23 +216,6 @@ export default function AdminReviewPage() {
             <p className="text-xs text-muted-foreground">
               Posts awaiting review
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Button size="sm" className="flex-1">
-                Approve All
-              </Button>
-              <Button size="sm" variant="outline" className="flex-1">
-                Bulk Actions
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
@@ -376,7 +359,7 @@ export default function AdminReviewPage() {
                         </Link>
                       </Button>
 
-                      <Button 
+                      <Button
                         variant="outline"
                         onClick={() => handleDelete(post._id, post.title)}
                         disabled={actionLoading}
@@ -402,11 +385,11 @@ export default function AdminReviewPage() {
               >
                 Previous
               </Button>
-              
+
               <span className="flex items-center px-4 text-sm text-muted-foreground">
                 Page {pagination.current} of {pagination.pages}
               </span>
-              
+
               <Button
                 variant="outline"
                 onClick={() => setCurrentPage(prev => prev + 1)}
@@ -425,11 +408,11 @@ export default function AdminReviewPage() {
           <DialogHeader>
             <DialogTitle>Reject Post</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting &quot;{selectedPost?.title}&quot;. 
+              Please provide a reason for rejecting &quot;{selectedPost?.title}&quot;.
               This will help the author understand what needs to be improved.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="rejectionReason">Rejection Reason *</Label>

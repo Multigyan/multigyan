@@ -7,11 +7,11 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Users, 
-  FileText, 
-  Clock, 
-  CheckCircle, 
+import {
+  Users,
+  FileText,
+  Clock,
+  CheckCircle,
   XCircle,
   TrendingUp,
   Eye,
@@ -20,7 +20,8 @@ import {
   Crown,
   AlertTriangle,
   Activity,
-  Mail
+  Mail,
+  Folder
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 
@@ -34,7 +35,6 @@ export default function AdminDashboardPage() {
     engagement: { totalViews: 0, totalLikes: 0, totalComments: 0 },
     categories: { total: 0, active: 0 }
   })
-  const [recentActivity, setRecentActivity] = useState([])
   const [pendingPosts, setPendingPosts] = useState([])
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
   const fetchAdminData = async () => {
     try {
       setLoading(true)
-      
+
       // ✅ FIX: Use dedicated admin stats endpoint for platform-wide data
       const [statsRes, pendingRes] = await Promise.all([
         fetch('/api/admin/stats'),
@@ -282,7 +282,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center justify-between">
                 <span className="text-sm">Avg. Views/Post</span>
                 <span className="font-semibold">
-                  {stats.posts.published > 0 
+                  {stats.posts.published > 0
                     ? Math.round(stats.engagement.totalViews / stats.posts.published)
                     : 0
                   }
@@ -291,7 +291,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center justify-between">
                 <span className="text-sm">Engagement Rate</span>
                 <span className="font-semibold">
-                  {stats.engagement.totalViews > 0 
+                  {stats.engagement.totalViews > 0
                     ? Math.round((stats.engagement.totalLikes / stats.engagement.totalViews) * 100)
                     : 0
                   }%
@@ -342,6 +342,12 @@ export default function AdminDashboardPage() {
               <Link href="/dashboard/admin/newsletter">
                 <Mail className="mr-2 h-4 w-4" />
                 Newsletter Management
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start" asChild>
+              <Link href="/dashboard/admin/categories">
+                <Folder className="mr-2 h-4 w-4" />
+                Manage Categories ({stats.categories.active})
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>
