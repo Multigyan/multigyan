@@ -388,7 +388,7 @@ export default function BlogPostClient({ post }) {
                       </svg>
                     </summary>
                     <div className="p-4 pt-0 border-t border-border">
-                      <TableOfContents content={post.content} readingTime={post.readingTime} />
+                      <TableOfContents content={post.content} readingTime={post.readingTime} showMobileButton={false} />
                     </div>
                   </details>
                 </div>
