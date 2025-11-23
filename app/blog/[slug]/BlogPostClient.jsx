@@ -252,7 +252,7 @@ export default function BlogPostClient({ post }) {
               MAIN LAYOUT WITH TOC - THIS SECTION CONTAINS ONLY THE MAIN CONTENT
               =====================================================================
             */}
-            <div className="lg:flex lg:gap-8 lg:items-start">
+            <div className="lg:flex lg:gap-8 lg:items-stretch">
               {/* Main Content Column - 2/3 width */}
               <div className="lg:w-2/3 lg:flex-shrink-0">
                 {/* Category Badge & Language Switcher */}
@@ -957,17 +957,11 @@ export default function BlogPostClient({ post }) {
 
               {/* 
                 ==================================================================
-                TOC SIDEBAR - DESKTOP ONLY (NEW COMPONENT)
+                TOC SIDEBAR - DESKTOP ONLY (SCROLLS WITH CONTENT)
                 ==================================================================
               */}
               <div className="hidden lg:block lg:w-1/3 lg:flex-shrink-0">
-                <div
-                  className="toc-sidebar-wrapper sticky top-20"
-                  style={{
-                    maxHeight: 'calc(100vh - 6rem)',
-                    overflowY: 'auto'
-                  }}
-                >
+                <div className="toc-sidebar-wrapper">
                   <TOCDesktopSidebar
                     headings={headings}
                     activeId={activeId}
