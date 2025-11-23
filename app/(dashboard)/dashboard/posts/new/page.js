@@ -29,6 +29,9 @@ import { ArrowLeft, Save, Send, FileText, Image, Tag, Settings, Eye, Wrench, Che
 import { toast } from "sonner"
 import { generateSlug } from "@/lib/helpers"
 import { useAutosave } from "@/hooks/useAutosave"
+import QuickPostToggle from "@/components/posts/QuickPostToggle"
+import TemplateSelector from "@/components/posts/TemplateSelector"
+import SEOScoreIndicator from "@/components/posts/SEOScoreIndicator"
 
 // ✅ NEW: Helper function to count words
 function countWords(text) {
@@ -143,6 +146,9 @@ export default function NewPostPage() {
   const [showPreview, setShowPreview] = useState(false)
   const [categories, setCategories] = useState([])
   const [allPosts, setAllPosts] = useState([]) // For translation linking
+
+  // ✅ PHASE 2: Quick Post Mode
+  const [postMode, setPostMode] = useState('quick') // 'quick' or 'full'
   const [formData, setFormData] = useState({
     title: "",
     excerpt: "",
@@ -194,6 +200,19 @@ export default function NewPostPage() {
 
   // ✅ PHASE 1: Autosave functionality
   const { lastSaved, saveDraft, clearDraft } = useAutosave(formData, setFormData, 'blog-post-draft', 30000)
+
+  // ✅ PHASE 2: Load and save post mode preference
+  useEffect(() => {
+    const savedMode = localStorage.getItem('postCreationMode')
+    if (savedMode && (savedMode === 'quick' || savedMode === 'full')) {
+      setPostMode(savedMode)
+    }
+  }, [])
+
+  const handleModeChange = (newMode) => {
+    setPostMode(newMode)
+    localStorage.setItem('postCreationMode', newMode)
+  }
 
   // Fetch categories and posts on mount
   useEffect(() => {
@@ -529,137 +548,143 @@ export default function NewPostPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* ✅ PHASE 2: Quick Post Mode Toggle */}
+        <QuickPostToggle mode={postMode} onModeChange={handleModeChange} />
+
+        {/* ✅ PHASE 2: Responsive Grid - Single column on mobile */}
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content Column */}
           <div className="lg:col-span-2 space-y-6">
-            {/* ✨ NEW: Content Type & Language Selection */}
-            <Card className="border-2 border-primary/20 bg-primary/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Content Settings
-                </CardTitle>
-                <CardDescription>
-                  Choose the type of content and language
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Content Type Selector */}
-                <div>
-                  <Label htmlFor="contentType">
-                    Content Type <span className="text-destructive">*</span>
-                  </Label>
-                  <Select
-                    value={formData.contentType}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, contentType: value }))}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="blog">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4" />
-                          <span>Blog Post (Regular Article)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="diy">
-                        <div className="flex items-center gap-2">
-                          <Wrench className="h-4 w-4 text-orange-600" />
-                          <span>DIY Tutorial (Creative Project)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="recipe">
-                        <div className="flex items-center gap-2">
-                          <ChefHat className="h-4 w-4 text-green-600" />
-                          <span>Recipe (Cooking Guide)</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <div className="mt-2 p-3 rounded-lg bg-muted/50 text-sm">
-                    {formData.contentType === 'blog' && (
-                      <p>📝 Regular blog posts appear in the main blog section</p>
-                    )}
-                    {formData.contentType === 'diy' && (
-                      <p>🎨 DIY tutorials appear in both blog and <strong className="text-orange-600">/diy</strong> section</p>
-                    )}
-                    {formData.contentType === 'recipe' && (
-                      <p>🍳 Recipes appear in both blog and <strong className="text-green-600">/recipe</strong> section</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Language Selector */}
-                <div>
-                  <Label htmlFor="language">
-                    Language <span className="text-destructive">*</span>
-                  </Label>
-                  <Select
-                    value={formData.lang}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, lang: value }))}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4" />
-                          <span>English</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="hi">
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4" />
-                          <span>Hindi (हिंदी)</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Choose the primary language of this content
-                  </p>
-                </div>
-
-                {/* Translation Link */}
-                <div>
-                  <Label htmlFor="translationOf">
-                    <div className="flex items-center gap-2">
-                      <LinkIcon className="h-4 w-4" />
-                      Link to Translation (Optional)
-                    </div>
-                  </Label>
-                  <Select
-                    value={formData.translationOf || "none"}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, translationOf: value === "none" ? "" : value }))}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select the alternate language version..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">
-                        <span className="text-muted-foreground">No translation link</span>
-                      </SelectItem>
-                      {translationPosts.map(post => (
-                        <SelectItem key={post._id} value={post._id}>
+            {/* ✅ PHASE 2: Content Settings - Only in Full Mode */}
+            {postMode === 'full' && (
+              <Card className="border-2 border-primary/20 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Content Settings
+                  </CardTitle>
+                  <CardDescription>
+                    Choose the type of content and language
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Content Type Selector */}
+                  <div>
+                    <Label htmlFor="contentType">
+                      Content Type <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.contentType}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, contentType: value }))}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="blog">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs bg-muted px-2 py-0.5 rounded">
-                              {post.lang === 'en' ? '🇬🇧 EN' : '🇮🇳 HI'}
-                            </span>
-                            <span className="truncate max-w-xs">{post.title}</span>
+                            <BookOpen className="h-4 w-4" />
+                            <span>Blog Post (Regular Article)</span>
                           </div>
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    If this is a translation of an existing post, link them together.
-                    This enables the language switcher on your posts.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                        <SelectItem value="diy">
+                          <div className="flex items-center gap-2">
+                            <Wrench className="h-4 w-4 text-orange-600" />
+                            <span>DIY Tutorial (Creative Project)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="recipe">
+                          <div className="flex items-center gap-2">
+                            <ChefHat className="h-4 w-4 text-green-600" />
+                            <span>Recipe (Cooking Guide)</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="mt-2 p-3 rounded-lg bg-muted/50 text-sm">
+                      {formData.contentType === 'blog' && (
+                        <p>📝 Regular blog posts appear in the main blog section</p>
+                      )}
+                      {formData.contentType === 'diy' && (
+                        <p>🎨 DIY tutorials appear in both blog and <strong className="text-orange-600">/diy</strong> section</p>
+                      )}
+                      {formData.contentType === 'recipe' && (
+                        <p>🍳 Recipes appear in both blog and <strong className="text-green-600">/recipe</strong> section</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Language Selector */}
+                  <div>
+                    <Label htmlFor="language">
+                      Language <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.lang}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, lang: value }))}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4" />
+                            <span>English</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="hi">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4" />
+                            <span>Hindi (हिंदी)</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Choose the primary language of this content
+                    </p>
+                  </div>
+
+                  {/* Translation Link */}
+                  <div>
+                    <Label htmlFor="translationOf">
+                      <div className="flex items-center gap-2">
+                        <LinkIcon className="h-4 w-4" />
+                        Link to Translation (Optional)
+                      </div>
+                    </Label>
+                    <Select
+                      value={formData.translationOf || "none"}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, translationOf: value === "none" ? "" : value }))}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select the alternate language version..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">
+                          <span className="text-muted-foreground">No translation link</span>
+                        </SelectItem>
+                        {translationPosts.map(post => (
+                          <SelectItem key={post._id} value={post._id}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs bg-muted px-2 py-0.5 rounded">
+                                {post.lang === 'en' ? '🇬🇧 EN' : '🇮🇳 HI'}
+                              </span>
+                              <span className="truncate max-w-xs">{post.title}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      If this is a translation of an existing post, link them together.
+                      This enables the language switcher on your posts.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Featured Image Section */}
             <Card>
@@ -777,6 +802,24 @@ export default function NewPostPage() {
                   <p className="text-xs text-muted-foreground mb-2">
                     Write with rich formatting • Images auto-convert to WebP • Supports Google Drive URLs • Embed YouTube videos
                   </p>
+
+                  {/* ✅ PHASE 2: Template Selector */}
+                  {!formData.content && (
+                    <div className="mb-4">
+                      <TemplateSelector
+                        onTemplateSelected={(content) => {
+                          console.log('Template selected, content length:', content.length)
+                          setFormData(prev => {
+                            const updated = { ...prev, content }
+                            console.log('Updated formData:', updated.content.substring(0, 100))
+                            return updated
+                          })
+                          toast.success('Template inserted! You can now customize it.')
+                        }}
+                      />
+                    </div>
+                  )}
+
                   <div className="mt-1">
                     <EnhancedRichTextEditor
                       content={formData.content}
@@ -1053,56 +1096,58 @@ export default function NewPostPage() {
               </Card>
             )}
 
-            {/* SEO Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" aria-hidden="true" />
-                  SEO Settings
-                </CardTitle>
-                <CardDescription>
-                  Optimize your post for search engines (optional but recommended)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="seoTitle">SEO Title</Label>
-                  <Input
-                    id="seoTitle"
-                    name="seoTitle"
-                    value={formData.seoTitle}
-                    onChange={handleInputChange}
-                    placeholder="Custom title for search results"
-                    className="mt-1"
-                  />
-                  <TextCounter
-                    text={formData.seoTitle}
-                    type="characters"
-                    ideal={{ min: 50, max: 60 }}
-                    max={70}
-                  />
-                </div>
+            {/* ✅ PHASE 2: SEO Settings - Only in Full Mode */}
+            {postMode === 'full' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" aria-hidden="true" />
+                    SEO Settings
+                  </CardTitle>
+                  <CardDescription>
+                    Optimize your post for search engines (optional but recommended)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="seoTitle">SEO Title</Label>
+                    <Input
+                      id="seoTitle"
+                      name="seoTitle"
+                      value={formData.seoTitle}
+                      onChange={handleInputChange}
+                      placeholder="Custom title for search results"
+                      className="mt-1"
+                    />
+                    <TextCounter
+                      text={formData.seoTitle}
+                      type="characters"
+                      ideal={{ min: 50, max: 60 }}
+                      max={70}
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="seoDescription">SEO Description</Label>
-                  <Textarea
-                    id="seoDescription"
-                    name="seoDescription"
-                    value={formData.seoDescription}
-                    onChange={handleInputChange}
-                    placeholder="Description for search results"
-                    className="mt-1"
-                    rows={2}
-                  />
-                  <TextCounter
-                    text={formData.seoDescription}
-                    type="characters"
-                    ideal={{ min: 120, max: 160 }}
-                    max={200}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                  <div>
+                    <Label htmlFor="seoDescription">SEO Description</Label>
+                    <Textarea
+                      id="seoDescription"
+                      name="seoDescription"
+                      value={formData.seoDescription}
+                      onChange={handleInputChange}
+                      placeholder="Description for search results"
+                      className="mt-1"
+                      rows={2}
+                    />
+                    <TextCounter
+                      text={formData.seoDescription}
+                      type="characters"
+                      ideal={{ min: 120, max: 160 }}
+                      max={200}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar Column */}
@@ -1132,6 +1177,9 @@ export default function NewPostPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* ✅ PHASE 2: SEO Score Indicator */}
+            <SEOScoreIndicator formData={formData} wordCount={contentWordCount} />
 
             {/* Actions Card */}
             <Card>
@@ -1296,6 +1344,44 @@ export default function NewPostPage() {
             </Card>
           </div>
         </div>
+
+        {/* ✅ PHASE 2: Mobile Sticky Action Bar */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-background border-t shadow-lg z-50">
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                saveDraft()
+                toast.success('Draft saved!')
+              }}
+              disabled={!formData.title && !formData.content}
+              className="flex-1 min-h-[44px]"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Save Draft
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={loading || !formData.title || !formData.content || !formData.category}
+              className="flex-1 min-h-[44px]"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full mr-2" />
+                  Publishing...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Publish
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Add padding at bottom on mobile to prevent content being hidden by sticky bar */}
+        <div className="lg:hidden h-20" />
       </div>
 
       {/* Preview Modal */}

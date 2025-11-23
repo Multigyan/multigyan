@@ -94,9 +94,9 @@ const MenuBar = ({ editor }) => {
     formData.append('file', processedFile)
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'multigyan_uploads')
     formData.append('folder', 'multigyan/posts/content')
-    
+
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-    
+
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       {
@@ -104,11 +104,11 @@ const MenuBar = ({ editor }) => {
         body: formData,
       }
     )
-    
+
     if (!response.ok) {
       throw new Error('Upload failed')
     }
-    
+
     const data = await response.json()
     return data.secure_url
   }, [])
@@ -125,7 +125,7 @@ const MenuBar = ({ editor }) => {
     }
 
     setUploadingImage(true)
-    
+
     try {
       const url = await uploadToCloudinary(file)
       if (url && editor) {
@@ -152,18 +152,18 @@ const MenuBar = ({ editor }) => {
       if (imageUrl.includes('drive.google.com')) {
         toast.info('Google Drive URL detected - downloading and uploading image...')
         setUploadingImage(true)
-        
+
         try {
           const file = await googleDriveUrlToFile(imageUrl)
-          
+
           if (file) {
             toast.success('Image downloaded from Google Drive!')
             const cloudinaryUrl = await uploadToCloudinary(file)
-            
+
             if (cloudinaryUrl) {
-              editor.chain().focus().setImage({ 
-                src: cloudinaryUrl, 
-                alt: imageAlt || 'Google Drive Image' 
+              editor.chain().focus().setImage({
+                src: cloudinaryUrl,
+                alt: imageAlt || 'Google Drive Image'
               }).run()
               toast.success('Image uploaded successfully!')
             }
@@ -180,9 +180,9 @@ const MenuBar = ({ editor }) => {
           setUploadingImage(false)
         }
       } else {
-        editor.chain().focus().setImage({ 
-          src: imageUrl, 
-          alt: imageAlt || 'Image' 
+        editor.chain().focus().setImage({
+          src: imageUrl,
+          alt: imageAlt || 'Image'
         }).run()
         toast.success('Image added successfully!')
       }
@@ -195,7 +195,7 @@ const MenuBar = ({ editor }) => {
   const addYoutube = useCallback(() => {
     if (youtubeUrl && editor) {
       let videoId = ''
-      
+
       try {
         if (youtubeUrl.includes('youtu.be/')) {
           videoId = youtubeUrl.split('youtu.be/')[1].split('?')[0]
@@ -210,7 +210,7 @@ const MenuBar = ({ editor }) => {
         else if (youtubeUrl.includes('youtube.com/shorts/')) {
           videoId = youtubeUrl.split('shorts/')[1].split('?')[0]
         }
-        
+
         if (videoId) {
           editor.chain().focus().setYoutubeVideo({
             src: `https://www.youtube.com/watch?v=${videoId}`,
@@ -269,7 +269,7 @@ const MenuBar = ({ editor }) => {
         >
           <Bold className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
           isActive={editor.isActive('italic')}
@@ -277,7 +277,7 @@ const MenuBar = ({ editor }) => {
         >
           <Italic className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           isActive={editor.isActive('underline')}
@@ -285,7 +285,7 @@ const MenuBar = ({ editor }) => {
         >
           <UnderlineIcon className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleStrike().run()}
           isActive={editor.isActive('strike')}
@@ -293,7 +293,7 @@ const MenuBar = ({ editor }) => {
         >
           <Strikethrough className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleCode().run()}
           isActive={editor.isActive('code')}
@@ -316,7 +316,7 @@ const MenuBar = ({ editor }) => {
             title="Text Color"
           />
         </div>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHighlight().run()}
           isActive={editor.isActive('highlight')}
@@ -337,7 +337,7 @@ const MenuBar = ({ editor }) => {
         >
           <Type className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           isActive={editor.isActive('heading', { level: 1 })}
@@ -345,7 +345,7 @@ const MenuBar = ({ editor }) => {
         >
           <Heading1 className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           isActive={editor.isActive('heading', { level: 2 })}
@@ -353,7 +353,7 @@ const MenuBar = ({ editor }) => {
         >
           <Heading2 className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           isActive={editor.isActive('heading', { level: 3 })}
@@ -374,7 +374,7 @@ const MenuBar = ({ editor }) => {
         >
           <AlignLeft className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
           isActive={editor.isActive({ textAlign: 'center' })}
@@ -382,7 +382,7 @@ const MenuBar = ({ editor }) => {
         >
           <AlignCenter className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
           isActive={editor.isActive({ textAlign: 'right' })}
@@ -403,7 +403,7 @@ const MenuBar = ({ editor }) => {
         >
           <List className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           isActive={editor.isActive('orderedList')}
@@ -411,7 +411,7 @@ const MenuBar = ({ editor }) => {
         >
           <ListOrdered className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           isActive={editor.isActive('blockquote')}
@@ -431,7 +431,7 @@ const MenuBar = ({ editor }) => {
         >
           <TableIcon className="h-4 w-4" />
         </ToolbarButton>
-        
+
         {editor.isActive('table') && (
           <>
             <ToolbarButton
@@ -440,28 +440,28 @@ const MenuBar = ({ editor }) => {
             >
               <Plus className="h-3 w-3" />
             </ToolbarButton>
-            
+
             <ToolbarButton
               onClick={() => editor.chain().focus().deleteColumn().run()}
               title="Delete Column"
             >
               <Trash2 className="h-3 w-3" />
             </ToolbarButton>
-            
+
             <ToolbarButton
               onClick={() => editor.chain().focus().addRowBefore().run()}
               title="Add Row Before"
             >
               <Plus className="h-3 w-3" />
             </ToolbarButton>
-            
+
             <ToolbarButton
               onClick={() => editor.chain().focus().deleteRow().run()}
               title="Delete Row"
             >
               <Trash2 className="h-3 w-3" />
             </ToolbarButton>
-            
+
             <ToolbarButton
               onClick={() => editor.chain().focus().deleteTable().run()}
               title="Delete Table"
@@ -551,9 +551,9 @@ const MenuBar = ({ editor }) => {
                     onChange={handleFileSelect}
                     className="hidden"
                   />
-                  <Button 
+                  <Button
                     type="button"
-                    variant="outline" 
+                    variant="outline"
                     className="w-full"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingImage}
@@ -651,7 +651,7 @@ const MenuBar = ({ editor }) => {
         >
           <Undo className="h-4 w-4" />
         </ToolbarButton>
-        
+
         <ToolbarButton
           onClick={() => editor.chain().focus().redo().run()}
           title="Redo"
@@ -674,11 +674,11 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       const raw = window.atob(parts[1])
       const rawLength = raw.length
       const uInt8Array = new Uint8Array(rawLength)
-      
+
       for (let i = 0; i < rawLength; ++i) {
         uInt8Array[i] = raw.charCodeAt(i)
       }
-      
+
       return new Blob([uInt8Array], { type: contentType })
     } catch (error) {
       console.error('Failed to convert base64 to blob:', error)
@@ -690,9 +690,9 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
     try {
       const blob = base64ToBlob(base64String)
       if (!blob) return null
-      
+
       const file = new File([blob], 'pasted-image.png', { type: blob.type })
-      
+
       let processedFile = file
       try {
         processedFile = await convertToWebP(file, 0.85)
@@ -700,14 +700,14 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
         console.error('WebP conversion failed:', error)
         processedFile = file
       }
-      
+
       const formData = new FormData()
       formData.append('file', processedFile)
       formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'multigyan_uploads')
       formData.append('folder', 'multigyan/posts/content')
-      
+
       const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-      
+
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         {
@@ -715,11 +715,11 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
           body: formData,
         }
       )
-      
+
       if (!response.ok) {
         throw new Error('Upload failed')
       }
-      
+
       const data = await response.json()
       return data.secure_url
     } catch (error) {
@@ -782,7 +782,18 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
     content: content || '',
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      // ✅ PHASE 2: Debounced onChange for better performance
+      const html = editor.getHTML()
+
+      // Clear existing timeout
+      if (window.editorChangeTimeout) {
+        clearTimeout(window.editorChangeTimeout)
+      }
+
+      // Debounce onChange by 300ms to reduce re-renders
+      window.editorChangeTimeout = setTimeout(() => {
+        onChange(html)
+      }, 300)
     },
     editorProps: {
       attributes: {
@@ -791,20 +802,31 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
     },
   })
 
+  // ✅ PHASE 2: Update editor when content prop changes (for template insertion)
+  useEffect(() => {
+    if (!editor || !content) return
+
+    // Only update if content is different from current editor content
+    const currentContent = editor.getHTML()
+    if (content !== currentContent) {
+      editor.commands.setContent(content)
+    }
+  }, [editor, content])
+
   useEffect(() => {
     if (!editor) return
 
     const addCopyButtons = () => {
       const codeBlocks = document.querySelectorAll('.ProseMirror pre')
-      
+
       codeBlocks.forEach((block) => {
         if (block.querySelector('.copy-code-button')) return
-        
+
         const button = document.createElement('button')
         button.className = 'copy-code-button'
         button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
         button.title = 'Copy code'
-        
+
         button.onclick = async (e) => {
           e.preventDefault()
           const code = block.querySelector('code')
@@ -817,11 +839,11 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
             }
           }
         }
-        
+
         block.appendChild(button)
       })
     }
-    
+
     const timeoutId = setTimeout(addCopyButtons, 100)
     return () => clearTimeout(timeoutId)
   }, [editor?.state.doc.content])
@@ -833,30 +855,30 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       const html = editor.getHTML()
       const base64ImageRegex = /<img[^>]+src="data:image\/[^;]+;base64,[^"]+"/g
       const matches = html.match(base64ImageRegex)
-      
+
       if (!matches || matches.length === 0) return
       if (isProcessingImages) return
-      
+
       setIsProcessingImages(true)
       const loadingToast = toast.loading(`Uploading ${matches.length} image(s)...`)
-      
+
       try {
         let updatedHtml = html
         let uploadedCount = 0
-        
+
         for (const match of matches) {
           const srcMatch = match.match(/src="([^"]+)"/)
           if (!srcMatch) continue
-          
+
           const base64Src = srcMatch[1]
           const cloudinaryUrl = await uploadBase64Image(base64Src)
-          
+
           if (cloudinaryUrl) {
             updatedHtml = updatedHtml.replace(base64Src, cloudinaryUrl)
             uploadedCount++
           }
         }
-        
+
         if (uploadedCount > 0) {
           editor.commands.setContent(updatedHtml)
           toast.success(`${uploadedCount} image(s) uploaded!`, { id: loadingToast })
@@ -878,18 +900,18 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
   return (
     <div className="border border-border rounded-md overflow-hidden bg-background">
       <MenuBar editor={editor} />
-      <EditorContent 
-        editor={editor} 
+      <EditorContent
+        editor={editor}
         className="min-h-[400px] max-h-[600px] overflow-y-auto"
       />
       <div className="border-t border-border p-2 bg-muted/30">
         <p className="text-xs text-muted-foreground">
-          <span className="font-semibold">✨ Word Support:</span> Paste tables, colored text, highlights from Word! • 
-          Copy from Excel/Word and it will work! • 
+          <span className="font-semibold">✨ Word Support:</span> Paste tables, colored text, highlights from Word! •
+          Copy from Excel/Word and it will work! •
           Use toolbar to create tables manually
         </p>
       </div>
-      
+
       <style jsx global>{`
         /* Table Styling */
         .ProseMirror table {
