@@ -370,6 +370,29 @@ export default function BlogPostClient({ post }) {
                   </div>
                 )}
 
+                {/* 📱 MOBILE TOC - Collapsible, visible only on mobile */}
+                <div className="lg:hidden mb-6 sm:mb-8">
+                  <details className="group border border-border rounded-lg overflow-hidden bg-card">
+                    <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted transition-colors">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                        <span className="font-semibold text-base">Table of Contents</span>
+                      </div>
+                      <svg
+                        className="h-5 w-5 text-muted-foreground transition-transform group-open:rotate-180"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </summary>
+                    <div className="p-4 pt-0 border-t border-border">
+                      <TableOfContents content={post.content} readingTime={post.readingTime} />
+                    </div>
+                  </details>
+                </div>
+
                 {/* ✅ TOP AD - After Featured Image, Before Content */}
                 <div className="my-8">
                   <AdSense
@@ -844,7 +867,7 @@ export default function BlogPostClient({ post }) {
 
                 {/* Tags */}
                 {post.tags && post.tags.length > 0 && (
-                  <div className="mb-6 sm:mb-8">
+                  <div id="tags-section" className="mb-6 sm:mb-8">
                     <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Tags</h3>
                     <div className="flex flex-wrap gap-2">
                       {post.tags.map((tag, index) => (
@@ -934,12 +957,13 @@ export default function BlogPostClient({ post }) {
 
               {/* 
                 ==================================================================
-                TOC SIDEBAR - STICKY POSITIONING, ALIGNS WITH TITLE
+                TOC SIDEBAR - STICKY POSITIONING WITH BOUNDARY AT TAGS
                 ==================================================================
               */}
               <div className="hidden lg:block lg:w-1/3 lg:flex-shrink-0">
                 <div
-                  className="sticky custom-scrollbar"
+                  id="toc-sidebar"
+                  className="sticky custom-scrollbar transition-all duration-300"
                   style={{
                     top: '5rem',
                     maxHeight: 'calc(100vh - 6rem)',
@@ -950,6 +974,48 @@ export default function BlogPostClient({ post }) {
                 </div>
               </div>
             </div>
+
+            {/* ⚡ STICKY TOC BOUNDARY SCRIPT */}
+            <script dangerouslySetInnerHTML={{
+              __html: `
+                (function() {
+                  if (typeof window === 'undefined') return;
+                  
+                  function initStickyTOC() {
+                    const toc = document.getElementById('toc-sidebar');
+                    const tagsSection = document.getElementById('tags-section');
+                    
+                    if (!toc || !tagsSection) return;
+                    
+                    const observer = new IntersectionObserver((entries) => {
+                      entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                          // Tags section is visible - stop TOC from scrolling
+                          toc.style.position = 'absolute';
+                          toc.style.top = (tagsSection.offsetTop - 80) + 'px';
+                        } else {
+                          // Tags section not visible - keep TOC sticky
+                          toc.style.position = 'sticky';
+                          toc.style.top = '5rem';
+                        }
+                      });
+                    }, {
+                      rootMargin: '-100px 0px 0px 0px',
+                      threshold: 0
+                    });
+                    
+                    observer.observe(tagsSection);
+                  }
+                  
+                  // Run on page load
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initStickyTOC);
+                  } else {
+                    initStickyTOC();
+                  }
+                })();
+              `
+            }} />
 
             {/* 
               =====================================================================
