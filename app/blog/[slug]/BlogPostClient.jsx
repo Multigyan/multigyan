@@ -30,6 +30,8 @@ import { PostLikeButton } from "@/components/interactions/LikeButton"
 import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
 import AdSense from "@/components/AdSense"
 import LanguageSwitcher from "@/components/blog/LanguageSwitcher"
+import ShareButtons from "@/components/blog/ShareButtons"
+import StayConnected from "@/components/blog/StayConnected"
 // ✅ NEW: Import modular TOC components
 import { useTOC } from "@/hooks/useTOC"
 import TOCMobileCollapsible from "@/components/blog/TOCMobileCollapsible"
@@ -83,40 +85,7 @@ export default function BlogPostClient({ post }) {
     })
   }
 
-  const handleShare = async (platform) => {
-    const url = window.location.href
-    const title = post.title
-
-    let shareUrl = ''
-
-    switch (platform) {
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`
-        break
-      case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
-        break
-      case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
-        break
-      case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(title + ' - ' + url)}`
-        break
-      case 'copy':
-        try {
-          await navigator.clipboard.writeText(url)
-          toast.success('Link copied!')
-          return
-        } catch (error) {
-          toast.error('Failed to copy')
-          return
-        }
-    }
-
-    if (shareUrl) {
-      window.open(shareUrl, '_blank', 'width=600,height=400')
-    }
-  }
+  // ✅ PHASE 1: Removed handleShare - now using ShareButtons component
 
   // ✅ SMART AD INSERTION: Insert ad after complete elements (tables, images, headings)
   const insertSmartAd = (content) => {
@@ -323,55 +292,8 @@ export default function BlogPostClient({ post }) {
                   </div>
                 </header>
 
-                {/* Share Buttons */}
-                <div className="flex items-center gap-2 mb-4 sm:mb-6 flex-wrap">
-                  <span className="text-xs sm:text-sm text-muted-foreground mr-1 sm:mr-2">Share:</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleShare('twitter')}
-                    title="Share on Twitter"
-                    className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600 min-h-[44px] min-w-[44px]"
-                  >
-                    <Twitter className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleShare('facebook')}
-                    title="Share on Facebook"
-                    className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700 min-h-[44px] min-w-[44px]"
-                  >
-                    <Facebook className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleShare('linkedin')}
-                    title="Share on LinkedIn"
-                    className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600 min-h-[44px] min-w-[44px]"
-                  >
-                    <Linkedin className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleShare('whatsapp')}
-                    title="Share on WhatsApp"
-                    className="hover:bg-green-50 hover:text-green-600 hover:border-green-600 min-h-[44px] min-w-[44px]"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleShare('copy')}
-                    title="Copy link"
-                    className="hover:bg-gray-50 min-h-[44px] min-w-[44px]"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
+                {/* ✅ PHASE 1 FIX: Stay Connected - Replacing share buttons */}
+                <StayConnected className="mb-4 sm:mb-6" />
 
                 {/* Featured Image */}
                 {post.featuredImageUrl && (
@@ -904,54 +826,8 @@ export default function BlogPostClient({ post }) {
                     </Button>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs sm:text-sm text-muted-foreground mr-1 sm:mr-2">Share:</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleShare('twitter')}
-                      title="Share on Twitter"
-                      className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600 min-h-[44px] min-w-[44px]"
-                    >
-                      <Twitter className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleShare('facebook')}
-                      title="Share on Facebook"
-                      className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700 min-h-[44px] min-w-[44px]"
-                    >
-                      <Facebook className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleShare('linkedin')}
-                      title="Share on LinkedIn"
-                      className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-600 min-h-[44px] min-w-[44px]"
-                    >
-                      <Linkedin className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleShare('whatsapp')}
-                      title="Share on WhatsApp"
-                      className="hover:bg-green-50 hover:text-green-600 hover:border-green-600 min-h-[44px] min-w-[44px]"
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleShare('copy')}
-                      title="Copy link"
-                      className="hover:bg-gray-50 min-h-[44px] min-w-[44px]"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {/* ✅ PHASE 1: Share Buttons - Using reusable component */}
+                  <ShareButtons title={post.title} />
                 </div>
               </div>
 

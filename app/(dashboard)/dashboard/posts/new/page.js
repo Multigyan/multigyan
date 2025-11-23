@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -25,9 +25,10 @@ import BlogPostPreview from "@/components/blog/BlogPostPreview"
 import DynamicListInput from "@/components/blog/DynamicListInput"
 import AffiliateLinkManager from "@/components/blog/AffiliateLinkManager"
 import ProjectOverview from "@/components/posts/enhanced-form/ProjectOverview"
-import { ArrowLeft, Save, Send, FileText, Image, Tag, Settings, Eye, Wrench, ChefHat, BookOpen, Globe, Link as LinkIcon } from "lucide-react"
+import { ArrowLeft, Save, Send, FileText, Image, Tag, Settings, Eye, Wrench, ChefHat, BookOpen, Globe, Link as LinkIcon, Clock } from "lucide-react"
 import { toast } from "sonner"
 import { generateSlug } from "@/lib/helpers"
+import { useAutosave } from "@/hooks/useAutosave"
 
 // ✅ NEW: Helper function to count words
 function countWords(text) {
@@ -45,27 +46,93 @@ function countCharacters(text) {
   return text.length
 }
 
-// ✅ NEW: Word/Character Counter Component
+
+// ✅ PHASE 1: Enhanced Word/Character Counter Component with Progress Bar
 function TextCounter({ text, type = 'words', ideal = null, max = null }) {
   const count = type === 'words' ? countWords(text) : countCharacters(text)
   const unit = type === 'words' ? 'words' : 'characters'
-  
-  // Determine color based on ideal range
+
+  // Determine color and status based on ideal range
   let colorClass = 'text-muted-foreground'
+  let bgColorClass = 'bg-muted-foreground/20'
+  let statusIcon = null
+  let statusText = ''
+
   if (ideal && count >= ideal.min && count <= ideal.max) {
-    colorClass = 'text-green-600'
+    colorClass = 'text-green-600 dark:text-green-400'
+    bgColorClass = 'bg-green-600/20'
+    statusIcon = '✓'
+    statusText = 'Ideal'
   } else if (max && count > max) {
     colorClass = 'text-destructive'
+    bgColorClass = 'bg-destructive/20'
+    statusIcon = '⚠'
+    statusText = 'Too long'
   } else if (ideal && count < ideal.min) {
-    colorClass = 'text-amber-600'
+    colorClass = 'text-amber-600 dark:text-amber-400'
+    bgColorClass = 'bg-amber-600/20'
+    statusIcon = '→'
+    statusText = 'Add more'
   }
-  
+
+  // Calculate progress percentage
+  let progress = 0
+  if (ideal) {
+    if (count < ideal.min) {
+      progress = (count / ideal.min) * 50 // 0-50% before min
+    } else if (count <= ideal.max) {
+      progress = 50 + ((count - ideal.min) / (ideal.max - ideal.min)) * 50 // 50-100% in ideal range
+    } else if (max) {
+      progress = 100 + ((count - ideal.max) / (max - ideal.max)) * 20 // 100-120% over ideal
+    } else {
+      progress = 100
+    }
+  } else if (max) {
+    progress = (count / max) * 100
+  }
+
+  progress = Math.min(progress, 120) // Cap at 120%
+
   return (
-    <p className={`text-xs ${colorClass} mt-1`}>
-      {count} {unit}
-      {ideal && ` • Ideal: ${ideal.min}-${ideal.max} ${unit}`}
-      {max && ` • Max: ${max} ${unit}`}
-    </p>
+    <div className="space-y-1.5 mt-1">
+      {/* Progress Bar - Made more visible with solid colors */}
+      {(ideal || max) && (
+        <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-300 ${ideal && count >= ideal.min && count <= ideal.max
+                ? 'bg-green-600'
+                : max && count > max
+                  ? 'bg-destructive'
+                  : ideal && count < ideal.min
+                    ? 'bg-amber-600'
+                    : 'bg-muted-foreground'
+              }`}
+            style={{ width: `${Math.min(progress, 100)}%` }}
+          />
+        </div>
+      )}
+
+      {/* Counter Text */}
+      <div className="flex items-center justify-between text-xs">
+        <span className={`font-medium ${colorClass}`}>
+          {statusIcon && <span className="mr-1">{statusIcon}</span>}
+          {count} {unit}
+          {statusText && <span className="ml-1 opacity-75">({statusText})</span>}
+        </span>
+
+        {ideal && (
+          <span className="text-muted-foreground">
+            Ideal: {ideal.min}-{ideal.max}
+            {max && ` • Max: ${max}`}
+          </span>
+        )}
+        {!ideal && max && (
+          <span className="text-muted-foreground">
+            Max: {max}
+          </span>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -87,18 +154,18 @@ export default function NewPostPage() {
     seoTitle: "",
     seoDescription: "",
     allowComments: true,
-    
+
     // ✨ Content Settings
     contentType: "blog", // blog, diy, recipe
     lang: "en", // en, hi
     translationOf: "", // Link to alternate language version
-    
+
     // ✨ DIY-specific fields (existing)
     diyDifficulty: "medium", // easy, medium, hard
     diyMaterials: [], // Array of material strings
     diyTools: [], // Array of tool strings
     diyEstimatedTime: "", // e.g., "2 hours"
-    
+
     // ✨ DIY-specific fields (enhanced - new)
     projectType: "other",
     whatYouWillLearn: [],
@@ -107,7 +174,7 @@ export default function NewPostPage() {
     safetyWarnings: [],
     targetAudience: [],
     inspirationStory: "",
-    
+
     // ✨ Recipe-specific fields
     recipePrepTime: "", // e.g., "15 mins"
     recipeCookTime: "", // e.g., "30 mins"
@@ -115,7 +182,7 @@ export default function NewPostPage() {
     recipeIngredients: [], // Array of ingredient strings
     recipeCuisine: "", // e.g., "Indian", "Italian"
     recipeDiet: [], // e.g., ["vegetarian", "gluten-free"]
-    
+
     // ✨ Common fields (for both DIY & Recipe)
     affiliateLinks: [], // Array of {name, url, description}
   })
@@ -124,6 +191,9 @@ export default function NewPostPage() {
   const contentWordCount = useMemo(() => {
     return countWords(formData.content)
   }, [formData.content])
+
+  // ✅ PHASE 1: Autosave functionality
+  const { lastSaved, saveDraft, clearDraft } = useAutosave(formData, setFormData, 'blog-post-draft', 30000)
 
   // Fetch categories and posts on mount
   useEffect(() => {
@@ -135,7 +205,7 @@ export default function NewPostPage() {
     try {
       const response = await fetch('/api/categories')
       const data = await response.json()
-      
+
       if (response.ok) {
         setCategories(data.categories || [])
       }
@@ -148,7 +218,7 @@ export default function NewPostPage() {
     try {
       const response = await fetch('/api/posts?status=published&limit=1000')
       const data = await response.json()
-      
+
       if (response.ok) {
         setAllPosts(data.posts || [])
       }
@@ -204,7 +274,7 @@ export default function NewPostPage() {
       servings: formData.recipeServings,
       ingredients: formData.recipeIngredients
     })
-    
+
     // Validation
     if (!formData.title.trim()) {
       toast.error('Post title is required')
@@ -251,7 +321,7 @@ export default function NewPostPage() {
     // ✨ Recipe-specific validation
     if (formData.contentType === 'recipe') {
       console.log('🍳 Validating recipe fields...')
-      
+
       if (!formData.recipePrepTime || !formData.recipePrepTime.trim()) {
         toast.error('❌ Prep time is required for recipes', {
           description: 'Example: "10 minutes" or "15 mins"'
@@ -276,7 +346,7 @@ export default function NewPostPage() {
         })
         return
       }
-      
+
       console.log('✅ Recipe validation passed!')
     }
 
@@ -299,7 +369,7 @@ export default function NewPostPage() {
         translationOf: formData.translationOf,
         contentType: formData.contentType,
         status,
-        
+
         // Recipe fields - explicitly included
         recipePrepTime: formData.recipePrepTime,
         recipeCookTime: formData.recipeCookTime,
@@ -307,7 +377,7 @@ export default function NewPostPage() {
         recipeIngredients: formData.recipeIngredients,
         recipeCuisine: formData.recipeCuisine,
         recipeDiet: formData.recipeDiet,
-        
+
         // DIY fields
         diyDifficulty: formData.diyDifficulty,
         diyMaterials: formData.diyMaterials,
@@ -320,11 +390,11 @@ export default function NewPostPage() {
         safetyWarnings: formData.safetyWarnings,
         targetAudience: formData.targetAudience,
         inspirationStory: formData.inspirationStory,
-        
+
         // Common fields
         affiliateLinks: formData.affiliateLinks
       }
-      
+
       console.log('📤 Final submitData:', JSON.stringify(submitData, null, 2))
 
       const response = await fetch('/api/posts', {
@@ -339,7 +409,7 @@ export default function NewPostPage() {
 
       if (response.ok) {
         const contentTypeLabel = formData.contentType === 'diy' ? 'DIY tutorial' : formData.contentType === 'recipe' ? 'Recipe' : 'Post'
-        
+
         // ✅ Show appropriate message based on status and user role
         if (status === 'draft') {
           // Saved as draft
@@ -360,7 +430,7 @@ export default function NewPostPage() {
             duration: 6000
           })
         }
-        
+
         router.push('/dashboard/posts')
       } else {
         toast.error(data.error || 'Failed to save post')
@@ -390,7 +460,7 @@ export default function NewPostPage() {
 
   // Get content type icon
   const getContentTypeIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case 'diy': return <Wrench className="h-4 w-4" />
       case 'recipe': return <ChefHat className="h-4 w-4" />
       default: return <BookOpen className="h-4 w-4" />
@@ -399,7 +469,7 @@ export default function NewPostPage() {
 
   // Get content type label
   const getContentTypeLabel = (type) => {
-    switch(type) {
+    switch (type) {
       case 'diy': return 'DIY Tutorial'
       case 'recipe': return 'Recipe'
       default: return 'Blog Post'
@@ -422,17 +492,41 @@ export default function NewPostPage() {
               <p className="text-muted-foreground">Write and publish a new blog post, DIY tutorial, or recipe</p>
             </div>
           </div>
-          
-          {/* Preview Button */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowPreview(true)}
-            disabled={!formData.title && !formData.content}
-          >
-            <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
-            Preview Post
-          </Button>
+
+          <div className="flex items-center gap-3">
+            {/* Last Saved Indicator */}
+            {lastSaved && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>Saved {lastSaved.toLocaleTimeString()}</span>
+              </div>
+            )}
+
+            {/* Manual Save Draft Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                saveDraft()
+                toast.success('Draft saved manually!')
+              }}
+              disabled={!formData.title && !formData.content}
+            >
+              <Save className="mr-2 h-4 w-4" aria-hidden="true" />
+              Save Draft
+            </Button>
+
+            {/* Preview Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(true)}
+              disabled={!formData.title && !formData.content}
+            >
+              <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
+              Preview Post
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -455,8 +549,8 @@ export default function NewPostPage() {
                   <Label htmlFor="contentType">
                     Content Type <span className="text-destructive">*</span>
                   </Label>
-                  <Select 
-                    value={formData.contentType} 
+                  <Select
+                    value={formData.contentType}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, contentType: value }))}
                   >
                     <SelectTrigger className="mt-1">
@@ -501,8 +595,8 @@ export default function NewPostPage() {
                   <Label htmlFor="language">
                     Language <span className="text-destructive">*</span>
                   </Label>
-                  <Select 
-                    value={formData.lang} 
+                  <Select
+                    value={formData.lang}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, lang: value }))}
                   >
                     <SelectTrigger className="mt-1">
@@ -536,8 +630,8 @@ export default function NewPostPage() {
                       Link to Translation (Optional)
                     </div>
                   </Label>
-                  <Select 
-                    value={formData.translationOf || "none"} 
+                  <Select
+                    value={formData.translationOf || "none"}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, translationOf: value === "none" ? "" : value }))}
                   >
                     <SelectTrigger className="mt-1">
@@ -560,7 +654,7 @@ export default function NewPostPage() {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    If this is a translation of an existing post, link them together. 
+                    If this is a translation of an existing post, link them together.
                     This enables the language switcher on your posts.
                   </p>
                 </div>
@@ -618,17 +712,17 @@ export default function NewPostPage() {
                     value={formData.title}
                     onChange={handleInputChange}
                     placeholder={
-                      formData.contentType === 'diy' 
-                        ? "e.g., How to Make Beautiful Paper Flowers" 
+                      formData.contentType === 'diy'
+                        ? "e.g., How to Make Beautiful Paper Flowers"
                         : formData.contentType === 'recipe'
-                        ? "e.g., Easy Butter Chicken Recipe"
-                        : "Enter an engaging post title..."
+                          ? "e.g., Easy Butter Chicken Recipe"
+                          : "Enter an engaging post title..."
                     }
                     className="mt-1 text-lg"
                     required
                   />
-                  <TextCounter 
-                    text={formData.title} 
+                  <TextCounter
+                    text={formData.title}
                     type="characters"
                     ideal={{ min: 40, max: 70 }}
                     max={100}
@@ -647,14 +741,14 @@ export default function NewPostPage() {
                       formData.contentType === 'diy'
                         ? "Brief description of what readers will learn to make..."
                         : formData.contentType === 'recipe'
-                        ? "Brief description of the dish and what makes it special..."
-                        : "Write a brief summary of your post (will be auto-generated if left empty)"
+                          ? "Brief description of the dish and what makes it special..."
+                          : "Write a brief summary of your post (will be auto-generated if left empty)"
                     }
                     className="mt-1"
                     rows={3}
                   />
-                  <TextCounter 
-                    text={formData.excerpt} 
+                  <TextCounter
+                    text={formData.excerpt}
                     type="characters"
                     ideal={{ min: 120, max: 160 }}
                     max={300}
@@ -691,8 +785,8 @@ export default function NewPostPage() {
                         formData.contentType === 'diy'
                           ? "Start writing your DIY tutorial...\n\nSuggested structure:\n• Materials needed\n• Tools required\n• Step-by-step instructions\n• Tips and tricks\n• Final result"
                           : formData.contentType === 'recipe'
-                          ? "Start writing your recipe...\n\nSuggested structure:\n• Ingredients list\n• Preparation time\n• Cooking time\n• Step-by-step instructions\n• Serving suggestions"
-                          : "Start writing your amazing content here..."
+                            ? "Start writing your recipe...\n\nSuggested structure:\n• Ingredients list\n• Preparation time\n• Cooking time\n• Step-by-step instructions\n• Serving suggestions"
+                            : "Start writing your amazing content here..."
                       }
                     />
                   </div>
@@ -705,101 +799,101 @@ export default function NewPostPage() {
               <>
                 {/* NEW: Project Overview Section */}
                 <ProjectOverview formData={formData} setFormData={setFormData} />
-                
+
                 {/* Existing DIY Project Details */}
                 <Card className="border-2 border-orange-500/30 bg-orange-50/10">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wrench className="h-5 w-5 text-orange-600" />
-                    DIY Project Details
-                  </CardTitle>
-                  <CardDescription>
-                    Add specific details about your DIY project
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Difficulty Level */}
-                  <div>
-                    <Label htmlFor="diyDifficulty">
-                      Difficulty Level <span className="text-destructive">*</span>
-                    </Label>
-                    <Select 
-                      value={formData.diyDifficulty} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, diyDifficulty: value }))}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="easy">
-                          <div className="flex items-center gap-2">
-                            <span className="text-green-600">●</span>
-                            <span>Easy - Beginner Friendly</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="medium">
-                          <div className="flex items-center gap-2">
-                            <span className="text-yellow-600">●</span>
-                            <span>Medium - Some Experience Needed</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="hard">
-                          <div className="flex items-center gap-2">
-                            <span className="text-red-600">●</span>
-                            <span>Hard - Advanced Skills Required</span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Help readers assess if this project is right for their skill level
-                    </p>
-                  </div>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Wrench className="h-5 w-5 text-orange-600" />
+                      DIY Project Details
+                    </CardTitle>
+                    <CardDescription>
+                      Add specific details about your DIY project
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Difficulty Level */}
+                    <div>
+                      <Label htmlFor="diyDifficulty">
+                        Difficulty Level <span className="text-destructive">*</span>
+                      </Label>
+                      <Select
+                        value={formData.diyDifficulty}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, diyDifficulty: value }))}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="easy">
+                            <div className="flex items-center gap-2">
+                              <span className="text-green-600">●</span>
+                              <span>Easy - Beginner Friendly</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="medium">
+                            <div className="flex items-center gap-2">
+                              <span className="text-yellow-600">●</span>
+                              <span>Medium - Some Experience Needed</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="hard">
+                            <div className="flex items-center gap-2">
+                              <span className="text-red-600">●</span>
+                              <span>Hard - Advanced Skills Required</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Help readers assess if this project is right for their skill level
+                      </p>
+                    </div>
 
-                  {/* Estimated Time */}
-                  <div>
-                    <Label htmlFor="diyEstimatedTime">
-                      Estimated Time <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="diyEstimatedTime"
-                      name="diyEstimatedTime"
-                      value={formData.diyEstimatedTime}
-                      onChange={handleInputChange}
-                      placeholder="e.g., 2 hours, 30 minutes, 1-2 days"
-                      className="mt-1"
-                      required={formData.contentType === 'diy'}
+                    {/* Estimated Time */}
+                    <div>
+                      <Label htmlFor="diyEstimatedTime">
+                        Estimated Time <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="diyEstimatedTime"
+                        name="diyEstimatedTime"
+                        value={formData.diyEstimatedTime}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 2 hours, 30 minutes, 1-2 days"
+                        className="mt-1"
+                        required={formData.contentType === 'diy'}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Include setup and drying/curing time if applicable
+                      </p>
+                    </div>
+
+                    {/* Materials List */}
+                    <DynamicListInput
+                      label="Materials Needed *"
+                      items={formData.diyMaterials}
+                      onChange={(items) => setFormData(prev => ({ ...prev, diyMaterials: items }))}
+                      placeholder="e.g., Acrylic paint (blue, white), Canvas 12x16, Paint brushes"
+                      description="List all materials needed for this project. Be specific with quantities and sizes."
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Include setup and drying/curing time if applicable
-                    </p>
-                  </div>
 
-                  {/* Materials List */}
-                  <DynamicListInput
-                    label="Materials Needed *"
-                    items={formData.diyMaterials}
-                    onChange={(items) => setFormData(prev => ({ ...prev, diyMaterials: items }))}
-                    placeholder="e.g., Acrylic paint (blue, white), Canvas 12x16, Paint brushes"
-                    description="List all materials needed for this project. Be specific with quantities and sizes."
-                  />
+                    {/* Tools List */}
+                    <DynamicListInput
+                      label="Tools Required"
+                      items={formData.diyTools}
+                      onChange={(items) => setFormData(prev => ({ ...prev, diyTools: items }))}
+                      placeholder="e.g., Scissors, Hot glue gun, Ruler, Pencil"
+                      description="List tools readers will need. Include alternatives if possible."
+                    />
 
-                  {/* Tools List */}
-                  <DynamicListInput
-                    label="Tools Required"
-                    items={formData.diyTools}
-                    onChange={(items) => setFormData(prev => ({ ...prev, diyTools: items }))}
-                    placeholder="e.g., Scissors, Hot glue gun, Ruler, Pencil"
-                    description="List tools readers will need. Include alternatives if possible."
-                  />
-
-                  {/* Affiliate Links */}
-                  <AffiliateLinkManager
-                    links={formData.affiliateLinks}
-                    onChange={(links) => setFormData(prev => ({ ...prev, affiliateLinks: links }))}
-                  />
-                </CardContent>
-              </Card>
+                    {/* Affiliate Links */}
+                    <AffiliateLinkManager
+                      links={formData.affiliateLinks}
+                      onChange={(links) => setFormData(prev => ({ ...prev, affiliateLinks: links }))}
+                    />
+                  </CardContent>
+                </Card>
               </>
             )}
 
@@ -881,8 +975,8 @@ export default function NewPostPage() {
                     <Label htmlFor="recipeCuisine">
                       Cuisine Type
                     </Label>
-                    <Select 
-                      value={formData.recipeCuisine || "none"} 
+                    <Select
+                      value={formData.recipeCuisine || "none"}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, recipeCuisine: value === "none" ? "" : value }))}
                     >
                       <SelectTrigger className="mt-1">
@@ -921,11 +1015,10 @@ export default function NewPostPage() {
                       {['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'keto', 'paleo', 'low-carb'].map(diet => (
                         <label
                           key={diet}
-                          className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors ${
-                            formData.recipeDiet.includes(diet)
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'bg-background hover:bg-muted border-input'
-                          }`}
+                          className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors ${formData.recipeDiet.includes(diet)
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-background hover:bg-muted border-input'
+                            }`}
                         >
                           <input
                             type="checkbox"
@@ -982,8 +1075,8 @@ export default function NewPostPage() {
                     placeholder="Custom title for search results"
                     className="mt-1"
                   />
-                  <TextCounter 
-                    text={formData.seoTitle} 
+                  <TextCounter
+                    text={formData.seoTitle}
                     type="characters"
                     ideal={{ min: 50, max: 60 }}
                     max={70}
@@ -1001,8 +1094,8 @@ export default function NewPostPage() {
                     className="mt-1"
                     rows={2}
                   />
-                  <TextCounter 
-                    text={formData.seoDescription} 
+                  <TextCounter
+                    text={formData.seoDescription}
                     type="characters"
                     ideal={{ min: 120, max: 160 }}
                     max={200}
@@ -1045,35 +1138,30 @@ export default function NewPostPage() {
               <CardHeader>
                 <CardTitle>Publish</CardTitle>
                 <CardDescription>
-                  Save your {getContentTypeLabel(formData.contentType).toLowerCase()} or submit for publication
+                  Save your blog post or submit for publication
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button 
-                  onClick={() => handleSubmit('draft')} 
-                  variant="outline" 
-                  className="w-full"
-                  disabled={loading}
-                >
-                  <Save className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Save as Draft
-                </Button>
-                
-                <Button 
-                  onClick={() => handleSubmit('pending_review')} 
-                  className="w-full"
-                  disabled={loading}
-                >
-                  <Send className="mr-2 h-4 w-4" aria-hidden="true" />
-                  {session?.user.role === 'admin' ? 'Publish Now' : 'Submit for Review'}
-                </Button>
+                {/* Removed duplicate "Save as Draft" button - use header button instead */}
 
-                {loading && (
-                  <div className="flex items-center justify-center text-sm text-muted-foreground">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                    Saving...
-                  </div>
-                )}
+                <Button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="w-full"
+                  size="lg"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {session?.user?.role === 'admin' ? 'Publishing...' : 'Submitting...'}
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      {session?.user?.role === 'admin' ? 'Publish Now' : 'Submit for Review'}
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
 
@@ -1151,7 +1239,7 @@ export default function NewPostPage() {
                   <Switch
                     id="allowComments"
                     checked={formData.allowComments}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setFormData(prev => ({ ...prev, allowComments: checked }))
                     }
                   />

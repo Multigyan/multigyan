@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Upload, 
-  Link as LinkIcon, 
-  X, 
-  Image as ImageIcon, 
+import {
+  Upload,
+  Link as LinkIcon,
+  X,
+  Image as ImageIcon,
   Loader2,
   Check,
   Crop,
@@ -34,9 +34,9 @@ import { convertToWebP, convertGoogleDriveUrl, optimizeImage, googleDriveUrlToFi
  * - Optional cropping
  */
 
-export default function FeaturedImageUploader({ 
-  value, 
-  onChange, 
+export default function FeaturedImageUploader({
+  value,
+  onChange,
   onAltTextChange,
   altText = '',
   className = '',
@@ -60,45 +60,79 @@ export default function FeaturedImageUploader({
   const [originalFile, setOriginalFile] = useState(null)
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 })
   const [compressionInfo, setCompressionInfo] = useState(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadingFileName, setUploadingFileName] = useState('')
+  const [uploadingFileSize, setUploadingFileSize] = useState(0)
   const fileInputRef = useRef(null)
 
-  // Upload file to Cloudinary
+  // Upload file to Cloudinary with progress tracking
   const uploadToCloudinary = useCallback(async (file) => {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'multigyan_uploads')
     formData.append('folder', 'multigyan/posts/featured')
-    
+
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
-    
+
     if (!cloudName || !uploadPreset) {
       throw new Error('Cloudinary configuration is missing. Please set up environment variables.')
     }
-    
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    )
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null)
-      const errorMessage = errorData?.error?.message || 'Upload failed'
-      throw new Error(`Upload failed: ${errorMessage}`)
-    }
-    
-    const data = await response.json()
-    
-    // Get actual image dimensions
-    setImageDimensions({ 
-      width: data.width, 
-      height: data.height 
+
+    // Set file info for progress display
+    setUploadingFileName(file.name)
+    setUploadingFileSize(file.size)
+    setUploadProgress(0)
+
+    // Use XMLHttpRequest for progress tracking
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+
+      // Track upload progress
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentComplete = Math.round((e.loaded / e.total) * 100)
+          setUploadProgress(percentComplete)
+        }
+      })
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          try {
+            const data = JSON.parse(xhr.responseText)
+
+            // Get actual image dimensions
+            setImageDimensions({
+              width: data.width,
+              height: data.height
+            })
+
+            resolve(data.secure_url)
+          } catch (error) {
+            reject(new Error('Failed to parse upload response'))
+          }
+        } else {
+          try {
+            const errorData = JSON.parse(xhr.responseText)
+            const errorMessage = errorData?.error?.message || 'Upload failed'
+            reject(new Error(`Upload failed: ${errorMessage}`))
+          } catch {
+            reject(new Error('Upload failed'))
+          }
+        }
+      })
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Network error during upload'))
+      })
+
+      xhr.addEventListener('abort', () => {
+        reject(new Error('Upload cancelled'))
+      })
+
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`)
+      xhr.send(formData)
     })
-    
-    return data.secure_url
   }, [])
 
   // Handle file selection (with optional cropping and WebP conversion)
@@ -137,40 +171,40 @@ export default function FeaturedImageUploader({
   const processAndUploadImage = useCallback(async (file) => {
     let processedFile = file
     const originalSize = file.size
-    
+
     try {
       setConverting(true)
-      
+
       // Step 1: Optimize image if needed (resize to max dimensions)
       if (enableOptimization) {
         toast.info('Optimizing image...', { duration: 2000 })
         processedFile = await optimizeImage(processedFile, 1920, 1080)
       }
-      
+
       // Step 2: Convert to WebP (unless already WebP)
       if (enableWebPConversion && file.type !== 'image/webp') {
         toast.info('Converting to WebP format...', { duration: 2000 })
         processedFile = await convertToWebP(processedFile, 0.9)
       }
-      
+
       const finalSize = processedFile.size
       const compressionRatio = ((1 - finalSize / originalSize) * 100).toFixed(1)
-      
+
       setCompressionInfo({
         originalSize: (originalSize / 1024).toFixed(2),
         finalSize: (finalSize / 1024).toFixed(2),
         compressionRatio
       })
-      
+
       if (compressionRatio > 0) {
         toast.success(`Image optimized! ${compressionRatio}% smaller`, { duration: 3000 })
       }
-      
+
       setConverting(false)
-      
+
       // Step 3: Upload
       await uploadFile(processedFile)
-      
+
     } catch (error) {
       setConverting(false)
       console.error('Image processing error:', error)
@@ -183,15 +217,15 @@ export default function FeaturedImageUploader({
   // Upload file function
   const uploadFile = useCallback(async (file) => {
     setUploading(true)
-    
+
     try {
       const url = await uploadToCloudinary(file)
-      
+
       if (url) {
         setImageUrl(url)
         onChange(url)
         toast.success('Featured image uploaded successfully!')
-        
+
         // Auto-generate alt text from filename if none provided
         if (!altText && onAltTextChange) {
           const filename = file.name.split('.')[0].replace(/[-_]/g, ' ')
@@ -209,6 +243,9 @@ export default function FeaturedImageUploader({
       })
     } finally {
       setUploading(false)
+      setUploadProgress(0)
+      setUploadingFileName('')
+      setUploadingFileSize(0)
     }
   }, [uploadToCloudinary, onChange, onAltTextChange, altText])
 
@@ -245,22 +282,22 @@ export default function FeaturedImageUploader({
     }
 
     setValidatingUrl(true)
-    
+
     try {
       const inputUrl = urlInput.trim()
-      
+
       // Check if it's a Google Drive URL
       if (inputUrl.includes('drive.google.com')) {
         toast.info('Google Drive URL detected - downloading image...')
-        
+
         // Download the image from Google Drive
         const file = await googleDriveUrlToFile(inputUrl)
-        
+
         if (file) {
           toast.success('Image downloaded from Google Drive!')
           setValidatingUrl(false)
           setUrlInput('')
-          
+
           // Process and upload the downloaded file
           await processAndUploadImage(file)
         } else {
@@ -269,31 +306,31 @@ export default function FeaturedImageUploader({
       } else {
         // Regular URL - validate and use directly
         const url = new URL(inputUrl)
-        
+
         // Check if it's a valid image URL by trying to load it
         const img = new window.Image()
         img.crossOrigin = 'anonymous'
-        
+
         img.onload = () => {
           // Get image dimensions
-          setImageDimensions({ 
-            width: img.naturalWidth, 
-            height: img.naturalHeight 
+          setImageDimensions({
+            width: img.naturalWidth,
+            height: img.naturalHeight
           })
-          
+
           setImageUrl(inputUrl)
           onChange(inputUrl)
           setUrlInput('')
           toast.success('Featured image URL added successfully!')
           setValidatingUrl(false)
-          
+
           // Auto-generate alt text from URL if none provided
           if (!altText && onAltTextChange) {
             const filename = url.pathname.split('/').pop()?.split('.')[0] || 'Featured image'
             onAltTextChange(filename.replace(/[-_]/g, ' '))
           }
         }
-        
+
         img.onerror = () => {
           toast.error('Unable to load image from this URL.', {
             description: 'Make sure the URL is publicly accessible and points to an image file.',
@@ -301,7 +338,7 @@ export default function FeaturedImageUploader({
           })
           setValidatingUrl(false)
         }
-        
+
         img.src = inputUrl
       }
     } catch (error) {
@@ -338,7 +375,7 @@ export default function FeaturedImageUploader({
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0]
       handleFileSelect(file)
@@ -382,7 +419,7 @@ export default function FeaturedImageUploader({
               <TabsTrigger value="upload">Upload File</TabsTrigger>
               <TabsTrigger value="url">Image URL</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="upload" className="space-y-4">
               <div
                 className={`
@@ -404,14 +441,37 @@ export default function FeaturedImageUploader({
                   className="hidden"
                   disabled={isProcessing}
                 />
-                
+
                 <div className="flex flex-col items-center space-y-4">
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                      <p className="text-sm font-medium">
-                        {converting ? 'Optimizing image...' : 'Uploading...'}
-                      </p>
+                      <div className="text-center space-y-2 w-full max-w-xs">
+                        <p className="text-sm font-medium">
+                          {converting ? 'Optimizing image...' : 'Uploading...'}
+                        </p>
+
+                        {/* ✅ PHASE 1: Upload Progress Bar */}
+                        {uploading && uploadProgress > 0 && (
+                          <>
+                            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                              <div
+                                className="h-full bg-primary transition-all duration-300"
+                                style={{ width: `${uploadProgress}%` }}
+                              />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span className="truncate max-w-[150px]">{uploadingFileName}</span>
+                              <span className="font-medium text-primary">{uploadProgress}%</span>
+                            </div>
+                            {uploadingFileSize > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                {(uploadingFileSize / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </>
                   ) : (
                     <>
@@ -462,7 +522,7 @@ export default function FeaturedImageUploader({
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="url" className="space-y-4">
               <div className="space-y-4">
                 <div>
@@ -477,7 +537,7 @@ export default function FeaturedImageUploader({
                       onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
                       disabled={validatingUrl}
                     />
-                    <Button 
+                    <Button
                       type="button"
                       onClick={handleUrlSubmit}
                       disabled={validatingUrl || !urlInput.trim()}
@@ -493,7 +553,7 @@ export default function FeaturedImageUploader({
                     Supports any image URL including Google Drive links
                   </p>
                 </div>
-                
+
                 {/* Google Drive Instructions */}
                 <div className="flex items-start gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                   <Download className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -508,7 +568,7 @@ export default function FeaturedImageUploader({
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
                   <LinkIcon className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
@@ -539,7 +599,7 @@ export default function FeaturedImageUploader({
                     )}
                   </div>
                 </div>
-                
+
                 {/* Main Preview */}
                 <div className="relative">
                   <div className="relative w-full rounded-lg overflow-hidden bg-muted border-2 border-border" style={{ aspectRatio: `${aspectRatio}` }}>
@@ -565,7 +625,7 @@ export default function FeaturedImageUploader({
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 {/* Compression Info */}
                 {compressionInfo && (
                   <div className="flex items-start gap-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg">
@@ -576,7 +636,7 @@ export default function FeaturedImageUploader({
                     </div>
                   </div>
                 )}
-                
+
                 {/* Image Info */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -587,7 +647,7 @@ export default function FeaturedImageUploader({
                     {imageUrl}
                   </p>
                 </div>
-                
+
                 {/* Alt Text Input */}
                 {onAltTextChange && (
                   <div>
@@ -604,7 +664,7 @@ export default function FeaturedImageUploader({
                     </p>
                   </div>
                 )}
-                
+
                 <Button
                   type="button"
                   variant="outline"
