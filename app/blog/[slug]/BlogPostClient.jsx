@@ -52,6 +52,49 @@ export default function BlogPostClient({ post }) {
     }
   }, [post])
 
+  // ⚡ STICKY TOC BOUNDARY: Stop scrolling at Tags section
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const initStickyTOC = () => {
+      const toc = document.getElementById('toc-sidebar')
+      const tagsSection = document.getElementById('tags-section')
+
+      if (!toc || !tagsSection) {
+        // Retry after a short delay if elements not found
+        setTimeout(initStickyTOC, 500)
+        return
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Tags section is visible - stop TOC from scrolling
+            const tagsSectionTop = tagsSection.getBoundingClientRect().top + window.scrollY
+            toc.style.position = 'absolute'
+            toc.style.top = `${tagsSectionTop - 100}px`
+          } else if (window.scrollY < tagsSection.offsetTop - 200) {
+            // User scrolled back up - make TOC sticky again
+            toc.style.position = 'sticky'
+            toc.style.top = '5rem'
+          }
+        })
+      }, {
+        rootMargin: '-80px 0px 0px 0px',
+        threshold: 0
+      })
+
+      observer.observe(tagsSection)
+
+      return () => observer.disconnect()
+    }
+
+    const cleanup = initStickyTOC()
+    return () => {
+      if (cleanup) cleanup()
+    }
+  }, [post])
+
   const fetchRelatedPosts = async () => {
     if (post.author?._id) {
       try {
@@ -369,29 +412,6 @@ export default function BlogPostClient({ post }) {
                     />
                   </div>
                 )}
-
-                {/* 📱 MOBILE TOC - Collapsible, visible only on mobile */}
-                <div className="lg:hidden mb-6 sm:mb-8">
-                  <details className="group border border-border rounded-lg overflow-hidden bg-card">
-                    <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted transition-colors">
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        <span className="font-semibold text-base">Table of Contents</span>
-                      </div>
-                      <svg
-                        className="h-5 w-5 text-muted-foreground transition-transform group-open:rotate-180"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </summary>
-                    <div className="p-4 pt-0 border-t border-border">
-                      <TableOfContents content={post.content} readingTime={post.readingTime} />
-                    </div>
-                  </details>
-                </div>
 
                 {/* ✅ TOP AD - After Featured Image, Before Content */}
                 <div className="my-8">
@@ -974,48 +994,6 @@ export default function BlogPostClient({ post }) {
                 </div>
               </div>
             </div>
-
-            {/* ⚡ STICKY TOC BOUNDARY SCRIPT */}
-            <script dangerouslySetInnerHTML={{
-              __html: `
-                (function() {
-                  if (typeof window === 'undefined') return;
-                  
-                  function initStickyTOC() {
-                    const toc = document.getElementById('toc-sidebar');
-                    const tagsSection = document.getElementById('tags-section');
-                    
-                    if (!toc || !tagsSection) return;
-                    
-                    const observer = new IntersectionObserver((entries) => {
-                      entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                          // Tags section is visible - stop TOC from scrolling
-                          toc.style.position = 'absolute';
-                          toc.style.top = (tagsSection.offsetTop - 80) + 'px';
-                        } else {
-                          // Tags section not visible - keep TOC sticky
-                          toc.style.position = 'sticky';
-                          toc.style.top = '5rem';
-                        }
-                      });
-                    }, {
-                      rootMargin: '-100px 0px 0px 0px',
-                      threshold: 0
-                    });
-                    
-                    observer.observe(tagsSection);
-                  }
-                  
-                  // Run on page load
-                  if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', initStickyTOC);
-                  } else {
-                    initStickyTOC();
-                  }
-                })();
-              `
-            }} />
 
             {/* 
               =====================================================================
