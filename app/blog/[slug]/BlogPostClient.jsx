@@ -27,10 +27,14 @@ import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
 import CommentSection from "@/components/comments/CommentSection"
 import { PostLikeButton } from "@/components/interactions/LikeButton"
-import TableOfContents from "@/components/blog/TableOfContents"
 import CodeBlockCopyButton from "@/components/blog/CodeBlockCopyButton"
-import AdSense from "@/components/AdSense" // ✅ Import AdSense component
-import LanguageSwitcher from "@/components/blog/LanguageSwitcher" // ✅ Import Language Switcher
+import AdSense from "@/components/AdSense"
+import LanguageSwitcher from "@/components/blog/LanguageSwitcher"
+// ✅ NEW: Import modular TOC components
+import { useTOC } from "@/hooks/useTOC"
+import TOCMobileCollapsible from "@/components/blog/TOCMobileCollapsible"
+import TOCMobileFloating from "@/components/blog/TOCMobileFloating"
+import TOCDesktopSidebar from "@/components/blog/TOCDesktopSidebar"
 // ✅ Import KaTeX CSS for formula rendering
 import 'katex/dist/katex.min.css'
 
@@ -44,6 +48,9 @@ export default function BlogPostClient({ post }) {
     approved: post.comments?.filter(c => c.isApproved).length || 0,
     totalLikes: 0
   })
+
+  // ⚡ NEW: Use TOC hook for all TOC functionality
+  const { headings, activeId, readingProgress, scrollToHeading, scrollToTop } = useTOC(post.content)
 
   useEffect(() => {
     if (post) {
@@ -215,6 +222,15 @@ export default function BlogPostClient({ post }) {
       {/* ✨ Add Code Block Copy Buttons */}
       <CodeBlockCopyButton />
 
+      {/* ⚡ NEW: Mobile Floating TOC Button */}
+      <TOCMobileFloating
+        headings={headings}
+        activeId={activeId}
+        readingProgress={readingProgress}
+        onItemClick={scrollToHeading}
+        scrollToTop={scrollToTop}
+      />
+
       <article className="py-6 sm:py-8 md:py-12">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
@@ -370,28 +386,12 @@ export default function BlogPostClient({ post }) {
                   </div>
                 )}
 
-                {/* 📱 MOBILE TOC - Collapsible, visible only on mobile */}
-                <div className="lg:hidden mb-6 sm:mb-8">
-                  <details className="group border border-border rounded-lg overflow-hidden bg-card">
-                    <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted transition-colors">
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        <span className="font-semibold text-base">Table of Contents</span>
-                      </div>
-                      <svg
-                        className="h-5 w-5 text-muted-foreground transition-transform group-open:rotate-180"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </summary>
-                    <div className="p-4 pt-0 border-t border-border">
-                      <TableOfContents content={post.content} readingTime={post.readingTime} showMobileButton={false} />
-                    </div>
-                  </details>
-                </div>
+                {/* ⚡ NEW: Mobile Collapsible TOC */}
+                <TOCMobileCollapsible
+                  headings={headings}
+                  activeId={activeId}
+                  onItemClick={scrollToHeading}
+                />
 
                 {/* ✅ TOP AD - After Featured Image, Before Content */}
                 <div className="my-8">
@@ -957,65 +957,22 @@ export default function BlogPostClient({ post }) {
 
               {/* 
                 ==================================================================
-                TOC SIDEBAR - STICKY POSITIONING WITH BOUNDARY AT TAGS
+                TOC SIDEBAR - DESKTOP ONLY (NEW COMPONENT)
                 ==================================================================
               */}
               <div className="hidden lg:block lg:w-1/3 lg:flex-shrink-0">
-                <div
-                  id="toc-sidebar"
-                  className="sticky custom-scrollbar transition-all duration-300"
-                  style={{
-                    top: '5rem',
-                    maxHeight: 'calc(100vh - 6rem)',
-                    overflowY: 'auto'
-                  }}
-                >
-                  <TableOfContents content={post.content} readingTime={post.readingTime} />
+                <div className="sticky top-20">
+                  <TOCDesktopSidebar
+                    headings={headings}
+                    activeId={activeId}
+                    readingProgress={readingProgress}
+                    readingTime={post.readingTime}
+                    onItemClick={scrollToHeading}
+                    scrollToTop={scrollToTop}
+                  />
                 </div>
               </div>
             </div>
-
-            {/* ⚡ STICKY TOC BOUNDARY SCRIPT */}
-            <script dangerouslySetInnerHTML={{
-              __html: `
-                (function() {
-                  if (typeof window === 'undefined') return;
-                  
-                  function initStickyTOC() {
-                    const toc = document.getElementById('toc-sidebar');
-                    const tagsSection = document.getElementById('tags-section');
-                    
-                    if (!toc || !tagsSection) return;
-                    
-                    const observer = new IntersectionObserver((entries) => {
-                      entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                          // Tags section is visible - stop TOC from scrolling
-                          toc.style.position = 'absolute';
-                          toc.style.top = (tagsSection.offsetTop - 80) + 'px';
-                        } else {
-                          // Tags section not visible - keep TOC sticky
-                          toc.style.position = 'sticky';
-                          toc.style.top = '5rem';
-                        }
-                      });
-                    }, {
-                      rootMargin: '-100px 0px 0px 0px',
-                      threshold: 0
-                    });
-                    
-                    observer.observe(tagsSection);
-                  }
-                  
-                  // Run on page load
-                  if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', initStickyTOC);
-                  } else {
-                    initStickyTOC();
-                  }
-                })();
-              `
-            }} />
 
             {/* 
               =====================================================================
