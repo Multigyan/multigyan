@@ -25,7 +25,7 @@ import BlogPostPreview from "@/components/blog/BlogPostPreview"
 import DynamicListInput from "@/components/blog/DynamicListInput"
 import AffiliateLinkManager from "@/components/blog/AffiliateLinkManager"
 import ProjectOverview from "@/components/posts/enhanced-form/ProjectOverview"
-import { ArrowLeft, Save, Send, FileText, Image, Tag, Settings, Eye, Wrench, ChefHat, BookOpen, Globe, Link as LinkIcon, Clock } from "lucide-react"
+import { ArrowLeft, Save, Send, FileText, Image, Tag, Settings, Eye, Wrench, ChefHat, BookOpen, Globe, Link as LinkIcon, Clock, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { generateSlug } from "@/lib/helpers"
 import { useAutosave } from "@/hooks/useAutosave"
@@ -100,12 +100,12 @@ function TextCounter({ text, type = 'words', ideal = null, max = null }) {
         <div className="relative h-2 bg-muted rounded-full overflow-hidden">
           <div
             className={`h-full transition-all duration-300 ${ideal && count >= ideal.min && count <= ideal.max
-                ? 'bg-green-600'
-                : max && count > max
-                  ? 'bg-destructive'
-                  : ideal && count < ideal.min
-                    ? 'bg-amber-600'
-                    : 'bg-muted-foreground'
+              ? 'bg-green-600'
+              : max && count > max
+                ? 'bg-destructive'
+                : ideal && count < ideal.min
+                  ? 'bg-amber-600'
+                  : 'bg-muted-foreground'
               }`}
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
