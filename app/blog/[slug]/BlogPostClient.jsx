@@ -961,7 +961,13 @@ export default function BlogPostClient({ post }) {
                 ==================================================================
               */}
               <div className="hidden lg:block lg:w-1/3 lg:flex-shrink-0">
-                <div className="sticky top-20">
+                <div
+                  className="toc-sidebar-wrapper sticky top-20"
+                  style={{
+                    maxHeight: 'calc(100vh - 6rem)',
+                    overflowY: 'auto'
+                  }}
+                >
                   <TOCDesktopSidebar
                     headings={headings}
                     activeId={activeId}

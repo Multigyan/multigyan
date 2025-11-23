@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,6 +18,8 @@ import { formatDate, getPostUrl } from "@/lib/helpers"
 import { prefetchProfileData } from "@/lib/prefetch-profile"
 
 export default function PostCard({ post, featured = false }) {
+  const router = useRouter()
+
   // ✅ FALLBACK: Handle both old (imageUrl) and new (featuredImageUrl) field names
   const imageUrl = post.featuredImageUrl || post.imageUrl;
 
@@ -24,6 +27,15 @@ export default function PostCard({ post, featured = false }) {
   const likesCount = post.likeCount ?? post.likes?.length ?? 0
   const commentsCount = post.commentCount ?? post.comments?.filter(c => c.isApproved).length ?? 0
   const viewsCount = post.views || 0
+
+  // ✅ FIX: Handle author click without nested anchor
+  const handleAuthorClick = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (post.author?.username) {
+      router.push(`/profile/${post.author.username}`)
+    }
+  }
 
   return (
     <Link href={getPostUrl(post)} className="block h-full">
@@ -83,13 +95,11 @@ export default function PostCard({ post, featured = false }) {
 
           {/* ✅ IMPROVED: Meta Information with better mobile layout */}
           <div className="space-y-2 sm:space-y-3 mt-auto">
-            {/* ✅ IMPROVED: Author & Date - Better mobile wrapping */}
+            {/* ✅ FIXED: Author & Date - No nested anchor tags */}
             <div className="flex items-center justify-between text-xs sm:text-sm gap-2">
-              <Link
-                href={`/profile/${post.author?.username}`}
-                {...prefetchProfileData(post.author?.username, post.author?._id)}
-                className="flex items-center gap-1.5 sm:gap-2 min-w-0 hover:text-primary transition-colors"
-                onClick={(e) => e.stopPropagation()}
+              <span
+                onClick={handleAuthorClick}
+                className="flex items-center gap-1.5 sm:gap-2 min-w-0 hover:text-primary transition-colors cursor-pointer"
               >
                 {post.author?.profilePictureUrl ? (
                   <Image
@@ -107,7 +117,7 @@ export default function PostCard({ post, featured = false }) {
                 <span className="text-muted-foreground truncate">
                   {post.author?.name}
                 </span>
-              </Link>
+              </span>
 
               <div className="flex items-center gap-1 sm:gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0">
                 <Calendar className="h-3 w-3" />
