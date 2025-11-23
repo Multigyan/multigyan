@@ -68,6 +68,7 @@ export function useTOC(content) {
 
             if (extractedHeadings.length > 0) {
                 setHeadings(extractedHeadings)
+                console.log('✅ Extracted headings:', extractedHeadings)
             }
         }
 
@@ -131,9 +132,36 @@ export function useTOC(content) {
 
     // Scroll to heading function
     const scrollToHeading = (id) => {
-        const element = document.getElementById(id)
+        console.log('🔍 Attempting to scroll to:', id)
 
-        if (!element) return
+        let element = document.getElementById(id)
+
+        // If element not found by ID, try to find it by searching headings
+        if (!element) {
+            console.log('⚠️ Element not found by ID, searching...')
+            const allHeadings = document.querySelectorAll('.blog-content h2, .blog-content h3')
+            element = Array.from(allHeadings).find(h => {
+                const headingId = h.textContent.trim()
+                    .toLowerCase()
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-+|-+$/g, '')
+                return headingId === id
+            })
+
+            if (element) {
+                console.log('✅ Found element by search, setting ID')
+                element.setAttribute('id', id)
+            }
+        }
+
+        if (!element) {
+            console.error('❌ Element not found:', id)
+            return
+        }
+
+        console.log('✅ Scrolling to element:', element)
 
         const navbarHeight = 100
         const elementPosition = element.getBoundingClientRect().top
