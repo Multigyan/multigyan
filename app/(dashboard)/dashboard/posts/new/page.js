@@ -458,6 +458,12 @@ export default function NewPostPage() {
           })
         }
 
+        // ✅ Clear draft from localStorage after successful publish
+        if (status !== 'draft') {
+          localStorage.removeItem('blogPostDraft')
+          console.log('🗑️ Draft cleared from localStorage after publish')
+        }
+
         router.push('/dashboard/posts')
       } else {
         toast.error(data.error || 'Failed to save post')
