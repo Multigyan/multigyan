@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -64,29 +64,6 @@ export default function FeaturedImageUploader({
   const [uploadingFileName, setUploadingFileName] = useState('')
   const [uploadingFileSize, setUploadingFileSize] = useState(0)
   const fileInputRef = useRef(null)
-
-  // ✨ NEW: Paste from clipboard support
-  useEffect(() => {
-    const handlePaste = (e) => {
-      const items = e.clipboardData?.items
-      if (!items) return
-
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          e.preventDefault()
-          const file = items[i].getAsFile()
-          if (file) {
-            toast.success('Image pasted from clipboard!')
-            handleFileSelect(file)
-          }
-          break
-        }
-      }
-    }
-
-    document.addEventListener('paste', handlePaste)
-    return () => document.removeEventListener('paste', handlePaste)
-  }, [handleFileSelect])
 
   // Upload file to Cloudinary with progress tracking
   const uploadToCloudinary = useCallback(async (file) => {
@@ -189,6 +166,29 @@ export default function FeaturedImageUploader({
       await processAndUploadImage(file)
     }
   }, [allowedFormats, maxSizeInMB, enableCropping])
+
+  // ✨ NEW: Paste from clipboard support
+  useEffect(() => {
+    const handlePaste = (e) => {
+      const items = e.clipboardData?.items
+      if (!items) return
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          e.preventDefault()
+          const file = items[i].getAsFile()
+          if (file) {
+            toast.success('Image pasted from clipboard!')
+            handleFileSelect(file)
+          }
+          break
+        }
+      }
+    }
+
+    document.addEventListener('paste', handlePaste)
+    return () => document.removeEventListener('paste', handlePaste)
+  }, [handleFileSelect])
 
   // Process image (optimize and convert to WebP)
   const processAndUploadImage = useCallback(async (file) => {

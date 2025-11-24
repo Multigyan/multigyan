@@ -115,3 +115,4 @@ page_improved_backup.js
 # Test files (unless in __tests__ directory)
 *.test.local.js
 *.test.local.jsx
+SOCIAL_MEDIA_API_SETUP.md
