@@ -65,6 +65,29 @@ export default function FeaturedImageUploader({
   const [uploadingFileSize, setUploadingFileSize] = useState(0)
   const fileInputRef = useRef(null)
 
+  // ✨ NEW: Paste from clipboard support
+  useEffect(() => {
+    const handlePaste = (e) => {
+      const items = e.clipboardData?.items
+      if (!items) return
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          e.preventDefault()
+          const file = items[i].getAsFile()
+          if (file) {
+            toast.success('Image pasted from clipboard!')
+            handleFileSelect(file)
+          }
+          break
+        }
+      }
+    }
+
+    document.addEventListener('paste', handlePaste)
+    return () => document.removeEventListener('paste', handlePaste)
+  }, [handleFileSelect])
+
   // Upload file to Cloudinary with progress tracking
   const uploadToCloudinary = useCallback(async (file) => {
     const formData = new FormData()

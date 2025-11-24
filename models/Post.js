@@ -146,6 +146,31 @@ const PostSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  // ✅ PHASE 4B: Multi-Author Support
+  coAuthors: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  contributors: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    role: {
+      type: String,
+      enum: ['editor', 'reviewer', 'contributor'],
+      default: 'contributor'
+    },
+    addedAt: {
+      type: Date,
+      default: Date.now
+    },
+    addedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  }],
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
@@ -255,6 +280,69 @@ const PostSchema = new mongoose.Schema({
   },
   lastEditedAt: Date,
   editReason: String,  // Admin must provide reason for editing author's post
+
+  // ✅ PHASE 4B: Collaborative Editing
+  editing: {
+    isLocked: {
+      type: Boolean,
+      default: false
+    },
+    lockedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    lockedAt: Date,
+    lastAutoSave: Date,
+    autoSaveData: mongoose.Schema.Types.Mixed // Temporary auto-save data
+  },
+
+  // ✅ PHASE 4D: Social Media Integration
+  socialMedia: {
+    // Post scheduling
+    scheduledFor: Date,
+    isScheduled: {
+      type: Boolean,
+      default: false
+    },
+    timezone: {
+      type: String,
+      default: 'UTC'
+    },
+
+    // Hashtags
+    hashtags: [String],
+
+    // Social media preview customization
+    ogTitle: String, // Open Graph title (can differ from post title)
+    ogDescription: String, // Open Graph description
+    ogImage: String, // Custom social media image
+    twitterCard: {
+      type: String,
+      enum: ['summary', 'summary_large_image', 'app', 'player'],
+      default: 'summary_large_image'
+    },
+
+    // Auto-post settings
+    autoPost: {
+      enabled: {
+        type: Boolean,
+        default: false
+      },
+      platforms: [{
+        name: {
+          type: String,
+          enum: ['twitter', 'facebook', 'linkedin']
+        },
+        posted: {
+          type: Boolean,
+          default: false
+        },
+        postedAt: Date,
+        postUrl: String,
+        error: String
+      }]
+    }
+  },
 
   // ========================================
   // ✨ CONTENT TYPE IDENTIFICATION

@@ -7,7 +7,7 @@ import useSWR from "swr"
 import { dashboardStatsConfig } from "@/lib/swr-config"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PenTool, Users, BarChart3, Settings, Plus, FileText, Folder } from "lucide-react"
+import { PenTool, Users, BarChart3, Settings, Plus, FileText, Folder, TrendingUp, History, MessageSquareText, Image } from "lucide-react"
 import Link from "next/link"
 
 export default function DashboardPage() {
@@ -243,6 +243,65 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         )}
+      </div>
+
+      {/* Phase 4 Features - Analytics & Collaboration */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
+        <Card className="fade-in hover:shadow-lg transition-all" style={{ animationDelay: '200ms' }}>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+              </div>
+              Analytics & Insights
+            </CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              Track performance and analyze content metrics
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 sm:space-y-4">
+            <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
+              <Link href="/dashboard/analytics">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                <span className="text-sm sm:text-base">Analytics Dashboard</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
+              <Link href="/dashboard/posts">
+                <TrendingUp className="mr-2 h-4 w-4" />
+                <span className="text-sm sm:text-base">Top Posts</span>
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="fade-in hover:shadow-lg transition-all" style={{ animationDelay: '250ms' }}>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                <History className="h-4 w-4 sm:h-5 sm:w-5 text-pink-600" />
+              </div>
+              Collaboration Tools
+            </CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              Version history, reviews, and team collaboration
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 sm:space-y-4">
+            <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
+              <Link href="/dashboard/posts">
+                <History className="mr-2 h-4 w-4" />
+                <span className="text-sm sm:text-base">Version History</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full transition-all hover:scale-105 min-h-[44px]" asChild>
+              <Link href="/dashboard/reviews">
+                <MessageSquareText className="mr-2 h-4 w-4" />
+                <span className="text-sm sm:text-base">Draft Reviews</span>
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="mt-6 sm:mt-8 fade-in" style={{ animationDelay: '200ms' }}>

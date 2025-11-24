@@ -10,15 +10,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog"
-import { 
+import {
   ArrowLeft,
   Edit,
   Trash2,
@@ -36,6 +36,8 @@ import {
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 import { toast } from "sonner"
+import SocialShareButton from "@/components/social/SocialShareButton"
+import SocialAnalyticsDashboard from "@/components/social/SocialAnalyticsDashboard"
 
 /**
  * BEGINNER'S GUIDE TO THIS FILE:
@@ -56,7 +58,7 @@ import { toast } from "sonner"
 export default function PostPreviewPage({ params }) {
   const { data: session } = useSession()
   const router = useRouter()
-  
+
   // STATE MANAGEMENT - Think of these as "memory boxes" that store data
   const [post, setPost] = useState(null) // Stores the post data
   const [loading, setLoading] = useState(true) // Is the page loading?
@@ -159,7 +161,7 @@ export default function PostPreviewPage({ params }) {
       const response = await fetch(`/api/posts/${postId}/actions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           action: 'reject',
           reason: rejectionReason.trim()
         }),
@@ -289,14 +291,14 @@ export default function PostPreviewPage({ params }) {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <Button variant="outline" size="icon" asChild>
-            <Link href={isAdmin && post.status === 'pending_review' 
-              ? "/dashboard/admin/review" 
+            <Link href={isAdmin && post.status === 'pending_review'
+              ? "/dashboard/admin/review"
               : "/dashboard/posts"
             }>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          
+
           <div className="flex items-center gap-2">
             {/* Show edit button for author or admin */}
             {(isAuthor || isAdmin) && (
@@ -310,8 +312,8 @@ export default function PostPreviewPage({ params }) {
 
             {/* Show delete button for author or admin */}
             {(isAuthor || isAdmin) && (
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={handleDelete}
                 disabled={actionLoading}
               >
@@ -442,7 +444,7 @@ export default function PostPreviewPage({ params }) {
           )}
 
           {/* Post Content (HTML) */}
-          <div 
+          <div
             className="prose prose-lg max-w-none mb-8"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
@@ -502,6 +504,19 @@ export default function PostPreviewPage({ params }) {
         </CardContent>
       </Card>
 
+      {/* Social Media Section - Only for published posts */}
+      {post.status === 'published' && (isAuthor || isAdmin) && (
+        <div className="mt-6 space-y-6">
+          <SocialShareButton
+            postId={postId}
+            postTitle={post.title}
+            currentPlatforms={post.socialMedia?.autoPost?.platforms || []}
+          />
+
+          <SocialAnalyticsDashboard postId={postId} />
+        </div>
+      )}
+
       {/* Rejection Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent>
@@ -511,7 +526,7 @@ export default function PostPreviewPage({ params }) {
               Provide feedback to help the author improve this post.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="rejectionReason">Rejection Reason *</Label>
