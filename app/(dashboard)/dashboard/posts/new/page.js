@@ -1235,7 +1235,7 @@ export default function NewPostPage() {
                     {/* Removed duplicate "Save as Draft" button - use header button instead */}
 
                     <Button
-                      onClick={handleSubmit}
+                      onClick={() => handleSubmit('published')}
                       disabled={loading}
                       className="w-full"
                       size="lg"
