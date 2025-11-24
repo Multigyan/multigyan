@@ -44,6 +44,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { convertToWebP, googleDriveUrlToFile } from '@/lib/imageUtils'
+import MediaLibrary from '@/components/media/MediaLibrary'
 
 // Configure lowlight (using the singleton from 'lowlight/lib/core')
 const lowlight = createLowlight()
@@ -64,6 +65,7 @@ const MenuBar = ({ editor }) => {
   const [imageAlt, setImageAlt] = useState('')
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false)
   const fileInputRef = useRef(null)
 
   const setLink = useCallback(() => {
@@ -606,6 +608,18 @@ const MenuBar = ({ editor }) => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* ✅ PHASE 3: Media Library */}
+        <MediaLibrary
+          open={mediaLibraryOpen}
+          onOpenChange={setMediaLibraryOpen}
+          onSelect={(url) => {
+            if (editor) {
+              editor.chain().focus().setImage({ src: url, alt: 'Selected from media library' }).run()
+              toast.success('Image inserted from library!')
+            }
+          }}
+        />
 
         <Dialog open={isYoutubeDialogOpen} onOpenChange={setIsYoutubeDialogOpen}>
           <DialogTrigger asChild>
