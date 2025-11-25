@@ -370,6 +370,12 @@ export default function AdminDashboardPage() {
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>
+              <Link href="/dashboard/admin/authors">
+                <Users className="mr-2 h-4 w-4" />
+                Manage Authors ({stats.users.authors})
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start" asChild>
               <Link href="/dashboard/posts">
                 <FileText className="mr-2 h-4 w-4" />
                 View All Posts
