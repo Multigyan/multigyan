@@ -18,7 +18,6 @@ import RecipePostClient from './RecipePostClient'
 // ✅ OPTIMIZED: Changed from 60s to 1 hour (3600s)
 // This reduces function invocations by ~98% with zero UX impact
 // Recipes don't need real-time updates
-export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Revalidate every 1 hour (was 60 seconds)
 
 // =========================================
