@@ -12,23 +12,22 @@ function isValidObjectId(str) {
 
 // ✅ API Route Configuration for Vercel
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
 export const maxDuration = 10
 
 export async function GET(request, context) {
   try {
     // ✅ Connect to database with timeout protection
     const dbConnectPromise = connectDB()
-    const timeoutPromise = new Promise((_, reject) => 
+    const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Database connection timeout')), 8000)
     )
-    
+
     await Promise.race([dbConnectPromise, timeoutPromise])
 
     // Next.js 15: await params before accessing properties
     const params = await context.params
     const { identifier } = params
-    
+
     console.log('🔍 Fetching author:', identifier)
 
     const { searchParams } = new URL(request.url)
@@ -52,8 +51,8 @@ export async function GET(request, context) {
       user = await User.findById(identifier).select('-password').lean()
     } else {
       console.log('👤 Searching by username:', identifier)
-      user = await User.findOne({ 
-        username: identifier.toLowerCase() 
+      user = await User.findOne({
+        username: identifier.toLowerCase()
       }).select('-password').lean()
     }
 
@@ -92,9 +91,9 @@ export async function GET(request, context) {
         .skip((page - 1) * limit)
         .limit(limit)
         .lean(),
-      Post.find({ 
-        author: user._id, 
-        status: 'published' 
+      Post.find({
+        author: user._id,
+        status: 'published'
       }).select('views likes').lean()
     ])
 
@@ -130,7 +129,7 @@ export async function GET(request, context) {
   } catch (error) {
     console.error('❌ Error in author API:', error.message)
     console.error('Stack:', error.stack)
-    
+
     // Better error responses
     if (error.message === 'Database connection timeout') {
       return NextResponse.json(
@@ -147,8 +146,8 @@ export async function GET(request, context) {
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to fetch author data',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
       },
