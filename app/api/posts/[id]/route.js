@@ -13,13 +13,13 @@ import { invalidatePostCaches } from '@/lib/cache'
 export async function GET(request, { params }) {
   try {
     const resolvedParams = await params
-    
+
     await connectDB()
 
     const session = await getServerSession(authOptions)
-    
+
     let query = { _id: resolvedParams.id }
-    
+
     if (!session) {
       query.status = 'published'
     } else if (session.user.role !== 'admin') {
@@ -65,9 +65,9 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const resolvedParams = await params
-    
+
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -120,7 +120,7 @@ export async function PUT(request, { params }) {
 
     const post = await Post.findById(resolvedParams.id)
       .populate('author', 'name email')
-    
+
     if (!post) {
       return NextResponse.json(
         { error: 'Post not found' },
@@ -131,7 +131,7 @@ export async function PUT(request, { params }) {
     // Check permissions
     const isAuthor = post.author._id.toString() === session.user.id
     const isAdmin = session.user.role === 'admin'
-    
+
     if (!isAuthor && !isAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized - You can only edit your own posts' },
@@ -162,11 +162,11 @@ export async function PUT(request, { params }) {
         post.seoTitle = post.revision.seoTitle
         post.seoDescription = post.revision.seoDescription
         post.seoKeywords = post.revision.seoKeywords
-        
+
         // Clear revision
         post.hasRevision = false
         post.revision = undefined
-        
+
         await post.save()
 
         // Notify author that revision was approved
@@ -194,7 +194,7 @@ export async function PUT(request, { params }) {
       if (rejectRevision) {
         post.revision.status = 'rejected'
         post.hasRevision = false
-        
+
         await post.save()
 
         // Notify author that revision was rejected
@@ -263,7 +263,7 @@ export async function PUT(request, { params }) {
           { status: 403 }
         )
       }
-      
+
       const newAuthor = await User.findById(author)
       if (!newAuthor) {
         return NextResponse.json(
@@ -271,7 +271,7 @@ export async function PUT(request, { params }) {
           { status: 400 }
         )
       }
-      
+
       post.author = author
     }
 
@@ -281,13 +281,13 @@ export async function PUT(request, { params }) {
     if (isAuthor && post.status === 'published') {
       // Author cannot directly edit published post
       // Changes go to revision for admin approval
-      
+
       // ✅ FIX: Sanitize ALL fields BEFORE creating revision to avoid validation errors
       let revisionTags = tags || post.tags
       if (Array.isArray(revisionTags)) {
         revisionTags = revisionTags.filter(tag => tag && typeof tag === 'string' && tag.length > 0 && tag.length <= 30)
       }
-      
+
       let revisionSeoKeywords = seoKeywords || post.seoKeywords
       if (Array.isArray(revisionSeoKeywords)) {
         revisionSeoKeywords = revisionSeoKeywords
@@ -295,7 +295,7 @@ export async function PUT(request, { params }) {
           .map(kw => kw.trim().slice(0, 50))
           .filter(kw => kw.length > 0)
       }
-      
+
       post.hasRevision = true
       post.revision = {
         title: (title || post.title).slice(0, 200),
@@ -311,7 +311,7 @@ export async function PUT(request, { params }) {
         submittedAt: new Date(),
         status: 'pending'
       }
-      
+
       // ✅ Also sanitize the main post.tags to avoid validation errors
       if (Array.isArray(post.tags)) {
         const sanitizedMainTags = post.tags.filter(tag => tag && typeof tag === 'string' && tag.length > 0 && tag.length <= 30)
@@ -320,7 +320,7 @@ export async function PUT(request, { params }) {
           post.tags = sanitizedMainTags
         }
       }
-      
+
       // ✅ Sanitize all other fields in main post to avoid validation
       if (post.featuredImageAlt && post.featuredImageAlt.length > 100) {
         post.featuredImageAlt = post.featuredImageAlt.slice(0, 100)
@@ -336,12 +336,12 @@ export async function PUT(request, { params }) {
           .filter(kw => kw && typeof kw === 'string')
           .map(kw => kw.slice(0, 50))
       }
-      
+
       await post.save()
 
       // Notify all admins about pending revision
       const admins = await User.find({ role: 'admin', isActive: true })
-      
+
       for (const admin of admins) {
         await Notification.createNotification({
           recipient: admin._id,
@@ -386,7 +386,7 @@ export async function PUT(request, { params }) {
 
     // ✅ SANITIZE ALL FIELDS: Ensure data meets validation requirements
     const sanitizedData = {}
-    
+
     // Basic text fields with truncation
     if (title !== undefined) {
       sanitizedData.title = title.trim().slice(0, 200) // Max 200 chars
@@ -397,7 +397,7 @@ export async function PUT(request, { params }) {
     if (excerpt !== undefined) {
       sanitizedData.excerpt = excerpt ? excerpt.trim().slice(0, 300) : undefined // Max 300 chars
     }
-    
+
     // Image fields
     if (featuredImageUrl !== undefined) {
       sanitizedData.featuredImageUrl = featuredImageUrl
@@ -405,7 +405,7 @@ export async function PUT(request, { params }) {
     if (featuredImageAlt !== undefined) {
       sanitizedData.featuredImageAlt = featuredImageAlt ? featuredImageAlt.trim().slice(0, 100) : undefined // Max 100 chars
     }
-    
+
     // SEO fields with proper truncation
     if (seoTitle !== undefined) {
       sanitizedData.seoTitle = seoTitle ? seoTitle.trim().slice(0, 60) : undefined // Max 60 chars (best practice)
@@ -422,14 +422,14 @@ export async function PUT(request, { params }) {
           .filter(kw => kw.length > 0)
       }
     }
-    
+
     // Tags - already sanitized above, just include here
     if (tags !== undefined) {
       const sanitizedTags = tags.filter(tag => tag && typeof tag === 'string' && tag.length > 0 && tag.length <= 30)
       console.log('Backend: Sanitizing tags:', tags, '->', sanitizedTags)
       sanitizedData.tags = sanitizedTags
     }
-    
+
     // Boolean and other fields
     if (allowComments !== undefined) sanitizedData.allowComments = allowComments
     if (category !== undefined) sanitizedData.category = category
@@ -441,10 +441,10 @@ export async function PUT(request, { params }) {
     // ✨ NEW FIELDS FOR LANGUAGE & TRANSLATION
     if (lang !== undefined) sanitizedData.lang = lang || 'en'
     if (translationOf !== undefined) sanitizedData.translationOf = translationOf || null
-    
+
     // ✨ CONTENT TYPE
     if (contentType !== undefined) sanitizedData.contentType = contentType || 'blog'
-    
+
     // ✨ RECIPE-SPECIFIC FIELDS (Phase 2)
     if (recipePrepTime !== undefined) sanitizedData.recipePrepTime = recipePrepTime || null
     if (recipeCookTime !== undefined) sanitizedData.recipeCookTime = recipeCookTime || null
@@ -452,29 +452,29 @@ export async function PUT(request, { params }) {
     if (recipeIngredients !== undefined) sanitizedData.recipeIngredients = recipeIngredients || []
     if (recipeCuisine !== undefined) sanitizedData.recipeCuisine = recipeCuisine || null
     if (recipeDiet !== undefined) sanitizedData.recipeDiet = recipeDiet || []
-    
+
     // ✨ DIY-SPECIFIC FIELDS
     if (diyDifficulty !== undefined) sanitizedData.diyDifficulty = diyDifficulty || null
     if (diyMaterials !== undefined) sanitizedData.diyMaterials = diyMaterials || []
     if (diyTools !== undefined) sanitizedData.diyTools = diyTools || []
     if (diyEstimatedTime !== undefined) sanitizedData.diyEstimatedTime = diyEstimatedTime || null
-    
+
     // ✨ AFFILIATE LINKS
     if (affiliateLinks !== undefined) sanitizedData.affiliateLinks = affiliateLinks || []
-    
+
     // Admin edit tracking
     if (isAdmin && !isAuthor) {
       sanitizedData.lastEditedBy = session.user.id
       sanitizedData.lastEditedAt = new Date()
     }
-    
+
     console.log('Backend: Sanitized data ready for update:', Object.keys(sanitizedData))
-    
-    // ✅ Use direct MongoDB update to bypass ALL validation
-    await Post.collection.updateOne(
-      { _id: post._id },
-      { $set: sanitizedData }
-    )
+
+    // ✅ FIX: Use Mongoose save() instead of direct MongoDB update
+    // This ensures updatedAt timestamp is updated and middleware runs
+    Object.assign(post, sanitizedData)
+
+    // Note: We'll save the post after handling status changes below
 
     // Store old values for comparison
     const oldStatus = post.status
@@ -484,12 +484,12 @@ export async function PUT(request, { params }) {
     if (status !== undefined) {
       if (isAdmin) {
         post.status = status
-        
+
         if (status === 'published' && oldStatus === 'pending_review') {
           post.reviewedBy = session.user.id
           post.reviewedAt = new Date()
           post.rejectionReason = undefined
-          
+
           // Notify author that post was published
           if (!isAuthor) {
             await Notification.createNotification({
@@ -508,7 +508,7 @@ export async function PUT(request, { params }) {
           post.reviewedBy = session.user.id
           post.reviewedAt = new Date()
           if (rejectionReason) post.rejectionReason = rejectionReason
-          
+
           // Notify author that post was rejected
           if (!isAuthor) {
             await Notification.createNotification({
@@ -534,7 +534,7 @@ export async function PUT(request, { params }) {
               post.reviewedBy = undefined
               post.reviewedAt = undefined
               post.rejectionReason = undefined
-              
+
               // Notify all admins
               const admins = await User.find({ role: 'admin', isActive: true })
               for (const admin of admins) {
@@ -569,7 +569,7 @@ export async function PUT(request, { params }) {
     // Handle category post count updates based on status/category changes
     const newStatus = sanitizedData.status || post.status
     const newCategory = sanitizedData.category || post.category.toString()
-    
+
     if (oldStatus !== newStatus || oldCategory !== newCategory) {
       if (oldStatus === 'published' && newStatus !== 'published') {
         await Category.decrementPostCount(oldCategory)
@@ -598,9 +598,12 @@ export async function PUT(request, { params }) {
       })
     }
 
-    // ✅ Reload post from database to get updated values
+    // ✅ SAVE: Now save all changes with proper Mongoose middleware
+    await post.save()
+
+    // ✅ Reload post from database to get updated values with populated fields
     const updatedPost = await Post.findById(post._id)
-    
+
     // Populate for response
     await updatedPost.populate('author', 'name email profilePictureUrl')
     await updatedPost.populate('category', 'name slug color')
@@ -637,9 +640,9 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const resolvedParams = await params
-    
+
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -650,7 +653,7 @@ export async function DELETE(request, { params }) {
     await connectDB()
 
     const post = await Post.findById(resolvedParams.id)
-    
+
     if (!post) {
       return NextResponse.json(
         { error: 'Post not found' },
@@ -660,7 +663,7 @@ export async function DELETE(request, { params }) {
 
     const isAuthor = post.author.toString() === session.user.id
     const isAdmin = session.user.role === 'admin'
-    
+
     if (!isAuthor && !isAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized - You can only delete your own posts' },
@@ -671,7 +674,7 @@ export async function DELETE(request, { params }) {
     // ✅ AUTHORS CANNOT DELETE PUBLISHED POSTS
     if (isAuthor && !isAdmin && post.status === 'published') {
       return NextResponse.json(
-        { 
+        {
           error: 'Published posts cannot be deleted. Please contact an administrator if you need to remove this post.',
           status: post.status
         },

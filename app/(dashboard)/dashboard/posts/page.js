@@ -9,15 +9,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { 
-  FileText, 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Clock, 
-  CheckCircle, 
+import {
+  FileText,
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  Clock,
+  CheckCircle,
   XCircle,
   AlertCircle,
   ShieldAlert,
@@ -43,7 +43,7 @@ export default function PostsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState(null)
-  
+
   const isAdmin = session?.user?.role === 'admin'
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function PostsPage() {
         page: currentPage.toString(),
         limit: '10'
       })
-      
+
       if (statusFilter !== 'all') {
         params.append('status', statusFilter)
       }
@@ -120,7 +120,7 @@ export default function PostsPage() {
   const getStatusBadge = (status) => {
     const config = statusConfig[status] || statusConfig.draft
     const Icon = config.icon
-    
+
     return (
       <Badge variant="secondary" className={`${config.color} text-white`}>
         <Icon className="w-3 h-3 mr-1" />
@@ -154,10 +154,29 @@ export default function PostsPage() {
             {isAdmin ? 'All Posts' : 'Your Posts'}
           </h1>
           <p className="text-muted-foreground">
-            {isAdmin 
-              ? 'Manage all posts from all authors' 
+            {isAdmin
+              ? 'Manage all posts from all authors'
               : 'Manage and organize your blog posts'}
           </p>
+          {/* ✅ NEW: Show draft count */}
+          {pagination && (
+            <div className="flex items-center gap-3 mt-2 text-sm">
+              <span className="text-muted-foreground">
+                Total: <span className="font-medium text-foreground">{pagination.total}</span>
+              </span>
+              {statusFilter === 'all' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStatusFilter('draft')}
+                  className="h-7 text-xs"
+                >
+                  <FileText className="h-3 w-3 mr-1" />
+                  View Drafts
+                </Button>
+              )}
+            </div>
+          )}
         </div>
         <Button asChild>
           <Link href="/dashboard/posts/new">
@@ -229,8 +248,8 @@ export default function PostsPage() {
             <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">No posts found</h3>
             <p className="text-muted-foreground mb-4">
-              {searchTerm || statusFilter !== 'all' 
-                ? 'Try adjusting your search criteria or filters.' 
+              {searchTerm || statusFilter !== 'all'
+                ? 'Try adjusting your search criteria or filters.'
                 : 'Get started by creating your first post.'}
             </p>
             <Button asChild>
@@ -275,7 +294,7 @@ export default function PostsPage() {
                         </Link>
                       </h3>
                       {getStatusBadge(post.status)}
-                      
+
                       {/* ✅ Show if post has pending revision */}
                       {post.hasRevision && (
                         <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
@@ -283,7 +302,7 @@ export default function PostsPage() {
                           Revision Pending
                         </Badge>
                       )}
-                      
+
                       {/* ✅ Show if post was edited by admin */}
                       {post.lastEditedBy && isAdmin && (
                         <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
@@ -292,18 +311,18 @@ export default function PostsPage() {
                         </Badge>
                       )}
                     </div>
-                    
+
                     {/* ✅ Show author name for admins */}
                     {isAdmin && post.author && (
                       <p className="text-sm text-muted-foreground mb-2">
                         Author: <span className="font-medium">{post.author.name}</span>
                       </p>
                     )}
-                    
+
                     <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
                       {post.excerpt || 'No excerpt available'}
                     </p>
-                    
+
                     <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <FileText className="h-3 w-3" />
@@ -314,7 +333,7 @@ export default function PostsPage() {
                         {post.readingTime} min read
                       </span>
                       <span>
-                        {post.status === 'published' 
+                        {post.status === 'published'
                           ? `Published ${formatDate(post.publishedAt)}`
                           : `Updated ${formatDate(post.updatedAt)}`
                         }
@@ -331,32 +350,32 @@ export default function PostsPage() {
 
                 {/* Actions Row */}
                 <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/posts/${post._id}/edit`}>
+                      <Edit className="h-4 w-4" />
+                    </Link>
+                  </Button>
+
+                  {post.status === 'published' && (
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/dashboard/posts/${post._id}/edit`}>
-                        <Edit className="h-4 w-4" />
+                      <Link href={`/blog/${post.slug}`} target="_blank">
+                        <Eye className="h-4 w-4" />
                       </Link>
                     </Button>
-                    
-                    {post.status === 'published' && (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/blog/${post.slug}`} target="_blank">
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    )}
-                    
-                    {/* ✅ Only show delete for non-published posts or admins */}
-                    {(isAdmin || post.status !== 'published') && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleDelete(post)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  )}
+
+                  {/* ✅ Only show delete for non-published posts or admins */}
+                  {(isAdmin || post.status !== 'published') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(post)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
 
                 {/* ✅ Show rejection reason */}
                 {post.status === 'rejected' && post.rejectionReason && (
@@ -370,7 +389,7 @@ export default function PostsPage() {
                     </div>
                   </div>
                 )}
-                
+
                 {/* ✅ Show admin edit reason */}
                 {post.lastEditedBy && post.editReason && !isAdmin && (
                   <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-md">
@@ -387,7 +406,7 @@ export default function PostsPage() {
                     </div>
                   </div>
                 )}
-                
+
                 {/* ✅ Show revision info */}
                 {post.hasRevision && (
                   <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-md">
@@ -398,7 +417,7 @@ export default function PostsPage() {
                           Revision Pending Approval
                         </p>
                         <p className="text-sm text-orange-700 mt-1">
-                          {isAdmin 
+                          {isAdmin
                             ? 'This post has pending changes that need your review.'
                             : 'Your changes are pending admin approval. The original post remains published.'}
                         </p>
@@ -422,11 +441,11 @@ export default function PostsPage() {
           >
             Previous
           </Button>
-          
+
           <span className="flex items-center px-4 text-sm text-muted-foreground">
             Page {pagination.current} of {pagination.pages}
           </span>
-          
+
           <Button
             variant="outline"
             onClick={() => setCurrentPage(prev => prev + 1)}

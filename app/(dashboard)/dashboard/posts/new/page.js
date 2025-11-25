@@ -441,8 +441,8 @@ export default function NewPostPage() {
         if (status === 'draft') {
           // Saved as draft
           toast.success(`${contentTypeLabel} saved as draft! 💾`, {
-            description: 'You can continue editing and publish it later.',
-            duration: 4000
+            description: 'Go to Posts → Filter by "Drafts" to continue editing later.',
+            duration: 5000
           })
         } else if (session?.user.role === 'admin') {
           // Admin: Direct publish
