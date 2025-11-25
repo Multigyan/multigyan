@@ -40,8 +40,10 @@ export const metadata = {
   verification: {
     google: 'pub-1982960683340318',
     yandex: '3001730bb2c04a53',
-    // Add Bing verification code after signing up at https://www.bing.com/webmasters
-    // bing: 'YOUR_BING_CODE_HERE',
+    // Bing verification code
+    other: {
+      'msvalidate.01': '1399b41b61c6927d400012d9cb3fc893',
+    },
   },
   other: {
     'google-analytics': 'G-HEPC56C10C',
