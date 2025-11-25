@@ -233,6 +233,14 @@ export default async function CategoryPage({ params }) {
     // Fetch initial posts (page 1)
     const { posts, pagination } = await getCategoryPosts(category._id, 1, 12)
 
+    // Debug logging
+    console.log('[CategoryPage] Server data:', {
+      categoryId: category._id,
+      categoryName: category.name,
+      postsCount: posts.length,
+      paginationTotal: pagination.total
+    })
+
     // Pass data to client component for interactivity
     return (
       <CategoryClient

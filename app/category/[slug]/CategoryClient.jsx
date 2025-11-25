@@ -24,7 +24,16 @@ export default function CategoryClient({
     initialPagination,
     allCategories
 }) {
-    const [posts, setPosts] = useState(initialPosts)
+    // Debug logging
+    console.log('[CategoryClient] Received props:', {
+        categoryId: category?._id,
+        categoryName: category?.name,
+        initialPostsCount: initialPosts?.length,
+        initialPaginationTotal: initialPagination?.total,
+        allCategoriesCount: allCategories?.length
+    })
+
+    const [posts, setPosts] = useState(initialPosts || [])
     const [searchTerm, setSearchTerm] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
     const [pagination, setPagination] = useState(initialPagination)
