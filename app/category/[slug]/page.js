@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import mongoose from 'mongoose'
 import connectDB from '@/lib/mongodb'
 import Category from '@/models/Category'
 import Post from '@/models/Post'
@@ -72,9 +73,12 @@ async function getCategoryPosts(categoryId, page = 1, limit = 12) {
 
     const skip = (page - 1) * limit
 
+    // Convert string ID to ObjectId for Mongoose query
+    const categoryObjectId = new mongoose.Types.ObjectId(categoryId)
+
     const [posts, total] = await Promise.all([
       Post.find({
-        category: categoryId,
+        category: categoryObjectId,
         status: 'published'
       })
         .sort({ publishedAt: -1 })
@@ -82,11 +86,11 @@ async function getCategoryPosts(categoryId, page = 1, limit = 12) {
         .limit(limit)
         .populate('author', 'name profilePictureUrl')
         .populate('category', 'name slug color')
-        .select('title slug excerpt featuredImageUrl featuredImageAlt publishedAt readingTime views author category')
+        .select('title slug excerpt featuredImageUrl featuredImageAlt publishedAt readingTime views contentType author category')
         .lean(),
 
       Post.countDocuments({
-        category: categoryId,
+        category: categoryObjectId,
         status: 'published'
       })
     ])
@@ -105,7 +109,7 @@ async function getCategoryPosts(categoryId, page = 1, limit = 12) {
           ...post.category,
           _id: post.category._id.toString()
         } : null,
-        publishedAt: post.publishedAt?.toISOString() || null
+        publishedAt: post.publishedAt || null
       })),
       pagination: {
         current: page,
@@ -232,14 +236,6 @@ export default async function CategoryPage({ params }) {
 
     // Fetch initial posts (page 1)
     const { posts, pagination } = await getCategoryPosts(category._id, 1, 12)
-
-    // Debug logging
-    console.log('[CategoryPage] Server data:', {
-      categoryId: category._id,
-      categoryName: category.name,
-      postsCount: posts.length,
-      paginationTotal: pagination.total
-    })
 
     // Pass data to client component for interactivity
     return (

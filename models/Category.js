@@ -43,31 +43,41 @@ const CategorySchema = new mongoose.Schema({
 CategorySchema.index({ isActive: 1 })
 
 // Virtual for category URL
-CategorySchema.virtual('url').get(function() {
+CategorySchema.virtual('url').get(function () {
   return `/category/${this.slug}`
 })
 
 // Generate slug before saving
-CategorySchema.pre('save', function(next) {
+CategorySchema.pre('save', function (next) {
   if (this.isModified('name')) {
-    this.slug = slugify(this.name, {
+    // For Hindi/Unicode text, create a transliterated slug
+    // If slugify produces empty string (all chars removed), use a fallback
+    let slug = slugify(this.name, {
       lower: true,
-      strict: true,
-      remove: /[*+~.()'"!:@]/g
+      strict: false,  // Allow Unicode characters
+      remove: /[*+~.()'\"!:@]/g
     })
+
+    // If slug is empty or only contains hyphens (happens with Hindi text)
+    if (!slug || slug.replace(/-/g, '').length === 0) {
+      // Create a slug from the category ID or use a default
+      slug = `category-${this._id || Date.now()}`
+    }
+
+    this.slug = slug
   }
   next()
 })
 
 // Static method to get active categories with post counts
-CategorySchema.statics.getActiveWithCounts = function() {
+CategorySchema.statics.getActiveWithCounts = function () {
   return this.find({ isActive: true })
     .sort({ postCount: -1, name: 1 })
     .select('name slug description color postCount')
 }
 
 // Static method to increment post count
-CategorySchema.statics.incrementPostCount = function(categoryId) {
+CategorySchema.statics.incrementPostCount = function (categoryId) {
   return this.findByIdAndUpdate(
     categoryId,
     { $inc: { postCount: 1 } },
@@ -76,7 +86,7 @@ CategorySchema.statics.incrementPostCount = function(categoryId) {
 }
 
 // Static method to decrement post count
-CategorySchema.statics.decrementPostCount = function(categoryId) {
+CategorySchema.statics.decrementPostCount = function (categoryId) {
   return this.findByIdAndUpdate(
     categoryId,
     { $inc: { postCount: -1 } },

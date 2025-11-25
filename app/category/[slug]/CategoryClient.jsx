@@ -24,15 +24,6 @@ export default function CategoryClient({
     initialPagination,
     allCategories
 }) {
-    // Debug logging
-    console.log('[CategoryClient] Received props:', {
-        categoryId: category?._id,
-        categoryName: category?.name,
-        initialPostsCount: initialPosts?.length,
-        initialPaginationTotal: initialPagination?.total,
-        allCategoriesCount: allCategories?.length
-    })
-
     const [posts, setPosts] = useState(initialPosts || [])
     const [searchTerm, setSearchTerm] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
@@ -224,6 +215,7 @@ export default function CategoryClient({
                                                         src={post.featuredImageUrl}
                                                         alt={post.featuredImageAlt || post.title}
                                                         fill
+                                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                                         className="object-cover"
                                                     />
                                                 ) : (
