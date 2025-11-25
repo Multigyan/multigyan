@@ -21,7 +21,7 @@ export default function AdSense({
   adSlot,
   adFormat = 'auto',
   fullWidthResponsive = true,
-  adStyle = { display: 'block', margin: '20px 0' }
+  adStyle = { display: 'block' }
 }) {
   useEffect(() => {
     try {

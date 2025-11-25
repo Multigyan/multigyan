@@ -88,85 +88,75 @@ export default function BlogPostClient({ post }) {
 
   // ✅ PHASE 1: Removed handleShare - now using ShareButtons component
 
-  // ✅ SMART AD INSERTION: Insert ad after complete elements (tables, images, headings)
-  const insertSmartAd = (content) => {
-    // Don't insert if content is too short
-    if (content.length < 1000) {
-      console.log('⚠️ Content too short for middle ad:', content.length)
-      return content
+  // ✅ SMART CONTENT SPLITTING: Split content at a safe point for middle ad
+  const splitContentForAd = (content) => {
+    // Don't split if content is too short
+    if (content.length < 1500) {
+      return { beforeAd: content, afterAd: '' }
     }
 
-    // Find safe insertion points (after closing tags of block elements)
-    const safePoints = [
-      { tag: '</table>', weight: 10 },  // Prefer after tables
-      { tag: '</figure>', weight: 9 },  // After images
-      { tag: '</h2>', weight: 8 },      // After h2 headings
-      { tag: '</h3>', weight: 7 },      // After h3 headings
-      { tag: '</blockquote>', weight: 6 }, // After blockquotes
-      { tag: '</pre>', weight: 5 },     // After code blocks
-      { tag: '</ul>', weight: 4 },      // After lists
-      { tag: '</ol>', weight: 4 },
-      { tag: '</p>', weight: 2 },       // Fallback to paragraphs
+    // Find safe split points (after complete elements, avoiding tables/code)
+    const safeEndTags = [
+      '</p>',           // After paragraphs (most common)
+      '</blockquote>',  // After quotes
+      '</ul>',          // After lists
+      '</ol>',
+      '</h2>',          // After headings
+      '</h3>',
     ]
 
-    // Find all safe insertion points with their positions
-    const insertionCandidates = []
-    safePoints.forEach(({ tag, weight }) => {
+    // Find all potential split points
+    const splitCandidates = []
+    safeEndTags.forEach(tag => {
       let index = content.indexOf(tag)
       while (index !== -1) {
-        insertionCandidates.push({
-          position: index + tag.length,
-          weight,
-          tag
-        })
+        const position = index + tag.length
+
+        // Check if we're NOT inside a table or pre/code block
+        const beforePosition = content.substring(0, position)
+        const afterPosition = content.substring(position)
+
+        // Count opening and closing tags to ensure we're not inside these elements
+        const openTables = (beforePosition.match(/<table/gi) || []).length
+        const closeTables = (beforePosition.match(/<\/table>/gi) || []).length
+        const openPre = (beforePosition.match(/<pre/gi) || []).length
+        const closePre = (beforePosition.match(/<\/pre>/gi) || []).length
+        const openCode = (beforePosition.match(/<code[^>]*class="[^"]*language-/gi) || []).length
+        const closeCode = (beforePosition.match(/<\/code>/gi) || []).length
+
+        // Only consider this position if we're not inside table/pre/code
+        const isInsideTable = openTables > closeTables
+        const isInsidePre = openPre > closePre
+        const isInsideCode = openCode > closeCode
+
+        if (!isInsideTable && !isInsidePre && !isInsideCode) {
+          splitCandidates.push({ position, tag })
+        }
+
         index = content.indexOf(tag, index + 1)
       }
     })
 
-    if (insertionCandidates.length === 0) {
-      console.log('⚠️ No safe insertion points found for middle ad')
-      return content
+    if (splitCandidates.length === 0) {
+      return { beforeAd: content, afterAd: '' }
     }
 
-    // Find the insertion point closest to 40% of content
+    // Find the split point closest to 40% of content
     const targetPosition = content.length * 0.4
-    const bestCandidate = insertionCandidates.reduce((best, current) => {
+    const bestSplit = splitCandidates.reduce((best, current) => {
       const currentDistance = Math.abs(current.position - targetPosition)
       const bestDistance = Math.abs(best.position - targetPosition)
-
-      // Prefer closer position, but give bonus to higher weight elements
-      const currentScore = currentDistance - (current.weight * 50)
-      const bestScore = bestDistance - (best.weight * 50)
-
-      return currentScore < bestScore ? current : best
+      return currentDistance < bestDistance ? current : best
     })
 
-    console.log('✅ Middle ad will be inserted after:', bestCandidate.tag, 'at position:', bestCandidate.position)
-
-    // Insert ad at the best position with proper AdSense structure
-    const adHtml = `
-      <div class="my-8 ad-middle-container" style="text-align: center; min-height: 250px;">
-        <ins class="adsbygoogle"
-             style="display:block; text-align:center;"
-             data-ad-client="ca-pub-1982960683340318"
-             data-ad-slot="2660754715"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-      </div>
-    `
-
-    return (
-      content.substring(0, bestCandidate.position) +
-      adHtml +
-      content.substring(bestCandidate.position)
-    )
+    return {
+      beforeAd: content.substring(0, bestSplit.position),
+      afterAd: content.substring(bestSplit.position)
+    }
   }
 
-  // Process content with smart ad insertion
-  const processedContent = insertSmartAd(post.content)
+  // Split content for ad placement
+  const { beforeAd, afterAd } = splitContentForAd(post.content)
 
   if (loading) {
     return (
@@ -771,15 +761,34 @@ export default function BlogPostClient({ post }) {
 
                     .blog-content .katex-display::-webkit-scrollbar-thumb {
                       background: var(--primary);
-                      border-radius: 3px;
+                    border-radius: 3px;
                     }
                   `}</style>
 
-                  {/* ✅ Blog Content with Smart Ad Insertion */}
+                  {/* ✅ Blog Content - Part 1 (Before Ad) */}
                   <div
                     className="text-foreground"
-                    dangerouslySetInnerHTML={{ __html: processedContent }}
+                    dangerouslySetInnerHTML={{ __html: beforeAd }}
                   />
+
+                  {/* ✅ MIDDLE AD - Only shown if content is long enough */}
+                  {afterAd && (
+                    <div className="my-8">
+                      <AdSense
+                        adSlot="2660754715"
+                        adFormat="auto"
+                        adStyle={{ display: 'block', textAlign: 'center' }}
+                      />
+                    </div>
+                  )}
+
+                  {/* ✅ Blog Content - Part 2 (After Ad) */}
+                  {afterAd && (
+                    <div
+                      className="text-foreground"
+                      dangerouslySetInnerHTML={{ __html: afterAd }}
+                    />
+                  )}
                 </div>
 
                 {/* ✅ BOTTOM AD - After Content, Before Tags */}
