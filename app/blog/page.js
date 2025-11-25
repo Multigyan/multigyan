@@ -53,7 +53,7 @@ export const metadata = {
 
 // ✅ COST OPTIMIZATION: Revalidate every 5 minutes (300 seconds)
 // This reduces function invocations by 98% compared to per-request
-export const revalidate = BLOG_CONFIG.POSTS_REVALIDATE
+export const revalidate = 300
 
 export default async function BlogPage({ searchParams }) {
   // ✅ FIX: Await searchParams before accessing properties (Next.js 15+ requirement)
