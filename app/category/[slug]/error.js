@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 export default function Error({ error, reset }) {
     return (
         <div className="min-h-screen flex items-center justify-center px-4">
@@ -33,12 +35,12 @@ export default function Error({ error, reset }) {
                     >
                         Try again
                     </button>
-                    <a
+                    <Link
                         href="/blog"
                         className="block w-full px-4 py-2 border border-input rounded-md hover:bg-accent transition-colors"
                     >
                         Browse all articles
-                    </a>
+                    </Link>
                 </div>
 
                 {process.env.NODE_ENV === 'development' && error && (
