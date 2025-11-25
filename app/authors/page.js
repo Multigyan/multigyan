@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button"
 import { PenTool, Users as UsersIcon } from "lucide-react"
 import connectDB from "@/lib/mongodb"
 import User from "@/models/User"
-import Post from "@/models/Post"
 import { generateSEOMetadata } from "@/lib/seo"
 import AuthorStatsGrid from "@/components/authors/AuthorStatsGrid"
 import AuthorCard from "@/components/authors/AuthorCard"
+import { getUnifiedStats } from "@/lib/stats"
 
-// Revalidate every 10 seconds for fresher data
-export const revalidate = 10
+// Revalidate every 60 seconds for fresh data
+export const revalidate = 60
 
 export const metadata = generateSEOMetadata({
   title: 'Authors - Meet Our Talented Writers',
@@ -24,24 +24,11 @@ export default async function AuthorsPage() {
   try {
     await connectDB()
 
-    // ✅ OPTIMIZED: Sorting happens in the database, not in JavaScript
-    const authorsWithPosts = await Post.aggregate([
-      { $match: { status: 'published' } },
-      {
-        $group: {
-          _id: '$author',
-          postCount: { $sum: 1 },
-          latestPost: { $max: '$publishedAt' },
-          totalViews: { $sum: '$views' },
-          totalLikes: { $sum: { $size: '$likes' } }
-        }
-      },
-      // ✅ NEW: Sort by postCount descending at database level
-      { $sort: { postCount: -1 } }
-    ])
+    // ✅ Use centralized stats service
+    const { stats, authorStats } = await getUnifiedStats()
 
-    const authorIds = authorsWithPosts.map(author => author._id)
-
+    // Get author details
+    const authorIds = Object.keys(authorStats)
     const authors = await User.find({
       _id: { $in: authorIds },
       isActive: true
@@ -49,25 +36,22 @@ export default async function AuthorsPage() {
       .select('name email username profilePictureUrl bio role createdAt')
       .lean()
 
-    // Create a map for O(1) lookup instead of O(n) for each author
-    const statsMap = new Map(
-      authorsWithPosts.map(stat => [stat._id.toString(), stat])
-    )
-
+    // Combine author data with stats
     const authorsWithStats = authors.map(author => {
-      const stats = statsMap.get(author._id.toString())
+      const authorId = author._id.toString()
+      const authorStat = authorStats[authorId] || {}
       return {
         ...author,
-        _id: author._id.toString(),
-        postCount: stats?.postCount || 0,
-        latestPost: stats?.latestPost,
-        totalViews: stats?.totalViews || 0,
-        totalLikes: stats?.totalLikes || 0,
+        _id: authorId,
+        postCount: authorStat.postCount || 0,
+        latestPost: authorStat.latestPost,
+        totalViews: authorStat.totalViews || 0,
+        totalLikes: authorStat.totalLikes || 0,
         createdAt: author.createdAt
       }
     })
 
-    // Sort by name as secondary sort (postCount already sorted by DB)
+    // Sort by post count, then by name
     authorsWithStats.sort((a, b) => {
       if (b.postCount !== a.postCount) {
         return b.postCount - a.postCount
@@ -75,9 +59,9 @@ export default async function AuthorsPage() {
       return a.name.localeCompare(b.name)
     })
 
-    const totalAuthors = authorsWithStats.length
-    const totalPosts = authorsWithStats.reduce((sum, author) => sum + author.postCount, 0)
-    const totalViews = authorsWithStats.reduce((sum, author) => sum + author.totalViews, 0)
+    const totalAuthors = stats.activeAuthors
+    const totalPosts = stats.totalPosts
+    const totalViews = stats.totalViews
     const adminCount = authorsWithStats.filter(author => author.role === 'admin').length
 
     // ✅ NEW: JSON-LD Structured Data for SEO

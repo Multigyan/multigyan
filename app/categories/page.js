@@ -10,8 +10,8 @@ import {
 } from "lucide-react"
 import connectDB from "@/lib/mongodb"
 import Category from "@/models/Category"
-import Post from "@/models/Post"
 import { generateSEOMetadata } from "@/lib/seo"
+import { getUnifiedStats } from "@/lib/stats"
 
 // Revalidate every 60 seconds for fresh data
 export const revalidate = 60
@@ -28,33 +28,24 @@ export default async function CategoriesPage() {
   try {
     await connectDB()
 
+    // ✅ Use centralized stats service
+    const { stats, categoryStats } = await getUnifiedStats()
+
+    // Get category details
     const categories = await Category.find({ isActive: true })
       .select('name slug description color postCount createdAt')
-      .sort({ postCount: -1, name: 1 })
       .lean()
 
-    const categoryCounts = await Post.aggregate([
-      { $match: { status: 'published' } },
-      {
-        $group: {
-          _id: '$category',
-          postCount: { $sum: 1 },
-          latestPost: { $max: '$publishedAt' },
-          totalViews: { $sum: '$views' }
-        }
-      }
-    ])
-
+    // Combine category data with stats
     const categoriesWithStats = categories.map(category => {
-      const stats = categoryCounts.find(stat =>
-        stat._id && stat._id.toString() === category._id.toString()
-      )
+      const categoryId = category._id.toString()
+      const categoryStat = categoryStats[categoryId] || {}
       return {
         ...category,
-        _id: category._id.toString(),
-        actualPostCount: stats?.postCount || 0,
-        latestPost: stats?.latestPost,
-        totalViews: stats?.totalViews || 0,
+        _id: categoryId,
+        actualPostCount: categoryStat.postCount || 0,
+        latestPost: categoryStat.latestPost,
+        totalViews: categoryStat.totalViews || 0,
         createdAt: category.createdAt
       }
     })
@@ -68,10 +59,10 @@ export default async function CategoriesPage() {
         return a.name.localeCompare(b.name)
       })
 
-    const totalCategories = activeCategories.length
-    const totalPosts = activeCategories.reduce((sum, cat) => sum + cat.actualPostCount, 0)
-    const totalViews = activeCategories.reduce((sum, cat) => sum + cat.totalViews, 0)
-    const avgPostsPerCategory = totalCategories > 0 ? Math.round(totalPosts / totalCategories) : 0
+    const totalCategories = stats.activeCategories
+    const totalPosts = stats.totalPosts
+    const totalViews = stats.totalViews
+    const avgPostsPerCategory = stats.avgPostsPerCategory
 
     return (
       <div className="min-h-screen py-8">

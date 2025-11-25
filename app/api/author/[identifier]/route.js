@@ -82,26 +82,34 @@ export async function GET(request, context) {
     }
 
     // ✅ Use Promise.all for parallel queries
-    const [total, posts, allAuthorPosts] = await Promise.all([
+    const [total, posts] = await Promise.all([
       Post.countDocuments(postsQuery),
       Post.find(postsQuery)
-        .populate('category', 'name slug color') // ✅ Now Category model is registered
+        .populate({
+          path: 'category',
+          select: 'name slug color',
+          // ✅ Don't filter out posts without category
+          options: { strictPopulate: false }
+        })
         .select('title slug excerpt featuredImageUrl publishedAt readingTime views likes category')
         .sort({ publishedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
-        .lean(),
-      Post.find({
-        author: user._id,
-        status: 'published'
-      }).select('views likes').lean()
+        .lean()
     ])
 
-    // Calculate stats
-    const stats = {
-      totalPosts: allAuthorPosts.length,
-      totalViews: allAuthorPosts.reduce((sum, post) => sum + (post.views || 0), 0),
-      totalLikes: allAuthorPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0)
+    // ✅ Get stats from centralized service
+    const { getAuthorStats } = require('@/lib/stats')
+    const authorStats = await getAuthorStats(user._id.toString())
+
+    const stats = authorStats ? {
+      totalPosts: authorStats.postCount,
+      totalViews: authorStats.totalViews,
+      totalLikes: authorStats.totalLikes
+    } : {
+      totalPosts: 0,
+      totalViews: 0,
+      totalLikes: 0
     }
 
     // Calculate pagination
