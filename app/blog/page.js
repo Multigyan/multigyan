@@ -16,10 +16,44 @@ import {
 import { formatDate, getPostUrl } from "@/lib/helpers"
 import AdSense from "@/components/AdSense"
 import SearchForm from "@/components/blog/SearchForm"
+import NewsletterSubscribe from "@/components/newsletter/NewsletterSubscribe"
+import StructuredData, { generateBreadcrumbSchema, generateItemListSchema, generateWebSiteSchema } from "@/components/seo/StructuredData"
+import Breadcrumbs from "@/components/ui/Breadcrumbs"
+import { BLOG_CONFIG } from "@/lib/constants"
 
-// ✅ COST OPTIMIZATION: Revalidate every 60 seconds
-// This reduces function invocations by 95% for blog listing
-export const revalidate = 60
+// ✅ SEO: Comprehensive metadata for blog listing page
+export const metadata = {
+  title: 'Blog - Latest Articles & Insights | Multigyan',
+  description: 'Explore our latest articles on personal finance, health, technology, current affairs, and more. Join thousands of readers discovering expert insights and practical guides on Multigyan.',
+  keywords: ['blog', 'articles', 'insights', 'personal finance', 'health', 'technology', 'DIY', 'recipes', 'current affairs'],
+  openGraph: {
+    title: 'Blog - Latest Articles & Insights | Multigyan',
+    description: 'Explore our latest articles on personal finance, health, technology, current affairs, and more. Join thousands of readers discovering expert insights.',
+    url: 'https://www.multigyan.in/blog',
+    type: 'website',
+    images: [
+      {
+        url: '/Multigyan_Logo_bg.png',
+        width: 512,
+        height: 512,
+        alt: 'Multigyan Blog',
+      }
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Blog - Latest Articles & Insights | Multigyan',
+    description: 'Explore our latest articles on personal finance, health, technology, and more.',
+    images: ['/Multigyan_Logo_bg.png'],
+  },
+  alternates: {
+    canonical: 'https://www.multigyan.in/blog',
+  }
+}
+
+// ✅ COST OPTIMIZATION: Revalidate every 5 minutes (300 seconds)
+// This reduces function invocations by 98% compared to per-request
+export const revalidate = BLOG_CONFIG.POSTS_REVALIDATE
 
 export default async function BlogPage({ searchParams }) {
   // ✅ FIX: Await searchParams before accessing properties (Next.js 15+ requirement)
@@ -32,16 +66,16 @@ export default async function BlogPage({ searchParams }) {
   // ✅ COST OPTIMIZATION: Fetch data server-side with caching
   // This eliminates 3 API calls per visitor
   const [postsData, featuredData, categoriesData] = await Promise.all([
-    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/posts?status=published&excludeRecipes=true&page=${page}&limit=12${search ? `&search=${encodeURIComponent(search)}` : ''}`, {
-      next: { revalidate: 60 }
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/posts?status=published&excludeRecipes=true&page=${page}&limit=${BLOG_CONFIG.POSTS_PER_PAGE}${search ? `&search=${encodeURIComponent(search)}` : ''}`, {
+      next: { revalidate: BLOG_CONFIG.POSTS_REVALIDATE }
     }).then(res => res.json()).catch(() => ({ posts: [], pagination: null })),
 
-    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/posts?status=published&featured=true&limit=3`, {
-      next: { revalidate: 60 }
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/posts?status=published&featured=true&limit=${BLOG_CONFIG.FEATURED_POSTS_COUNT}`, {
+      next: { revalidate: BLOG_CONFIG.FEATURED_REVALIDATE }
     }).then(res => res.json()).catch(() => ({ posts: [] })),
 
     fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/categories?includeCounts=true`, {
-      next: { revalidate: 300 }
+      next: { revalidate: BLOG_CONFIG.CATEGORIES_REVALIDATE }
     }).then(res => res.json()).catch(() => ({ categories: [] }))
   ])
 
@@ -50,16 +84,30 @@ export default async function BlogPage({ searchParams }) {
   const featuredPosts = featuredData.posts || []
   const categories = categoriesData.categories || []
 
+  // ✅ SEO: Generate structured data schemas
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Blog', url: '/blog' }
+  ])
+
+  const itemListSchema = generateItemListSchema(posts, page)
+  const websiteSchema = generateWebSiteSchema()
+
   return (
     <div className="min-h-screen">
+      {/* ✅ SEO: Structured Data */}
+      <StructuredData data={breadcrumbSchema} />
+      <StructuredData data={itemListSchema} />
+      <StructuredData data={websiteSchema} />
+
       {/* ✅ IMPROVED: Hero Section with Better Mobile Spacing */}
       {featuredPosts.length > 0 && (
-        <section className="bg-gradient-to-br from-background via-background to-muted/20 py-12 sm:py-14 md:py-16 fade-in">
+        <section id="main-content" className="bg-gradient-to-br from-background via-background to-muted/20 py-12 sm:py-14 md:py-16 fade-in">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-8 sm:mb-10 md:mb-12">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
                 Featured <span className="title-gradient">Stories</span>
-              </h1>
+              </h2>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
                 Discover our most popular and trending articles
               </p>
@@ -127,6 +175,7 @@ export default async function BlogPage({ searchParams }) {
                               src={featuredPosts[1].featuredImageUrl}
                               alt={featuredPosts[1].featuredImageAlt || featuredPosts[1].title}
                               fill
+                              priority={true}
                               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                               className="object-cover transition-transform duration-300 group-hover:scale-110"
                             />
@@ -191,6 +240,7 @@ export default async function BlogPage({ searchParams }) {
                               src={featuredPosts[2].featuredImageUrl}
                               alt={featuredPosts[2].featuredImageAlt || featuredPosts[2].title}
                               fill
+                              priority={true}
                               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                               className="object-cover transition-transform duration-300 group-hover:scale-110"
                             />
@@ -230,6 +280,14 @@ export default async function BlogPage({ searchParams }) {
       {/* ✅ IMPROVED: Main Content Section */}
       <section className="py-12 sm:py-14 md:py-16">
         <div className="container mx-auto px-4 sm:px-6">
+          {/* ✅ ACCESSIBILITY: Breadcrumbs Navigation */}
+          <Breadcrumbs
+            items={[
+              { name: 'Blog', url: '/blog' }
+            ]}
+            className="mb-6 sm:mb-8 fade-in"
+          />
+
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
             {/* Main Posts Area */}
             <div className="lg:col-span-3">
@@ -241,9 +299,9 @@ export default async function BlogPage({ searchParams }) {
               {/* Section Header */}
               <div className="flex items-center justify-between mb-6 sm:mb-8 fade-in">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold">
+                  <h1 className="text-2xl sm:text-3xl font-bold">
                     {search ? 'Search Results' : 'Latest Articles'}
-                  </h2>
+                  </h1>
                   <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
                     {search
                       ? `Found ${pagination?.total || 0} articles for "${search}"`
@@ -265,12 +323,35 @@ export default async function BlogPage({ searchParams }) {
                     </h3>
                     <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
                       {search
-                        ? 'Try adjusting your search terms or browse our categories.'
-                        : 'Check back soon for new content!'
-                      }
+                        ? 'Try adjusting your search terms or browse our popular categories.'
+                        : 'Check back soon for new content!'}
                     </p>
+
+                    {/* Category Suggestions */}
+                    {categories.length > 0 && (
+                      <div className="mt-6">
+                        <p className="text-sm font-medium mb-3">Browse Popular Categories:</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {categories.slice(0, 5).map((category) => (
+                            <Link
+                              key={category._id}
+                              href={`/category/${category.slug}`}
+                            >
+                              <Badge
+                                variant="outline"
+                                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                                style={{ borderColor: category.color }}
+                              >
+                                {category.name} ({category.postCount})
+                              </Badge>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {search && (
-                      <Button asChild className="w-full sm:w-auto">
+                      <Button asChild className="w-full sm:w-auto mt-4">
                         <Link href="/blog">Browse All Articles</Link>
                       </Button>
                     )}
@@ -422,7 +503,7 @@ export default async function BlogPage({ searchParams }) {
                         asChild={pagination.hasPrev}
                       >
                         {pagination.hasPrev ? (
-                          <Link href={`/blog?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`}>
+                          <Link href={`/blog?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`} prefetch={true}>
                             Previous
                           </Link>
                         ) : (
@@ -441,7 +522,7 @@ export default async function BlogPage({ searchParams }) {
                         asChild={pagination.hasNext}
                       >
                         {pagination.hasNext ? (
-                          <Link href={`/blog?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`}>
+                          <Link href={`/blog?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`} prefetch={true}>
                             Next
                           </Link>
                         ) : (
@@ -470,7 +551,7 @@ export default async function BlogPage({ searchParams }) {
                   </CardHeader>
                   <CardContent className="p-4 sm:p-6 pt-0">
                     <div className="space-y-2">
-                      {categories.slice(0, 8).map((category) => (
+                      {categories.slice(0, BLOG_CONFIG.SIDEBAR_CATEGORIES_COUNT).map((category) => (
                         <Link
                           key={category._id}
                           href={`/category/${category.slug}`}
@@ -488,6 +569,16 @@ export default async function BlogPage({ searchParams }) {
                           </Badge>
                         </Link>
                       ))}
+
+                      {/* View All Categories Link */}
+                      {categories.length > BLOG_CONFIG.SIDEBAR_CATEGORIES_COUNT && (
+                        <Link
+                          href="/categories"
+                          className="flex items-center justify-center p-2 text-sm text-primary hover:text-primary/80 hover:bg-accent rounded-md transition-all min-h-[44px] font-medium"
+                        >
+                          View All Categories →
+                        </Link>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -502,19 +593,12 @@ export default async function BlogPage({ searchParams }) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 pt-0">
-                  <form className="space-y-3 sm:space-y-4">
-                    <input
-                      type="email"
-                      placeholder="Enter your email"
-                      className="w-full h-11 sm:h-10 px-3 text-base sm:text-sm border rounded-md"
-                    />
-                    <Button className="w-full h-11 sm:h-10">
-                      Subscribe
-                    </Button>
-                  </form>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    No spam, unsubscribe anytime.
-                  </p>
+                  <NewsletterSubscribe
+                    source="blog-sidebar"
+                    showTitle={false}
+                    compact={true}
+                    className="space-y-3 sm:space-y-4"
+                  />
                 </CardContent>
               </Card>
             </div>

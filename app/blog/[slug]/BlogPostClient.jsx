@@ -37,6 +37,7 @@ import { useTOC } from "@/hooks/useTOC"
 import TOCMobileCollapsible from "@/components/blog/TOCMobileCollapsible"
 import TOCMobileFloating from "@/components/blog/TOCMobileFloating"
 import TOCDesktopSidebar from "@/components/blog/TOCDesktopSidebar"
+import ReadingProgress from "@/components/blog/ReadingProgress"
 // ✅ Import KaTeX CSS for formula rendering
 import 'katex/dist/katex.min.css'
 
@@ -188,6 +189,9 @@ export default function BlogPostClient({ post }) {
 
   return (
     <div className="min-h-screen">
+      {/* ✨ Reading Progress Indicator */}
+      <ReadingProgress />
+
       {/* ✨ Add Code Block Copy Buttons */}
       <CodeBlockCopyButton />
 

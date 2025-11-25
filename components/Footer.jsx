@@ -3,12 +3,12 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import NewsletterSubscribe from "@/components/newsletter/NewsletterSubscribe"
-import { 
-  BookOpen, 
-  Mail, 
-  Twitter, 
-  Send, 
-  Linkedin, 
+import {
+  BookOpen,
+  Mail,
+  Twitter,
+  Send,
+  Linkedin,
   Heart,
   Send as SendIcon,
   Instagram,
@@ -34,41 +34,44 @@ export default function Footer() {
                     alt="Multigyan Logo"
                     width={140}
                     height={32}
-                    className="w-30 h-30 object-contain"
+                    className="w-32 h-auto object-contain"
                   />
                 </div>
               </Link>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                A secure, high-performance, and SEO-optimized multi-author blogging platform 
+                A secure, high-performance, and SEO-optimized multi-author blogging platform
                 built with modern web technologies.
               </p>
+              <p className="text-muted-foreground text-sm">
+                📧 Contact: <a href="mailto:contact@multigyan.in" className="hover:text-foreground transition-colors">contact@multigyan.in</a>
+              </p>
               <div className="flex space-x-2">
-                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary" aria-label="Follow us on Twitter">
                   <Link href="https://twitter.com/Multigyan_in" target="_blank" rel="noopener noreferrer">
                     <Twitter className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary" aria-label="Join our Telegram channel">
                   <Link href="https://t.me/multigyanexpert" target="_blank" rel="noopener noreferrer">
                     <Send className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary" aria-label="Connect on LinkedIn">
                   <Link href="https://www.linkedin.com/company/multigyan/" target="_blank" rel="noopener noreferrer">
                     <Linkedin className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary" aria-label="Follow us on Instagram">
                   <Link href="https://instagram.com/multigyan.info" target="_blank" rel="noopener noreferrer">
                     <Instagram className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary" aria-label="Subscribe on YouTube">
                   <Link href="https://youtube.com/@multigyan_in" target="_blank" rel="noopener noreferrer">
                     <Youtube className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary">
+                <Button size="icon" variant="ghost" asChild className="transition-all hover:scale-110 hover:text-primary" aria-label="Join our WhatsApp channel">
                   <Link href="https://whatsapp.com/channel/0029VbBBdkrDOQIQFDv6Rc1v" target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="h-4 w-4" />
                   </Link>
@@ -78,40 +81,40 @@ export default function Footer() {
 
             {/* Quick Links */}
             <div className="space-y-4 fade-in" style={{ animationDelay: '100ms' }}>
-              <h3 className="font-semibold text-foreground">Quick Links</h3>
+              <h3 className="font-bold text-lg text-foreground">Quick Links</h3>
               <nav className="flex flex-col space-y-2">
-                <Link 
-                  href="/blog" 
+                <Link
+                  href="/blog"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   All Posts
                 </Link>
-                <Link 
-                  href="/diy" 
+                <Link
+                  href="/diy"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   DIY Tutorials
                 </Link>
-                <Link 
-                  href="/recipe" 
+                <Link
+                  href="/recipe"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Recipes
                 </Link>
-                <Link 
-                  href="/categories" 
+                <Link
+                  href="/categories"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Categories
                 </Link>
-                <Link 
-                  href="/authors" 
+                <Link
+                  href="/authors"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Authors
                 </Link>
-                <Link 
-                  href="/about" 
+                <Link
+                  href="/about"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   About Us
@@ -121,41 +124,41 @@ export default function Footer() {
 
             {/* Resources */}
             <div className="space-y-4 fade-in" style={{ animationDelay: '200ms' }}>
-              <h3 className="font-semibold text-foreground">Resources</h3>
+              <h3 className="font-bold text-lg text-foreground">Resources</h3>
               <nav className="flex flex-col space-y-2">
-                <Link 
-                  href="/newsletter" 
+                <Link
+                  href="/newsletter"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1 flex items-center space-x-1"
                 >
                   <Mail className="h-3 w-3" />
                   <span>Newsletter</span>
                 </Link>
-                <Link 
-                  href="/dashboard" 
+                <Link
+                  href="/dashboard"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Write a Post
                 </Link>
-                <Link 
-                  href="/help" 
+                <Link
+                  href="/help"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Help & Support
                 </Link>
-                <Link 
-                  href="/contact" 
+                <Link
+                  href="/contact"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Contact
                 </Link>
-                <Link 
-                  href="/privacy-policy" 
+                <Link
+                  href="/privacy-policy"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Privacy Policy
                 </Link>
-                <Link 
-                  href="/terms-of-service" 
+                <Link
+                  href="/terms-of-service"
                   className="text-muted-foreground hover:text-foreground transition-all text-sm hover:translate-x-1"
                 >
                   Terms of Service
@@ -165,13 +168,13 @@ export default function Footer() {
 
             {/* Newsletter Section */}
             <div className="space-y-4 fade-in" style={{ animationDelay: '300ms' }}>
-              <NewsletterSubscribe 
+              <NewsletterSubscribe
                 source="footer"
                 showTitle={true}
                 compact={false}
                 className="space-y-3"
               />
-              <Link 
+              <Link
                 href="/newsletter"
                 className="text-xs text-primary hover:underline inline-flex items-center space-x-1"
               >
@@ -192,16 +195,16 @@ export default function Footer() {
               <Heart className="h-4 w-4 text-red-500 fill-current pulse-once" />
               <span>for the community</span>
             </div>
-            
+
             <div className="flex items-center space-x-6 text-sm">
-              <Link 
-                href="/sitemap.xml" 
+              <Link
+                href="/sitemap.xml"
                 className="text-muted-foreground hover:text-foreground transition-all hover:scale-105"
               >
                 Sitemap
               </Link>
-              <Link 
-                href="/rss.xml" 
+              <Link
+                href="/rss.xml"
                 className="text-muted-foreground hover:text-foreground transition-all hover:scale-105"
               >
                 RSS Feed

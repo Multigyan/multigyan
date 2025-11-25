@@ -237,33 +237,28 @@ export default async function BlogPostPage({ params }) {
       publishedAt: toISOStringSafe(post.publishedAt),
       updatedAt: toISOStringSafe(post.updatedAt),
       createdAt: toISOStringSafe(post.createdAt),
-      // ✅ FIX: Properly serialize comments with populated author data
+      // ✅ OPTIMIZED: Serialize comments without spread operator
       comments: post.comments?.map(comment => ({
-        ...comment,
         _id: comment._id.toString(),
-        // Keep the populated author object with all fields
+        content: comment.content,
+        isApproved: comment.isApproved,
+        isReported: comment.isReported,
+        reportCount: comment.reportCount || 0,
+        isEdited: comment.isEdited || false,
         author: comment.author ? {
           _id: comment.author._id.toString(),
           name: comment.author.name,
           profilePictureUrl: comment.author.profilePictureUrl,
           role: comment.author.role
         } : null,
-        // Handle guest comments
         guestName: comment.guestName || null,
         guestEmail: comment.guestEmail || null,
         parentComment: comment.parentComment ? comment.parentComment.toString() : null,
+        replies: [],
         createdAt: toISOStringSafe(comment.createdAt),
         updatedAt: toISOStringSafe(comment.updatedAt),
         editedAt: comment.editedAt ? toISOStringSafe(comment.editedAt) : null,
-        // Serialize likes array
-        likes: comment.likes?.map(like => like.toString()) || [],
-        // Keep other comment fields
-        content: comment.content,
-        isApproved: comment.isApproved,
-        isReported: comment.isReported,
-        reportCount: comment.reportCount || 0,
-        isEdited: comment.isEdited || false,
-        replies: [] // Replies will be structured by CommentSection component
+        likes: comment.likes?.map(like => like.toString()) || []
       })) || [],
       // Serialized reviewedBy
       reviewedBy: post.reviewedBy ? {
