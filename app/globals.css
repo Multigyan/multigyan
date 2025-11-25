@@ -5,6 +5,28 @@
 :root {
   --radius: 0.625rem;
   
+  /* ✅ Spacing Scale */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* ✅ Animation Durations */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  
+  /* ✅ Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal: 1040;
+  --z-popover: 1050;
+  --z-tooltip: 1060;
+  --z-nprogress: 9999;
+  
   /* Blue, White, Gray Color Scheme */
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
@@ -91,21 +113,16 @@
     @apply border-border;
   }
   
-  /* Smooth scroll behavior */
+  /* Smooth scroll behavior and better font rendering */
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 100px;
-  }
-  
-  /* Better font rendering */
-  html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
     width: 100%;
     -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
   }
   
   body {
@@ -124,8 +141,8 @@
     @apply bg-primary/20 text-foreground;
   }
   
-  /* Focus styles for accessibility */
-  *:focus {
+  /* Focus styles for accessibility - only remove outline for mouse users */
+  *:focus:not(:focus-visible) {
     @apply outline-none;
   }
   
@@ -235,6 +252,7 @@
   /* Blog post cards with improved hover effects */
   .blog-card {
     @apply bg-card rounded-lg border shadow-sm transition-all duration-300 overflow-hidden;
+    contain: layout style paint; /* ✅ Performance: Isolate rendering */
   }
 
   .blog-card:hover {
@@ -407,19 +425,7 @@
     @apply mb-0;
   }
   
-  /* Also apply to prose class for blog display */
-  .prose p {
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .prose p:first-child {
-    margin-top: 0;
-  }
-  
-  .prose p:last-child {
-    margin-bottom: 0;
-  }
+  /* Prose paragraph spacing handled in lines 194-196 */
 
   .ProseMirror ul,
   .ProseMirror ol {
@@ -579,6 +585,7 @@
   /* Fade in animation */
   .fade-in {
     animation: fadeIn 0.3s ease-in;
+    will-change: opacity, transform; /* ✅ Performance hint */
   }
   
   @keyframes fadeIn {
@@ -595,6 +602,7 @@
   /* Slide in animation */
   .slide-in {
     animation: slideIn 0.3s ease-out;
+    will-change: transform, opacity; /* ✅ Performance hint */
   }
   
   @keyframes slideIn {
@@ -611,6 +619,7 @@
   /* Scale in animation */
   .scale-in {
     animation: scaleIn 0.2s ease-out;
+    will-change: transform, opacity; /* ✅ Performance hint */
   }
   
   @keyframes scaleIn {
@@ -697,6 +706,7 @@
   /* Mobile modal */
   .modal-mobile {
     @apply w-[95vw] sm:w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6;
+    contain: layout; /* ✅ Performance: Isolate layout */
   }
   
   .dialog-mobile {
@@ -706,7 +716,7 @@
   /* Mobile table wrapper */
   .table-mobile-wrapper {
     @apply w-full overflow-x-auto rounded-lg border;
-    -webkit-overflow-scrolling: touch;
+    /* ❌ REMOVED: -webkit-overflow-scrolling: touch (deprecated in iOS 13+) */
   }
   
   .table-mobile-wrapper table {
@@ -785,34 +795,10 @@
     @apply bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent;
   }
   
-  /* Truncate text */
-  .line-clamp-1 {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .line-clamp-4 {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+  /* ❌ REMOVED: line-clamp utilities (lines 789-815)
+   * Use Tailwind's built-in line-clamp-{n} classes instead:
+   * <div className="line-clamp-2">...</div>
+   */
   
   /* Glass morphism */
   .glass {
@@ -847,30 +833,10 @@
     }
   }
   
-  /* Typography */
-  .heading-1-responsive {
-    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
-  }
-  
-  .heading-2-responsive {
-    @apply text-2xl sm:text-3xl md:text-4xl;
-  }
-  
-  .heading-3-responsive {
-    @apply text-xl sm:text-2xl md:text-3xl;
-  }
-  
-  .heading-4-responsive {
-    @apply text-lg sm:text-xl md:text-2xl;
-  }
-  
-  .text-responsive {
-    @apply text-sm sm:text-base;
-  }
-  
-  .text-large-responsive {
-    @apply text-base sm:text-lg md:text-xl;
-  }
+  /* ❌ REMOVED: Responsive typography classes (lines 851-873)
+   * Use Tailwind classes directly instead:
+   * <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl">...</h1>
+   */
   
   /* Spacing */
   .section-padding {
@@ -889,18 +855,10 @@
     @apply gap-4 sm:gap-6 md:gap-8;
   }
   
-  /* Grid */
-  .grid-mobile-1-sm-2-lg-3 {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
-  }
-  
-  .grid-mobile-1-sm-2-lg-4 {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4;
-  }
-  
-  .grid-mobile-2-md-3-lg-4 {
-    @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
-  }
+  /* ❌ REMOVED: Grid utilities (lines 893-903)
+   * Use Tailwind classes directly instead:
+   * <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">...</div>
+   */
   
   /* Flex */
   .flex-mobile-col {
