@@ -194,133 +194,147 @@ export default function BlogPostClient({ post }) {
         scrollToTop={scrollToTop}
       />
 
-      <article className="py-6 sm:py-8 md:py-12">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-7xl mx-auto">
-            {/* Breadcrumb */}
-            <nav className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 overflow-x-auto pb-2 scrollbar-thin">
-              <Link href="/" className="hover:text-foreground whitespace-nowrap">Home</Link>
-              <span>/</span>
-              <Link href="/blog" className="hover:text-foreground whitespace-nowrap">Blog</Link>
-              <span>/</span>
-              <Link href={`/category/${post.category?.slug}`} className="hover:text-foreground whitespace-nowrap">
-                {post.category?.name}
-              </Link>
-              <span className="hidden sm:inline">/</span>
-              <span className="text-foreground truncate hidden sm:inline">{post.title}</span>
-            </nav>
+      {/* ✅ SEMANTIC FIX: Wrap in main tag for better content extraction */}
+      <main id="main-content" role="main">
+        {/* ✅ SEMANTIC FIX: Add Schema.org microdata for content extractors */}
+        <article className="py-6 sm:py-8 md:py-12" itemScope itemType="https://schema.org/Article">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="max-w-7xl mx-auto">
+              {/* Breadcrumb */}
+              <nav className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 overflow-x-auto pb-2 scrollbar-thin">
+                <Link href="/" className="hover:text-foreground whitespace-nowrap">Home</Link>
+                <span>/</span>
+                <Link href="/blog" className="hover:text-foreground whitespace-nowrap">Blog</Link>
+                <span>/</span>
+                <Link href={`/category/${post.category?.slug}`} className="hover:text-foreground whitespace-nowrap">
+                  {post.category?.name}
+                </Link>
+                <span className="hidden sm:inline">/</span>
+                <span className="text-foreground truncate hidden sm:inline">{post.title}</span>
+              </nav>
 
-            {/* 
+              {/* 
               =====================================================================
               MAIN LAYOUT WITH TOC - THIS SECTION CONTAINS ONLY THE MAIN CONTENT
               =====================================================================
             */}
-            <div className="lg:flex lg:gap-8 lg:items-stretch">
-              {/* Main Content Column - 2/3 width */}
-              <div className="lg:w-2/3 lg:flex-shrink-0">
-                {/* Category Badge & Language Switcher */}
-                <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 flex-wrap">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge style={{ backgroundColor: post.category?.color }} className="text-xs sm:text-sm">
-                      {post.category?.name}
-                    </Badge>
-                    {post.isFeatured && (
-                      <Badge variant="secondary" className="text-xs sm:text-sm">Featured</Badge>
-                    )}
+              <div className="lg:flex lg:gap-8 lg:items-stretch">
+                {/* Main Content Column - 2/3 width */}
+                <div className="lg:w-2/3 lg:flex-shrink-0">
+                  {/* Category Badge & Language Switcher */}
+                  <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge style={{ backgroundColor: post.category?.color }} className="text-xs sm:text-sm">
+                        {post.category?.name}
+                      </Badge>
+                      {post.isFeatured && (
+                        <Badge variant="secondary" className="text-xs sm:text-sm">Featured</Badge>
+                      )}
+                    </div>
+
+                    {/* ✅ Language Switcher (EN ⇄ HI) */}
+                    <LanguageSwitcher post={post} />
                   </div>
 
-                  {/* ✅ Language Switcher (EN ⇄ HI) */}
-                  <LanguageSwitcher post={post} />
-                </div>
+                  {/* Title Section - START OF TOC ALIGNMENT */}
+                  <header className="mb-6 sm:mb-8">
+                    {/* ✅ SEMANTIC FIX: Add itemProp for article headline */}
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4 sm:mb-6" itemProp="headline">
+                      {post.title}
+                    </h1>
 
-                {/* Title Section - START OF TOC ALIGNMENT */}
-                <header className="mb-6 sm:mb-8">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4 sm:mb-6">
-                    {post.title}
-                  </h1>
+                    {/* ✅ SEMANTIC FIX: Add itemProp for article description */}
+                    {post.excerpt && (
+                      <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed mb-4 sm:mb-6" itemProp="description">
+                        {post.excerpt}
+                      </p>
+                    )}
 
-                  {post.excerpt && (
-                    <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed mb-4 sm:mb-6">
-                      {post.excerpt}
-                    </p>
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 min-h-[44px]">
+                        {post.author?.profilePictureUrl ? (
+                          <Image
+                            src={post.author.profilePictureUrl}
+                            alt={post.author.name}
+                            width={28}
+                            height={28}
+                            className="rounded-full sm:w-8 sm:h-8"
+                          />
+                        ) : (
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                          </div>
+                        )}
+                        {/* ✅ SEMANTIC FIX: Add itemProp for author */}
+                        <span className="font-medium" itemProp="author" itemScope itemType="https://schema.org/Person">
+                          <Link href={`/author/${post.author?.username}`} className="hover:text-foreground">
+                            <span itemProp="name">{post.author?.name}</span>
+                          </Link>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4 flex-wrap">
+                        {/* ✅ SEMANTIC FIX: Add itemProp for publish date */}
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <time className="text-xs sm:text-sm" itemProp="datePublished" dateTime={post.publishedAt}>
+                            {formatDate(post.publishedAt)}
+                          </time>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span className="text-xs sm:text-sm">{post.readingTime} min</span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span className="text-xs sm:text-sm">{post.views} views</span>
+                        </div>
+                      </div>
+                    </div>
+                  </header>
+
+                  {/* ✅ PHASE 1 FIX: Stay Connected - Replacing share buttons */}
+                  <StayConnected className="mb-4 sm:mb-6" />
+
+                  {/* Featured Image */}
+                  {/* ✅ SEMANTIC FIX: Add itemProp for featured image */}
+                  {post.featuredImageUrl && (
+                    <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden bg-muted" itemProp="image" itemScope itemType="https://schema.org/ImageObject">
+                      <img
+                        src={post.featuredImageUrl}
+                        alt={post.featuredImageAlt || post.title}
+                        className="w-full h-auto"
+                        loading="eager"
+                        style={{ maxHeight: '400px', objectFit: 'contain' }}
+                        itemProp="url"
+                      />
+                      <meta itemProp="width" content="1200" />
+                      <meta itemProp="height" content="630" />
+                    </div>
                   )}
 
-                  <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2 min-h-[44px]">
-                      {post.author?.profilePictureUrl ? (
-                        <Image
-                          src={post.author.profilePictureUrl}
-                          alt={post.author.name}
-                          width={28}
-                          height={28}
-                          className="rounded-full sm:w-8 sm:h-8"
-                        />
-                      ) : (
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                        </div>
-                      )}
-                      <span className="font-medium">
-                        <Link href={`/author/${post.author?.username}`} className="hover:text-foreground">
-                          {post.author?.name}
-                        </Link>
-                      </span>
-                    </div>
+                  {/* ⚡ NEW: Mobile Collapsible TOC */}
+                  <TOCMobileCollapsible
+                    headings={headings}
+                    activeId={activeId}
+                    onItemClick={scrollToHeading}
+                  />
 
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        <span className="text-xs sm:text-sm">{formatDate(post.publishedAt)}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        <span className="text-xs sm:text-sm">{post.readingTime} min</span>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        <span className="text-xs sm:text-sm">{post.views} views</span>
-                      </div>
-                    </div>
-                  </div>
-                </header>
-
-                {/* ✅ PHASE 1 FIX: Stay Connected - Replacing share buttons */}
-                <StayConnected className="mb-4 sm:mb-6" />
-
-                {/* Featured Image */}
-                {post.featuredImageUrl && (
-                  <div className="mb-6 sm:mb-8 rounded-lg overflow-hidden bg-muted">
-                    <img
-                      src={post.featuredImageUrl}
-                      alt={post.featuredImageAlt || post.title}
-                      className="w-full h-auto"
-                      loading="eager"
-                      style={{ maxHeight: '400px', objectFit: 'contain' }}
+                  {/* ✅ TOP AD - After Featured Image, Before Content */}
+                  <div className="my-8">
+                    <AdSense
+                      adSlot="2469893467"
+                      adFormat="auto"
+                      adStyle={{ display: 'block', textAlign: 'center' }}
                     />
                   </div>
-                )}
 
-                {/* ⚡ NEW: Mobile Collapsible TOC */}
-                <TOCMobileCollapsible
-                  headings={headings}
-                  activeId={activeId}
-                  onItemClick={scrollToHeading}
-                />
-
-                {/* ✅ TOP AD - After Featured Image, Before Content */}
-                <div className="my-8">
-                  <AdSense
-                    adSlot="2469893467"
-                    adFormat="auto"
-                    adStyle={{ display: 'block', textAlign: 'center' }}
-                  />
-                </div>
-
-                {/* Blog Content with Middle Ad */}
-                <div className="blog-content mb-8 sm:mb-12">
-                  <style jsx global>{`
+                  {/* Blog Content with Middle Ad */}
+                  {/* ✅ SEMANTIC FIX: Add itemProp="articleBody" for content extractors */}
+                  <div className="blog-content mb-8 sm:mb-12" itemProp="articleBody">
+                    <style jsx global>{`
                     .blog-content {
                       font-size: 0.938rem;
                       line-height: 1.7;
@@ -765,230 +779,231 @@ export default function BlogPostClient({ post }) {
                     }
                   `}</style>
 
-                  {/* ✅ Blog Content - Part 1 (Before Ad) */}
-                  <div
-                    className="text-foreground"
-                    dangerouslySetInnerHTML={{ __html: beforeAd }}
-                  />
-
-                  {/* ✅ MIDDLE AD - Only shown if content is long enough */}
-                  {afterAd && (
-                    <div className="my-8">
-                      <AdSense
-                        adSlot="2660754715"
-                        adFormat="auto"
-                        adStyle={{ display: 'block', textAlign: 'center' }}
-                      />
-                    </div>
-                  )}
-
-                  {/* ✅ Blog Content - Part 2 (After Ad) */}
-                  {afterAd && (
+                    {/* ✅ Blog Content - Part 1 (Before Ad) */}
                     <div
                       className="text-foreground"
-                      dangerouslySetInnerHTML={{ __html: afterAd }}
+                      dangerouslySetInnerHTML={{ __html: beforeAd }}
                     />
-                  )}
-                </div>
 
-                {/* ✅ BOTTOM AD - After Content, Before Tags */}
-                <div className="my-8">
-                  <AdSense
-                    adSlot="1347673049"
-                    adFormat="auto"
-                    adStyle={{ display: 'block', textAlign: 'center' }}
-                  />
-                </div>
+                    {/* ✅ MIDDLE AD - Only shown if content is long enough */}
+                    {afterAd && (
+                      <div className="my-8">
+                        <AdSense
+                          adSlot="2660754715"
+                          adFormat="auto"
+                          adStyle={{ display: 'block', textAlign: 'center' }}
+                        />
+                      </div>
+                    )}
 
-                {/* Tags */}
-                {post.tags && post.tags.length > 0 && (
-                  <div id="tags-section" className="mb-6 sm:mb-8">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Tags</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {post.tags.map((tag, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer text-xs sm:text-sm min-h-[32px]"
-                        >
-                          #{tag}
-                        </Badge>
-                      ))}
+                    {/* ✅ Blog Content - Part 2 (After Ad) */}
+                    {afterAd && (
+                      <div
+                        className="text-foreground"
+                        dangerouslySetInnerHTML={{ __html: afterAd }}
+                      />
+                    )}
+                  </div>
+
+                  {/* ✅ BOTTOM AD - After Content, Before Tags */}
+                  <div className="my-8">
+                    <AdSense
+                      adSlot="1347673049"
+                      adFormat="auto"
+                      adStyle={{ display: 'block', textAlign: 'center' }}
+                    />
+                  </div>
+
+                  {/* Tags */}
+                  {post.tags && post.tags.length > 0 && (
+                    <div id="tags-section" className="mb-6 sm:mb-8">
+                      <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Tags</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {post.tags.map((tag, index) => (
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer text-xs sm:text-sm min-h-[32px]"
+                          >
+                            #{tag}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
+                  )}
+
+                  <Separator className="my-6 sm:my-8" />
+
+                  {/* Actions - LIKE, COMMENT, SHARE - END OF TOC SECTION */}
+                  <div className="flex flex-col gap-4 mb-6 sm:mb-8">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                      <PostLikeButton
+                        targetId={post._id}
+                        initialLikes={post.likes || []}
+                        initialIsLiked={session?.user?.id && post.likes?.includes(session.user.id)}
+                        size="md"
+                        animated={true}
+                      />
+
+                      {/* ✨ Using dynamic state */}
+                      <Button variant="outline" className="flex items-center gap-2 min-h-[44px]">
+                        <MessageCircle className="h-4 w-4" />
+                        <span className="text-sm">{commentStats.approved}</span>
+                        <span className="hidden sm:inline text-sm">Comments</span>
+                      </Button>
+                    </div>
+
+                    {/* ✅ PHASE 1: Share Buttons - Using reusable component */}
+                    <ShareButtons title={post.title} />
                   </div>
-                )}
-
-                <Separator className="my-6 sm:my-8" />
-
-                {/* Actions - LIKE, COMMENT, SHARE - END OF TOC SECTION */}
-                <div className="flex flex-col gap-4 mb-6 sm:mb-8">
-                  <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-                    <PostLikeButton
-                      targetId={post._id}
-                      initialLikes={post.likes || []}
-                      initialIsLiked={session?.user?.id && post.likes?.includes(session.user.id)}
-                      size="md"
-                      animated={true}
-                    />
-
-                    {/* ✨ Using dynamic state */}
-                    <Button variant="outline" className="flex items-center gap-2 min-h-[44px]">
-                      <MessageCircle className="h-4 w-4" />
-                      <span className="text-sm">{commentStats.approved}</span>
-                      <span className="hidden sm:inline text-sm">Comments</span>
-                    </Button>
-                  </div>
-
-                  {/* ✅ PHASE 1: Share Buttons - Using reusable component */}
-                  <ShareButtons title={post.title} />
                 </div>
-              </div>
 
-              {/* 
+                {/* 
                 ==================================================================
                 TOC SIDEBAR - DESKTOP ONLY (SCROLLS WITH CONTENT)
                 ==================================================================
               */}
-              <div className="hidden lg:block lg:w-1/3 lg:flex-shrink-0">
-                <div className="toc-sidebar-wrapper">
-                  <TOCDesktopSidebar
-                    headings={headings}
-                    activeId={activeId}
-                    readingProgress={readingProgress}
-                    readingTime={post.readingTime}
-                    onItemClick={scrollToHeading}
-                    scrollToTop={scrollToTop}
-                  />
+                <div className="hidden lg:block lg:w-1/3 lg:flex-shrink-0">
+                  <div className="toc-sidebar-wrapper">
+                    <TOCDesktopSidebar
+                      headings={headings}
+                      activeId={activeId}
+                      readingProgress={readingProgress}
+                      readingTime={post.readingTime}
+                      onItemClick={scrollToHeading}
+                      scrollToTop={scrollToTop}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* 
+              {/* 
               =====================================================================
               SECTIONS AFTER TOC - FULL WIDTH (Comments, Author, Related Posts)
               =====================================================================
             */}
-            <div className="max-w-7xl mx-auto mt-8 sm:mt-12">
-              {/* Comments Section */}
-              <section className="mb-8 sm:mb-12">
-                {/* ✨ Passing callback to update stats */}
-                <CommentSection
-                  postId={post._id}
-                  allowComments={post.allowComments}
-                  showStats={true}
-                  onStatsUpdate={handleCommentStatsUpdate}
-                />
-              </section>
-
-              <Separator className="my-6 sm:my-8" />
-
-              {/* Author Bio */}
-              <Card className="mb-8 sm:mb-12 hover:shadow-lg transition-shadow">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row items-start gap-4">
-                    <div className="flex-shrink-0 mx-auto sm:mx-0">
-                      {post.author?.profilePictureUrl ? (
-                        <Image
-                          src={post.author.profilePictureUrl}
-                          alt={post.author.name}
-                          width={64}
-                          height={64}
-                          className="rounded-full ring-2 ring-primary/20 sm:w-20 sm:h-20"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/10 rounded-full flex items-center justify-center ring-2 ring-primary/20">
-                          <User className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 text-center sm:text-left">
-                      <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                        <Link href={`/author/${post.author?.username}`} className="hover:text-primary transition-colors">
-                          {post.author?.name}
-                        </Link>
-                      </h3>
-                      <p className="text-sm sm:text-base text-muted-foreground mb-3">
-                        {post.author?.bio || 'No bio available.'}
-                      </p>
-                      {post.author?.twitterHandle && (
-                        <Link
-                          href={`https://twitter.com/${post.author.twitterHandle}`}
-                          target="_blank"
-                          className="text-xs sm:text-sm text-primary hover:underline inline-block min-h-[44px] flex items-center justify-center sm:justify-start"
-                        >
-                          @{post.author.twitterHandle}
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Related Posts */}
-              {relatedPosts.length > 0 && (
+              <div className="max-w-7xl mx-auto mt-8 sm:mt-12">
+                {/* Comments Section */}
                 <section className="mb-8 sm:mb-12">
-                  <h2 className="text-xl sm:text-2xl font-bold mb-2">
-                    More from {post.author?.name}
-                  </h2>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
-                    Explore other articles by this author
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {relatedPosts.map((relatedPost) => (
-                      <Link key={relatedPost._id} href={`/blog/${relatedPost.slug}`} className="block min-h-[44px]">
-                        <Card className="blog-card hover:shadow-lg transition-all cursor-pointer group h-full">
-                          <div className="relative h-32 sm:h-40 overflow-hidden">
-                            {relatedPost.featuredImageUrl ? (
-                              <Image
-                                src={relatedPost.featuredImageUrl}
-                                alt={relatedPost.featuredImageAlt || relatedPost.title}
-                                fill
-                                className="object-cover rounded-t-lg transition-transform group-hover:scale-110"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded-t-lg">
-                                <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary/60 transition-transform group-hover:scale-110" />
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
-                          </div>
-                          <CardContent className="p-3 sm:p-4">
-                            <Badge size="sm" className="mb-2 text-xs" style={{ backgroundColor: relatedPost.category?.color }}>
-                              {relatedPost.category?.name}
-                            </Badge>
-                            <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                              {relatedPost.title}
-                            </h3>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                              <span className="truncate">{formatDate(relatedPost.publishedAt)}</span>
-                              <span>•</span>
-                              <span className="whitespace-nowrap">{relatedPost.readingTime} min</span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
+                  {/* ✨ Passing callback to update stats */}
+                  <CommentSection
+                    postId={post._id}
+                    allowComments={post.allowComments}
+                    showStats={true}
+                    onStatsUpdate={handleCommentStatsUpdate}
+                  />
                 </section>
-              )}
 
-              {/* Back Button */}
-              <div className="text-center mt-8 sm:mt-12">
-                <Button
-                  variant="outline"
-                  asChild
-                  className="hover:bg-primary hover:text-primary-foreground transition-colors min-h-[44px] w-full sm:w-auto"
-                >
-                  <Link href="/blog">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Blog
-                  </Link>
-                </Button>
+                <Separator className="my-6 sm:my-8" />
+
+                {/* Author Bio */}
+                <Card className="mb-8 sm:mb-12 hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row items-start gap-4">
+                      <div className="flex-shrink-0 mx-auto sm:mx-0">
+                        {post.author?.profilePictureUrl ? (
+                          <Image
+                            src={post.author.profilePictureUrl}
+                            alt={post.author.name}
+                            width={64}
+                            height={64}
+                            className="rounded-full ring-2 ring-primary/20 sm:w-20 sm:h-20"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/10 rounded-full flex items-center justify-center ring-2 ring-primary/20">
+                            <User className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 text-center sm:text-left">
+                        <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                          <Link href={`/author/${post.author?.username}`} className="hover:text-primary transition-colors">
+                            {post.author?.name}
+                          </Link>
+                        </h3>
+                        <p className="text-sm sm:text-base text-muted-foreground mb-3">
+                          {post.author?.bio || 'No bio available.'}
+                        </p>
+                        {post.author?.twitterHandle && (
+                          <Link
+                            href={`https://twitter.com/${post.author.twitterHandle}`}
+                            target="_blank"
+                            className="text-xs sm:text-sm text-primary hover:underline inline-block min-h-[44px] flex items-center justify-center sm:justify-start"
+                          >
+                            @{post.author.twitterHandle}
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Related Posts */}
+                {relatedPosts.length > 0 && (
+                  <section className="mb-8 sm:mb-12">
+                    <h2 className="text-xl sm:text-2xl font-bold mb-2">
+                      More from {post.author?.name}
+                    </h2>
+                    <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
+                      Explore other articles by this author
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {relatedPosts.map((relatedPost) => (
+                        <Link key={relatedPost._id} href={`/blog/${relatedPost.slug}`} className="block min-h-[44px]">
+                          <Card className="blog-card hover:shadow-lg transition-all cursor-pointer group h-full">
+                            <div className="relative h-32 sm:h-40 overflow-hidden">
+                              {relatedPost.featuredImageUrl ? (
+                                <Image
+                                  src={relatedPost.featuredImageUrl}
+                                  alt={relatedPost.featuredImageAlt || relatedPost.title}
+                                  fill
+                                  className="object-cover rounded-t-lg transition-transform group-hover:scale-110"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded-t-lg">
+                                  <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary/60 transition-transform group-hover:scale-110" />
+                                </div>
+                              )}
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+                            </div>
+                            <CardContent className="p-3 sm:p-4">
+                              <Badge size="sm" className="mb-2 text-xs" style={{ backgroundColor: relatedPost.category?.color }}>
+                                {relatedPost.category?.name}
+                              </Badge>
+                              <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                                {relatedPost.title}
+                              </h3>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+                                <span className="truncate">{formatDate(relatedPost.publishedAt)}</span>
+                                <span>•</span>
+                                <span className="whitespace-nowrap">{relatedPost.readingTime} min</span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Back Button */}
+                <div className="text-center mt-8 sm:mt-12">
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="hover:bg-primary hover:text-primary-foreground transition-colors min-h-[44px] w-full sm:w-auto"
+                  >
+                    <Link href="/blog">
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Back to Blog
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </article>
+        </article>
+      </main>
     </div>
   )
 }
