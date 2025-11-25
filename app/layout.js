@@ -42,7 +42,7 @@ export const metadata = {
     yandex: '3001730bb2c04a53',
     // Bing verification code
     other: {
-      'msvalidate.01': '1399b41b61c6927d400012d9cb3fc893',
+      'msvalidate.01': 'AF4A943D3F4CA5001AA3D1E9BEE456A3',
     },
   },
   other: {
