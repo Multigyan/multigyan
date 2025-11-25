@@ -3,11 +3,11 @@ import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { 
-  User as UserIcon, 
-  PenTool, 
-  BookOpen, 
-  Calendar, 
+import {
+  User as UserIcon,
+  PenTool,
+  BookOpen,
+  Calendar,
   Mail,
   Shield,
   Users as UsersIcon,
@@ -18,9 +18,8 @@ import User from "@/models/User"
 import Post from "@/models/Post"
 import { generateSEOMetadata } from "@/lib/seo"
 
-// Force dynamic rendering - always fetch fresh data
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// Revalidate every 60 seconds for fresh data
+export const revalidate = 60
 
 export const metadata = generateSEOMetadata({
   title: 'Authors - Meet Our Talented Writers',
@@ -33,11 +32,11 @@ export const metadata = generateSEOMetadata({
 export default async function AuthorsPage() {
   try {
     await connectDB()
-    
+
     const authorsWithPosts = await Post.aggregate([
       { $match: { status: 'published' } },
-      { 
-        $group: { 
+      {
+        $group: {
           _id: '$author',
           postCount: { $sum: 1 },
           latestPost: { $max: '$publishedAt' },
@@ -48,16 +47,16 @@ export default async function AuthorsPage() {
     ])
 
     const authorIds = authorsWithPosts.map(author => author._id)
-    
-    const authors = await User.find({ 
+
+    const authors = await User.find({
       _id: { $in: authorIds },
-      isActive: true 
+      isActive: true
     })
       .select('name email username profilePictureUrl bio role createdAt')
       .lean()
 
     const authorsWithStats = authors.map(author => {
-      const stats = authorsWithPosts.find(stat => 
+      const stats = authorsWithPosts.find(stat =>
         stat._id.toString() === author._id.toString()
       )
       return {
@@ -92,7 +91,7 @@ export default async function AuthorsPage() {
                 Meet Our <span className="title-gradient">Authors</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Discover the talented writers behind Multigyan. Our community of experts 
+                Discover the talented writers behind Multigyan. Our community of experts
                 shares knowledge, insights, and experiences across various topics.
               </p>
             </div>
@@ -165,10 +164,10 @@ export default async function AuthorsPage() {
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="flex-1 min-w-0">
                           <CardTitle className="text-lg mb-1 truncate">
-                            <Link 
+                            <Link
                               href={`/author/${author.username || author._id}`}
                               className="hover:text-primary transition-colors"
                             >
@@ -176,7 +175,7 @@ export default async function AuthorsPage() {
                             </Link>
                           </CardTitle>
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge 
+                            <Badge
                               variant={author.role === 'admin' ? 'default' : 'secondary'}
                               className="text-xs"
                             >
@@ -222,9 +221,9 @@ export default async function AuthorsPage() {
                         </div>
                       )}
 
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="w-full"
                         asChild
                       >
@@ -262,7 +261,7 @@ export default async function AuthorsPage() {
                     Join Our Writing Community
                   </h2>
                   <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                    Have something valuable to share? Join our community of expert writers 
+                    Have something valuable to share? Join our community of expert writers
                     and start contributing to the knowledge base that helps thousands of readers.
                   </p>
                   <Button size="lg" asChild>
@@ -280,7 +279,7 @@ export default async function AuthorsPage() {
     )
   } catch (error) {
     console.error('Error loading authors:', error)
-    
+
     return (
       <div className="min-h-screen py-8">
         <div className="container mx-auto px-4">

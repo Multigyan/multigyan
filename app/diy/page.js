@@ -21,10 +21,6 @@ export const metadata = {
 // Revalidate every 60 seconds
 export const revalidate = 60
 
-// Don't throw errors on build - force dynamic rendering
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 export default async function DIYPage() {
   try {
     // Add timeout to database connection

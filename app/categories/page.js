@@ -1,9 +1,9 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Folder, 
-  BookOpen, 
+import {
+  Folder,
+  BookOpen,
   ArrowRight,
   TrendingUp,
   Calendar
@@ -13,9 +13,8 @@ import Category from "@/models/Category"
 import Post from "@/models/Post"
 import { generateSEOMetadata } from "@/lib/seo"
 
-// Force dynamic rendering - always fetch fresh data
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// Revalidate every 60 seconds for fresh data
+export const revalidate = 60
 
 export const metadata = generateSEOMetadata({
   title: 'Categories - Browse Topics',
@@ -28,7 +27,7 @@ export const metadata = generateSEOMetadata({
 export default async function CategoriesPage() {
   try {
     await connectDB()
-    
+
     const categories = await Category.find({ isActive: true })
       .select('name slug description color postCount createdAt')
       .sort({ postCount: -1, name: 1 })
@@ -36,8 +35,8 @@ export default async function CategoriesPage() {
 
     const categoryCounts = await Post.aggregate([
       { $match: { status: 'published' } },
-      { 
-        $group: { 
+      {
+        $group: {
           _id: '$category',
           postCount: { $sum: 1 },
           latestPost: { $max: '$publishedAt' },
@@ -47,7 +46,7 @@ export default async function CategoriesPage() {
     ])
 
     const categoriesWithStats = categories.map(category => {
-      const stats = categoryCounts.find(stat => 
+      const stats = categoryCounts.find(stat =>
         stat._id && stat._id.toString() === category._id.toString()
       )
       return {
@@ -84,7 +83,7 @@ export default async function CategoriesPage() {
                 Browse by <span className="title-gradient">Category</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Discover content organized by topics that interest you. From technology and 
+                Discover content organized by topics that interest you. From technology and
                 programming to design and business insights.
               </p>
             </div>
@@ -144,7 +143,7 @@ export default async function CategoriesPage() {
                         <Card className="blog-card h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group">
                           <CardHeader className="pb-3">
                             <div className="flex items-center gap-3 mb-3">
-                              <div 
+                              <div
                                 className="w-4 h-4 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
                                 style={{ backgroundColor: category.color }}
                               />
@@ -202,7 +201,7 @@ export default async function CategoriesPage() {
                           <Card className="blog-card transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group">
                             <CardContent className="p-4">
                               <div className="flex items-center gap-3 mb-2">
-                                <div 
+                                <div
                                   className="w-3 h-3 rounded-full flex-shrink-0 transition-transform group-hover:scale-125"
                                   style={{ backgroundColor: category.color }}
                                 />
@@ -250,7 +249,7 @@ export default async function CategoriesPage() {
                     Can&apos;t Find What You&apos;re Looking For?
                   </h2>
                   <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                    Browse all articles or use the search function to find specific topics 
+                    Browse all articles or use the search function to find specific topics
                     and insights from our community of expert writers.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -276,7 +275,7 @@ export default async function CategoriesPage() {
     )
   } catch (error) {
     console.error('Error loading categories:', error)
-    
+
     return (
       <div className="min-h-screen py-8">
         <div className="container mx-auto px-4">
