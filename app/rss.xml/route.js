@@ -22,21 +22,21 @@ function escapeXml(unsafe) {
 // Helper function to convert relative URLs to absolute
 function makeUrlsAbsolute(content, siteUrl) {
   if (!content) return ''
-  
+
   let processedContent = content
-  
+
   // Replace relative image URLs
   processedContent = processedContent.replace(
-    /src=["']\/([^"']+)["']/g, 
+    /src=["']\/([^"']+)["']/g,
     `src="${siteUrl}/$1"`
   )
-  
+
   // Replace relative link URLs
   processedContent = processedContent.replace(
-    /href=["']\/([^"']+)["']/g, 
+    /href=["']\/([^"']+)["']/g,
     `href="${siteUrl}/$1"`
   )
-  
+
   return processedContent
 }
 
@@ -71,10 +71,10 @@ export async function GET() {
     <description><![CDATA[${SITE_DESCRIPTION}]]></description>
     <language>en</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/atom+xml" />
   </channel>
 </rss>`
-      
+
       return new NextResponse(emptyRss, {
         headers: {
           'Content-Type': 'application/rss+xml; charset=utf-8',
@@ -90,17 +90,17 @@ export async function GET() {
       const authorName = post.author?.name || 'Multigyan Author'
       const authorEmail = post.author?.email || 'hello@multigyan.in'
       const categoryName = post.category?.name || 'General'
-      const publishDate = post.publishedAt 
+      const publishDate = post.publishedAt
         ? new Date(post.publishedAt).toUTCString()
         : new Date().toUTCString()
-      
+
       // Create description from excerpt or content
       let description = post.excerpt || stripHtml(post.content).substring(0, 300)
       if (description.length >= 300) {
         description += '...'
       }
       description = escapeXml(description)
-      
+
       // Clean content - convert relative URLs to absolute URLs
       let cleanContent = makeUrlsAbsolute(post.content || '', SITE_URL)
 
@@ -119,20 +119,20 @@ export async function GET() {
       if (post.tags && Array.isArray(post.tags)) {
         tagCategories = post.tags
           .map(tag => `
-      <category><![CDATA[${escapeXml(tag)}]]></category>`)
+      <category>${escapeXml(tag)}</category>`)
           .join('')
       }
 
       return `
     <item>
-      <title><![CDATA[${title}]]></title>
+      <title>${title}</title>
       <link>${postUrl}</link>
       <guid isPermaLink="true">${postUrl}</guid>
       <description><![CDATA[${description}]]></description>
       <content:encoded><![CDATA[${cleanContent}]]></content:encoded>
       <pubDate>${publishDate}</pubDate>
       <author>${authorEmail} (${escapeXml(authorName)})</author>
-      <category><![CDATA[${escapeXml(categoryName)}]]></category>${tagCategories}${enclosureTag}
+      <category>${escapeXml(categoryName)}</category>${tagCategories}${enclosureTag}
     </item>`
     }).join('')
 
@@ -154,7 +154,7 @@ export async function GET() {
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <pubDate>${lastBuildDate}</pubDate>
     <ttl>1440</ttl>
-    <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/atom+xml" />
     <image>
       <url>${SITE_URL}/Multigyan_Logo_bg.png</url>
       <title>${SITE_NAME}</title>
@@ -179,7 +179,7 @@ export async function GET() {
       stack: error.stack,
       timestamp: new Date().toISOString()
     })
-    
+
     // Return error as XML comment for debugging (visible in page source)
     const errorDetails = `
 <!-- RSS Error Debug Info:
@@ -187,7 +187,7 @@ Error: ${error.message}
 Type: ${error.name}
 Time: ${new Date().toISOString()}
 -->`
-    
+
     return new NextResponse(
       `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
@@ -199,7 +199,7 @@ Time: ${new Date().toISOString()}
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
   </channel>
 </rss>${errorDetails}`,
-      { 
+      {
         status: 500,
         headers: {
           'Content-Type': 'application/rss+xml; charset=utf-8'
