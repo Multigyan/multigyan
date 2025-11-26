@@ -55,18 +55,54 @@ export async function generateStaticParams() {
   }
 }
 
-// Fetch author data for metadata
+// ✅ OPTIMIZED: Direct DB query instead of loopback API call
+// This eliminates the double invocation (page + API) and reduces latency
 async function getAuthor(username) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/author/${username}`, {
-      cache: 'no-store'
-    })
+    await connectDB()
 
-    if (!response.ok) return null
+    const author = await User.findOne({ username, isActive: true })
+      .select('name email username profilePictureUrl bio role twitterHandle createdAt')
+      .lean()
 
-    const data = await response.json()
-    return data.success ? data.author : null
+    if (!author) return null
+
+    // Get author stats from aggregation
+    const stats = await User.aggregate([
+      { $match: { _id: author._id } },
+      {
+        $lookup: {
+          from: 'posts',
+          localField: '_id',
+          foreignField: 'author',
+          as: 'posts'
+        }
+      },
+      {
+        $addFields: {
+          publishedPosts: {
+            $filter: {
+              input: '$posts',
+              as: 'post',
+              cond: { $eq: ['$$post.status', 'published'] }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          totalPosts: { $size: '$publishedPosts' },
+          totalViews: { $sum: '$publishedPosts.views' },
+          totalLikes: { $sum: '$publishedPosts.likes' }
+        }
+      }
+    ])
+
+    return {
+      ...author,
+      _id: author._id.toString(),
+      stats: stats[0] || { totalPosts: 0, totalViews: 0, totalLikes: 0 }
+    }
   } catch (error) {
     console.error('Error fetching author for metadata:', error)
     return null

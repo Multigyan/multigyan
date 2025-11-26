@@ -21,24 +21,21 @@ export function middleware(request) {
     }
   }
 
-  const response = NextResponse.next()
-
-  // ⚡ PHASE 3: Add cache headers for static assets
-  if (pathname.startsWith('/_next/static')) {
-    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
-  }
-
-  // ⚡ PHASE 3: Add cache headers for images
-  if (pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/)) {
-    response.headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800')
-  }
-
-  return response
+  return NextResponse.next()
 }
 
-// Configure which routes this middleware should run on
+// ✅ OPTIMIZED: Exclude static assets to reduce function invocations
+// Vercel automatically handles cache headers for _next/static and images
 export const config = {
   matcher: [
-    '/((?!api|_next/image).*)', // Run on all routes except API and Next.js image optimization
+    /*
+     * Match all request paths except:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, sitemap.xml, robots.txt (static files)
+     * - *.png, *.jpg, *.jpeg, *.gif, *.webp, *.svg, *.ico (images)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico)$).*)',
   ],
 }
