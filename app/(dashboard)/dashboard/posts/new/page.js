@@ -25,7 +25,7 @@ import BlogPostPreview from "@/components/blog/BlogPostPreview"
 import DynamicListInput from "@/components/blog/DynamicListInput"
 import AffiliateLinkManager from "@/components/blog/AffiliateLinkManager"
 import ProjectOverview from "@/components/posts/enhanced-form/ProjectOverview"
-import { ArrowLeft, Save, Send, FileText, Image, Tag, Settings, Eye, Wrench, ChefHat, BookOpen, Globe, Link as LinkIcon, Clock, Loader2 } from "lucide-react"
+import { ArrowLeft, Save, Send, FileText, Image, Tag, Settings, Eye, Wrench, ChefHat, BookOpen, Globe, Link as LinkIcon, Clock, Loader2, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { generateSlug } from "@/lib/helpers"
 import { useAutosave } from "@/hooks/useAutosave"
@@ -460,7 +460,7 @@ export default function NewPostPage() {
 
         // ✅ Clear draft from localStorage after successful publish
         if (status !== 'draft') {
-          localStorage.removeItem('blogPostDraft')
+          clearDraft() // Use the clearDraft function from useAutosave hook
           console.log('🗑️ Draft cleared from localStorage after publish')
         }
 
@@ -535,18 +535,77 @@ export default function NewPostPage() {
               </div>
             )}
 
-            {/* Manual Save Draft Button */}
+            {/* Clear Auto Saved Draft Button */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
-                saveDraft()
-                toast.success('Draft saved manually!')
+                if (confirm('Are you sure you want to clear the auto-saved draft? This will remove all unsaved changes from your browser storage.')) {
+                  clearDraft()
+                  // Reset form to initial state
+                  setFormData({
+                    title: "",
+                    excerpt: "",
+                    content: "",
+                    featuredImageUrl: "",
+                    featuredImageAlt: "",
+                    category: "",
+                    tags: [],
+                    seoTitle: "",
+                    seoDescription: "",
+                    allowComments: true,
+                    contentType: "blog",
+                    lang: "en",
+                    translationOf: "",
+                    diyDifficulty: "medium",
+                    diyMaterials: [],
+                    diyTools: [],
+                    diyEstimatedTime: "",
+                    projectType: "other",
+                    whatYouWillLearn: [],
+                    estimatedCost: { min: 0, max: 0, currency: "USD" },
+                    prerequisites: [],
+                    safetyWarnings: [],
+                    targetAudience: [],
+                    inspirationStory: "",
+                    recipePrepTime: "",
+                    recipeCookTime: "",
+                    recipeServings: "",
+                    recipeIngredients: [],
+                    recipeCuisine: "",
+                    recipeDiet: [],
+                    affiliateLinks: [],
+                  })
+                  toast.success('Auto-saved draft cleared! Starting fresh.', {
+                    description: 'All form fields have been reset.'
+                  })
+                }
               }}
               disabled={!formData.title && !formData.content}
+              className="text-destructive hover:text-destructive"
             >
-              <Save className="mr-2 h-4 w-4" aria-hidden="true" />
-              Save Draft
+              <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+              Clear Auto Saved Draft
+            </Button>
+
+            {/* Save Draft Button - Now saves to database */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSubmit('draft')}
+              disabled={!formData.title && !formData.content || loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Save Draft
+                </>
+              )}
             </Button>
 
             {/* Preview Button */}
