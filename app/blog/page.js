@@ -184,7 +184,7 @@ export default async function BlogPage({ searchParams }) {
                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Top Stories</span>
                 </h2>
                 <p className="text-muted-foreground">
-                  Handpicked articles you shouldn't miss
+                  Handpicked articles you shouldn&#39;t miss
                 </p>
               </div>
             </div>

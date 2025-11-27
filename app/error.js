@@ -18,7 +18,7 @@ export default function HomeError({ error, reset }) {
                         <AlertCircle className="h-24 w-24 text-destructive mx-auto mb-6 animate-pulse" />
                         <h1 className="text-4xl font-bold mb-4">Oops! Something went wrong</h1>
                         <p className="text-lg text-muted-foreground mb-8">
-                            We encountered an error while loading the homepage. Don't worry, we're on it!
+                            We encountered an error while loading the homepage. Don&#39;t worry, we&#39;re on it!
                         </p>
                         {process.env.NODE_ENV === 'development' && error && (
                             <details className="text-left bg-muted p-4 rounded-lg mb-6">
