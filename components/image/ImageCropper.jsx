@@ -4,11 +4,11 @@ import { useState, useCallback } from 'react'
 import Cropper from 'react-easy-crop'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
-import { 
-  Check, 
-  X, 
-  ZoomIn, 
-  ZoomOut, 
+import {
+  Check,
+  X,
+  ZoomIn,
+  ZoomOut,
   RotateCw,
   Maximize2
 } from 'lucide-react'
@@ -118,9 +118,9 @@ async function getCroppedImg(imageSrc, pixelCrop, rotation = 0, flip = { horizon
   })
 }
 
-export default function ImageCropper({ 
-  imageSrc, 
-  onCropComplete, 
+export default function ImageCropper({
+  imageSrc,
+  onCropComplete,
   onCancel,
   aspectRatio = 1, // 1 = square, 16/9 = landscape, 4/3 = portrait
   cropShape = 'round' // 'rect' or 'round'
@@ -168,7 +168,7 @@ export default function ImageCropper({
   const handleCropComplete = async () => {
     try {
       setProcessing(true)
-      
+
       if (!croppedAreaPixels) {
         toast.error('Please adjust the crop area')
         return
@@ -186,13 +186,13 @@ export default function ImageCropper({
 
       // Create a File from the Blob
       const croppedImageFile = new File(
-        [croppedImageBlob], 
-        'cropped-image.jpg', 
+        [croppedImageBlob],
+        'cropped-image.jpg',
         { type: 'image/jpeg' }
       )
 
       onCropComplete(croppedImageFile)
-      
+
     } catch (error) {
       console.error('Error cropping image:', error)
       toast.error('Failed to crop image. Please try again.')
@@ -202,7 +202,7 @@ export default function ImageCropper({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] bg-background/95 backdrop-blur-sm">
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
