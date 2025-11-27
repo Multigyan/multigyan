@@ -31,16 +31,44 @@ export const authOptions = {
             throw new Error('Account is deactivated')
           }
 
+          // ✅ BRUTE FORCE PROTECTION: Check if account is locked
+          const now = Date.now()
+          if (user.accountLockedUntil && now < user.accountLockedUntil.getTime()) {
+            const minutesLeft = Math.ceil((user.accountLockedUntil.getTime() - now) / 60000)
+            throw new Error(`Too many failed login attempts. Account locked for ${minutesLeft} more minute(s).`)
+          }
+
           // Check password
           const isPasswordValid = await user.comparePassword(credentials.password)
 
           if (!isPasswordValid) {
+            // ✅ TRACK FAILED ATTEMPT (minimal DB write)
+            user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1
+            user.lastFailedLoginAt = new Date()
+
+            // Lock account after 5 failed attempts for 15 minutes
+            if (user.failedLoginAttempts >= 5) {
+              user.accountLockedUntil = new Date(now + 15 * 60 * 1000) // 15 minutes
+              await user.save({ validateBeforeSave: false })
+              throw new Error('Too many failed login attempts. Account locked for 15 minutes.')
+            }
+
+            // Save failed attempt count
+            await user.save({ validateBeforeSave: false })
             throw new Error('Invalid password')
+          }
+
+          // ✅ RESET ON SUCCESSFUL LOGIN (minimal DB write - only if needed)
+          const needsReset = user.failedLoginAttempts > 0 || user.accountLockedUntil
+          if (needsReset) {
+            user.failedLoginAttempts = 0
+            user.lastFailedLoginAt = null
+            user.accountLockedUntil = null
           }
 
           // Update last login
           user.lastLoginAt = new Date()
-          await user.save()
+          await user.save({ validateBeforeSave: false })
 
           // Return user object (without password)
           return {

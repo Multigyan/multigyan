@@ -92,24 +92,24 @@ const UserSchema = new mongoose.Schema({
     likeNotifications: { type: Boolean, default: false },
     newFollowerNotifications: { type: Boolean, default: true },
     weeklyDigest: { type: Boolean, default: true },
-    
+
     // Privacy Settings
     profileVisibility: { type: Boolean, default: true },
     showEmail: { type: Boolean, default: false },
     showJoinDate: { type: Boolean, default: true },
     allowFollowing: { type: Boolean, default: true },
-    
+
     // Content Settings
     autoSaveDrafts: { type: Boolean, default: true },
     defaultPostVisibility: { type: String, enum: ['public', 'private'], default: 'public' },
     allowComments: { type: Boolean, default: true },
     moderateComments: { type: Boolean, default: false },
-    
+
     // Display Settings
     theme: { type: String, enum: ['light', 'dark', 'system'], default: 'system' },
     language: { type: String, default: 'en' },
     postsPerPage: { type: Number, min: 5, max: 50, default: 10 },
-    
+
     // Security Settings
     twoFactorEnabled: { type: Boolean, default: false },
     loginAlerts: { type: Boolean, default: true }
@@ -123,6 +123,19 @@ const UserSchema = new mongoose.Schema({
     default: false
   },
   lastLoginAt: {
+    type: Date,
+    default: null
+  },
+  // Failed Login Tracking (for brute force protection)
+  failedLoginAttempts: {
+    type: Number,
+    default: 0
+  },
+  lastFailedLoginAt: {
+    type: Date,
+    default: null
+  },
+  accountLockedUntil: {
     type: Date,
     default: null
   },
@@ -148,7 +161,7 @@ UserSchema.index({ role: 1 })
 UserSchema.index({ createdAt: -1 })
 
 // Virtual for user's full profile
-UserSchema.virtual('profile').get(function() {
+UserSchema.virtual('profile').get(function () {
   return {
     id: this._id,
     name: this.name,
@@ -169,10 +182,10 @@ UserSchema.virtual('profile').get(function() {
 })
 
 // Hash password before saving
-UserSchema.pre('save', async function(next) {
+UserSchema.pre('save', async function (next) {
   // Only hash password if it has been modified (or is new)
   if (!this.isModified('password')) return next()
-  
+
   try {
     // Hash password with cost of 12
     const hashedPassword = await bcryptjs.hash(this.password, 12)
@@ -184,7 +197,7 @@ UserSchema.pre('save', async function(next) {
 })
 
 // Instance method to check password
-UserSchema.methods.comparePassword = async function(candidatePassword) {
+UserSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcryptjs.compare(candidatePassword, this.password)
   } catch (error) {
@@ -193,50 +206,50 @@ UserSchema.methods.comparePassword = async function(candidatePassword) {
 }
 
 // Static method to find user by email with password
-UserSchema.statics.findByEmailWithPassword = function(email) {
+UserSchema.statics.findByEmailWithPassword = function (email) {
   return this.findOne({ email }).select('+password')
 }
 
 // Static method to promote user to admin
-UserSchema.statics.promoteToAdmin = async function(userId, promotedBy) {
+UserSchema.statics.promoteToAdmin = async function (userId, promotedBy) {
   const user = await this.findById(userId)
   if (!user) {
     throw new Error('User not found')
   }
-  
+
   user.role = 'admin'
   // ✅ FIX: Skip validation to avoid bio length errors
   await user.save({ validateBeforeSave: false })
-  
+
   return user
 }
 
 // Static method to demote admin to author
-UserSchema.statics.demoteToAuthor = async function(userId, demotedBy) {
+UserSchema.statics.demoteToAuthor = async function (userId, demotedBy) {
   const user = await this.findById(userId)
   if (!user) {
     throw new Error('User not found')
   }
-  
+
   // Prevent self-demotion
   if (userId.toString() === demotedBy.toString()) {
     throw new Error('Cannot demote yourself')
   }
-  
+
   user.role = 'author'
   // ✅ FIX: Skip validation to avoid bio length errors
   await user.save({ validateBeforeSave: false })
-  
+
   return user
 }
 
 // Static method to get admin count
-UserSchema.statics.getAdminCount = function() {
+UserSchema.statics.getAdminCount = function () {
   return this.countDocuments({ role: 'admin', isActive: true })
 }
 
 // Static method to check if user can be promoted to admin
-UserSchema.statics.canPromoteToAdmin = async function() {
+UserSchema.statics.canPromoteToAdmin = async function () {
   const adminCount = await this.getAdminCount()
   const MAX_ADMINS = process.env.MAX_ADMINS || 3
   return adminCount < MAX_ADMINS
