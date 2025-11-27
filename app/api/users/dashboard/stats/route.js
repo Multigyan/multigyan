@@ -6,6 +6,7 @@ import Post from '@/models/Post'
 import User from '@/models/User'
 import mongoose from 'mongoose'
 import { redisCache, cacheWrapper } from '@/lib/redis-cache'
+import logger from '@/lib/logger'
 
 // ⚡ OPTIMIZED: Dedicated stats endpoint for dashboard
 // Returns ONLY counts, no full post objects
@@ -94,7 +95,7 @@ export async function GET(request) {
         })
 
     } catch (error) {
-        console.error('❌ Error fetching dashboard stats:', error)
+        logger.error('❌ Error fetching dashboard stats:', { error })
         return NextResponse.json(
             { error: 'Failed to fetch dashboard statistics', details: error.message },
             { status: 500 }

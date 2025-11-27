@@ -5,6 +5,8 @@ import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import Category from '@/models/Category'
 import { apiCache, invalidatePostCaches } from '@/lib/cache'
+import { postRateLimit, rateLimitResponse } from '@/lib/ratelimit'
+import logger from '@/lib/logger'
 
 // ⚡ PERFORMANCE: Short revalidation for fresh content
 // Note: Cache-Control headers below handle development vs production behavior
@@ -29,7 +31,7 @@ export async function GET(request) {
     const translationOf = searchParams.get('translationOf') // ✨ For language switcher
 
     const session = await getServerSession(authOptions)
-    
+
     // ⚡ OPTIMIZATION 1: Check cache for public requests (skip in development)
     if (!session && status === 'published' && process.env.NODE_ENV !== 'development') {
       const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}-${translationOf || 'all'}`
@@ -42,10 +44,10 @@ export async function GET(request) {
         })
       }
     }
-    
+
     // Build query based on user role and filters
     let query = {}
-    
+
     if (!session) {
       query.status = 'published'
     } else {
@@ -85,9 +87,9 @@ export async function GET(request) {
     if (search) {
       postsQuery = postsQuery.sort({ score: { $meta: 'textScore' } })
     } else {
-      postsQuery = postsQuery.sort({ 
+      postsQuery = postsQuery.sort({
         status: 1,
-        createdAt: -1 
+        createdAt: -1
       })
     }
 
@@ -120,7 +122,7 @@ export async function GET(request) {
         hasPrev: page > 1
       }
     }
-    
+
     // ⚡ OPTIMIZATION 6: Cache public requests (only in production)
     if (!session && status === 'published' && process.env.NODE_ENV !== 'development') {
       const cacheKey = `posts-${page}-${limit}-${category || 'all'}-${author || 'all'}-${featured}-${slug || 'all'}-${contentType || 'all'}-${excludeRecipes}-${translationOf || 'all'}`
@@ -130,7 +132,7 @@ export async function GET(request) {
     // Set cache control headers based on environment
     const cacheControl = process.env.NODE_ENV === 'development'
       ? 'no-store, no-cache, must-revalidate' // Development: always fresh
-      : !session 
+      : !session
         ? 'public, s-maxage=60, stale-while-revalidate=120' // Production public: 1 min cache
         : 'no-store, no-cache, must-revalidate' // Production private: no cache
 
@@ -143,7 +145,7 @@ export async function GET(request) {
     })
 
   } catch (error) {
-    console.error('❌ Error fetching posts:', error)
+    logger.error('Error fetching posts:', { error })
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -153,9 +155,15 @@ export async function GET(request) {
 
 // POST - Create new post - ⚡ OPTIMIZED
 export async function POST(request) {
+  // Rate limiting: 20 posts per minute
+  const rateLimitResult = await postRateLimit(request)
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult)
+  }
+
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -298,7 +306,7 @@ export async function POST(request) {
     )
 
   } catch (error) {
-    console.error('❌ Error creating post:', error)
+    logger.error('Error creating post:', { error })
 
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message)

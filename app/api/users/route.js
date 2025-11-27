@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import { User } from '@/models'
 import { isValidEmail } from '@/lib/helpers'
+import logger from '@/lib/logger'
 
 export async function POST(request) {
   try {
@@ -70,7 +71,7 @@ export async function POST(request) {
     )
 
   } catch (error) {
-    console.error('Registration error:', error)
+    logger.error('Registration error:', { error })
 
     // Handle duplicate key error
     if (error.code === 11000) {
@@ -132,7 +133,7 @@ export async function GET(request) {
     })
 
   } catch (error) {
-    console.error('Get users error:', error)
+    logger.error('Get users error:', { error })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

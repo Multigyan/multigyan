@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
+import logger from '@/lib/logger'
 
 /**
  * GET /api/users/bookmarks
@@ -61,7 +62,7 @@ export async function GET(request) {
     })
 
   } catch (error) {
-    console.error('Error fetching bookmarks:', error)
+    logger.error('Error fetching bookmarks:', { error })
     return NextResponse.json(
       { error: 'Failed to fetch bookmarks' },
       { status: 500 }

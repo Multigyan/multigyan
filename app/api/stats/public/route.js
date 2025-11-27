@@ -4,6 +4,7 @@ import Post from '@/models/Post'
 import User from '@/models/User'
 import Category from '@/models/Category'
 import { apiCache } from '@/lib/cache'
+import logger from '@/lib/logger'
 
 export async function GET() {
   try {
@@ -34,7 +35,7 @@ export async function GET() {
     
     return NextResponse.json(response)
   } catch (error) {
-    console.error('Error fetching public stats:', error)
+    logger.error('Error fetching public stats:', { error })
     return NextResponse.json(
       { error: 'Failed to fetch stats' },
       { status: 500 }

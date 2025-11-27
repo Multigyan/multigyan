@@ -2,6 +2,7 @@ import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
+import logger from '@/lib/logger'
 
 export const authOptions = {
   providers: [
@@ -18,10 +19,10 @@ export const authOptions = {
 
         try {
           await connectDB()
-          
+
           // Find user with password field
           const user = await User.findByEmailWithPassword(credentials.email)
-          
+
           if (!user) {
             throw new Error('No user found with this email')
           }
@@ -32,7 +33,7 @@ export const authOptions = {
 
           // Check password
           const isPasswordValid = await user.comparePassword(credentials.password)
-          
+
           if (!isPasswordValid) {
             throw new Error('Invalid password')
           }
@@ -57,7 +58,7 @@ export const authOptions = {
             createdAt: user.createdAt
           }
         } catch (error) {
-          console.error('Auth error:', error.message)
+          logger.error('Auth error:', { error: error.message })
           throw new Error(error.message)
         }
       }
@@ -78,7 +79,7 @@ export const authOptions = {
         token.emailVerified = user.emailVerified
         token.createdAt = user.createdAt
       }
-      
+
       // Handle session updates (when update() is called)
       if (trigger === 'update' && session) {
         // Update token with new session data
@@ -90,7 +91,7 @@ export const authOptions = {
         token.linkedinUrl = session.user.linkedinUrl || token.linkedinUrl
         token.website = session.user.website || token.website
       }
-      
+
       return token
     },
     async session({ session, token }) {

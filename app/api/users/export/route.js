@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import Post from '@/models/Post'
 import Comment from '@/models/Comment'
+import logger from '@/lib/logger'
 
 export async function GET() {
   try {
@@ -91,7 +92,7 @@ export async function GET() {
     return new Response(jsonData, { headers })
 
   } catch (error) {
-    console.error('Data export error:', error)
+    logger.error('Data export error:', { error })
     return NextResponse.json(
       { error: 'Failed to export data' },
       { status: 500 }

@@ -5,6 +5,7 @@ import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import User from '@/models/User'
 import mongoose from 'mongoose'
+import logger from '@/lib/logger'
 
 export async function GET(request) {
   try {
@@ -163,7 +164,7 @@ export async function GET(request) {
     })
 
   } catch (error) {
-    console.error('Error fetching profile stats:', error)
+    logger.error('Error fetching profile stats:', { error })
     return NextResponse.json(
       { error: 'Failed to fetch profile statistics' },
       { status: 500 }

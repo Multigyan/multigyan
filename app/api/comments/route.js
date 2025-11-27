@@ -5,16 +5,18 @@ import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import User from '@/models/User'
 import Notification from '@/models/Notification'
+import { commentRateLimit, rateLimitResponse } from '@/lib/ratelimit'
+import logger from '@/lib/logger'
 
 // GET - Get comments for a specific post
 export async function GET(request) {
   try {
     await connectDB()
-    
+
     const { searchParams } = new URL(request.url)
     const postId = searchParams.get('postId')
     const includeUnapproved = searchParams.get('includeUnapproved') === 'true'
-    
+
     if (!postId) {
       return NextResponse.json(
         { error: 'Post ID is required' },
@@ -24,7 +26,7 @@ export async function GET(request) {
 
     const post = await Post.findById(postId)
       .populate('comments.author', 'name profilePictureUrl')
-    
+
     if (!post) {
       return NextResponse.json(
         { error: 'Post not found' },
@@ -50,7 +52,7 @@ export async function GET(request) {
     const replies = comments.filter(comment => comment.parentComment)
 
     const commentsWithReplies = topLevelComments.map(comment => {
-      const commentReplies = replies.filter(reply => 
+      const commentReplies = replies.filter(reply =>
         reply.parentComment && reply.parentComment.equals(comment._id)
       )
       return {
@@ -59,7 +61,7 @@ export async function GET(request) {
       }
     })
 
-    const sortedComments = commentsWithReplies.sort((a, b) => 
+    const sortedComments = commentsWithReplies.sort((a, b) =>
       new Date(b.createdAt) - new Date(a.createdAt)
     )
 
@@ -70,7 +72,7 @@ export async function GET(request) {
     })
 
   } catch (error) {
-    console.error('Error fetching comments:', error)
+    logger.error('Error fetching comments:', { error })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -80,9 +82,15 @@ export async function GET(request) {
 
 // POST - Add a new comment or reply
 export async function POST(request) {
+  // Rate limiting: 10 comments per minute
+  const rateLimitResult = await commentRateLimit(request)
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult)
+  }
+
   try {
     await connectDB()
-    
+
     const session = await getServerSession(authOptions)
     const { postId, content, parentComment, guestName, guestEmail } = await request.json()
 
@@ -120,7 +128,7 @@ export async function POST(request) {
     // If it's a reply, verify parent comment exists
     let parentCommentAuthor = null
     if (parentComment) {
-      const parentExists = post.comments.find(comment => 
+      const parentExists = post.comments.find(comment =>
         comment._id.equals(parentComment)
       )
       if (!parentExists) {
@@ -142,7 +150,7 @@ export async function POST(request) {
     if (session?.user) {
       // Logged in user
       commentData.author = session.user.id
-      
+
       // Auto-approve admin comments
       if (session.user.role === 'admin') {
         commentData.isApproved = true
@@ -207,22 +215,22 @@ export async function POST(request) {
           })
         }
       } catch (notifError) {
-        console.error('Error creating notification:', notifError)
+        logger.error('Error creating notification:', { error: notifError })
         // Don't fail the comment creation if notification fails
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: commentData.isApproved 
-        ? 'Comment added successfully' 
+      message: commentData.isApproved
+        ? 'Comment added successfully'
         : 'Comment submitted for approval',
       comment: newComment,
       needsApproval: !commentData.isApproved
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Error adding comment:', error)
+    logger.error('Error adding comment:', { error })
     return NextResponse.json(
       { error: 'Failed to add comment' },
       { status: 500 }
@@ -234,7 +242,7 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     await connectDB()
-    
+
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json(
@@ -271,7 +279,7 @@ export async function PUT(request) {
     switch (action) {
       case 'like':
         await post.toggleCommentLike(commentId, session.user.id)
-        
+
         // CREATE NOTIFICATION for comment like
         if (comment.author && !comment.likes.includes(session.user.id)) {
           try {
@@ -285,7 +293,7 @@ export async function PUT(request) {
               link: `/blog/${post.slug}#comment-${commentId}`
             })
           } catch (notifError) {
-            console.error('Error creating like notification:', notifError)
+            logger.error('Error creating like notification:', { error: notifError })
           }
         }
         break
@@ -298,7 +306,7 @@ export async function PUT(request) {
           )
         }
         await post.approveComment(commentId)
-        
+
         // CREATE NOTIFICATION when comment is approved
         if (comment.author) {
           try {
@@ -312,7 +320,7 @@ export async function PUT(request) {
               link: `/blog/${post.slug}#comment-${commentId}`
             })
           } catch (notifError) {
-            console.error('Error creating approval notification:', notifError)
+            logger.error('Error creating approval notification:', { error: notifError })
           }
         }
         break
@@ -325,7 +333,7 @@ export async function PUT(request) {
             { status: 403 }
           )
         }
-        
+
         if (!content?.trim()) {
           return NextResponse.json(
             { error: 'Content is required for editing' },
@@ -356,7 +364,7 @@ export async function PUT(request) {
     })
 
   } catch (error) {
-    console.error('Error updating comment:', error)
+    logger.error('Error updating comment:', { error })
     return NextResponse.json(
       { error: 'Failed to update comment' },
       { status: 500 }
@@ -368,7 +376,7 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     await connectDB()
-    
+
     const session = await getServerSession(authOptions)
     if (!session?.user || session.user.role !== 'admin') {
       return NextResponse.json(
@@ -404,7 +412,7 @@ export async function DELETE(request) {
     })
 
   } catch (error) {
-    console.error('Error deleting comment:', error)
+    logger.error('Error deleting comment:', { error })
     return NextResponse.json(
       { error: 'Failed to delete comment' },
       { status: 500 }

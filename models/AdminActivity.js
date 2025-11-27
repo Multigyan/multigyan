@@ -86,7 +86,8 @@ adminActivitySchema.statics.logActivity = async function (data) {
     try {
         return await this.create(data)
     } catch (error) {
-        console.error('Failed to log admin activity:', error)
+        // Silent fail - admin activity logging is non-critical
+        // Don't break the main operation if logging fails
         return null
     }
 }

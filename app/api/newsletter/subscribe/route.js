@@ -2,9 +2,17 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import Newsletter from '@/models/Newsletter'
 import { sendWelcomeEmail } from '@/lib/email'
+import { newsletterRateLimit, rateLimitResponse } from '@/lib/ratelimit'
+import logger from '@/lib/logger'
 
 // POST - Subscribe to newsletter (SIMPLE VERSION - NO DOUBLE OPT-IN)
 export async function POST(request) {
+  // Rate limiting: 3 subscriptions per hour
+  const rateLimitResult = await newsletterRateLimit(request)
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult)
+  }
+
   try {
     await connectDB()
 
@@ -27,10 +35,10 @@ export async function POST(request) {
     }
 
     // Check if already subscribed
-    const existingSubscriber = await Newsletter.findOne({ 
-      email: email.toLowerCase().trim() 
+    const existingSubscriber = await Newsletter.findOne({
+      email: email.toLowerCase().trim()
     })
-    
+
     if (existingSubscriber) {
       if (existingSubscriber.isActive) {
         return NextResponse.json(
@@ -40,10 +48,10 @@ export async function POST(request) {
       } else {
         // Reactivate subscription
         await existingSubscriber.resubscribe()
-        
+
         // Send welcome email
         await sendWelcomeEmail(existingSubscriber.email, existingSubscriber)
-        
+
         return NextResponse.json({
           success: true,
           message: 'Welcome back! Your subscription has been reactivated.',
@@ -54,9 +62,9 @@ export async function POST(request) {
 
     // Get client info for metadata
     const clientInfo = {
-      ipAddress: request.headers.get('x-forwarded-for') || 
-                 request.headers.get('x-real-ip') || 
-                 'unknown',
+      ipAddress: request.headers.get('x-forwarded-for') ||
+        request.headers.get('x-real-ip') ||
+        'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown',
       referrer: request.headers.get('referer') || 'direct'
     }
@@ -80,7 +88,7 @@ export async function POST(request) {
       await sendWelcomeEmail(subscriber.email, subscriber)
     } catch (emailError) {
       // Log error but don't fail the subscription
-      console.error('Welcome email failed:', emailError)
+      logger.error('Welcome email failed:', { error: emailError })
       // Subscription still succeeds even if email fails
     }
 
@@ -96,8 +104,8 @@ export async function POST(request) {
     }, { status: 201 })
 
   } catch (error) {
-    console.error('Error subscribing to newsletter:', error)
-    
+    logger.error('Error subscribing to newsletter:', { error })
+
     if (error.code === 11000) {
       return NextResponse.json(
         { error: 'This email is already subscribed' },

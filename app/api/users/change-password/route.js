@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 import bcrypt from 'bcryptjs'
+import logger from '@/lib/logger'
 
 export async function POST(request) {
   try {
@@ -80,7 +81,7 @@ export async function POST(request) {
     })
 
   } catch (error) {
-    console.error('Change password error:', error)
+    logger.error('Change password error:', { error })
     return NextResponse.json(
       { error: 'Failed to change password' },
       { status: 500 }

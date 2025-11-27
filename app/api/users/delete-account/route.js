@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
 import Post from '@/models/Post'
 import Comment from '@/models/Comment'
+import logger from '@/lib/logger'
 
 export async function DELETE() {
   try {
@@ -64,7 +65,7 @@ export async function DELETE() {
     })
 
   } catch (error) {
-    console.error('Account deletion error:', error)
+    logger.error('Account deletion error:', { error })
     return NextResponse.json(
       { error: 'Failed to delete account. Please try again later.' },
       { status: 500 }

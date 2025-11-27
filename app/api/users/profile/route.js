@@ -3,19 +3,20 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
+import logger from '@/lib/logger'
 
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     await connectDB()
-    
+
     const user = await User.findById(session.user.id).select('-password')
-    
+
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
@@ -26,7 +27,7 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error('Profile fetch error:', error)
+    logger.error('Profile fetch error:', { error })
     return NextResponse.json(
       { error: 'Failed to fetch profile' },
       { status: 500 }
@@ -37,7 +38,7 @@ export async function GET() {
 export async function PUT(request) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -57,7 +58,7 @@ export async function PUT(request) {
     // Validate username if provided
     if (data.username) {
       const username = data.username.trim()
-      
+
       // Check length
       if (username.length < 3) {
         return NextResponse.json({ error: 'Username must be at least 3 characters' }, { status: 400 })
@@ -65,27 +66,27 @@ export async function PUT(request) {
       if (username.length > 30) {
         return NextResponse.json({ error: 'Username cannot be more than 30 characters' }, { status: 400 })
       }
-      
+
       // Check format
       if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-        return NextResponse.json({ 
-          error: 'Username can only contain letters, numbers, hyphens, and underscores' 
+        return NextResponse.json({
+          error: 'Username can only contain letters, numbers, hyphens, and underscores'
         }, { status: 400 })
       }
-      
+
       // Check if username is already taken
-      const existingUser = await User.findOne({ 
+      const existingUser = await User.findOne({
         username: username.toLowerCase(),
         _id: { $ne: session.user.id } // Exclude current user
       })
-      
+
       if (existingUser) {
         return NextResponse.json({ error: 'Username is already taken' }, { status: 400 })
       }
     }
 
     await connectDB()
-    
+
     // Prepare update data
     const updateData = {
       name: data.name.trim(),
@@ -97,7 +98,7 @@ export async function PUT(request) {
       website: data.website?.trim() || '',
       updatedAt: new Date()
     }
-    
+
     // Remove username from update if it's empty
     if (!updateData.username) {
       delete updateData.username
@@ -123,8 +124,8 @@ export async function PUT(request) {
     })
 
   } catch (error) {
-    console.error('Profile update error:', error)
-    
+    logger.error('Profile update error:', { error })
+
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message)
       return NextResponse.json(

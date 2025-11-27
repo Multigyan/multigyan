@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
+import logger from '@/lib/logger'
 
 export async function GET() {
   try {
@@ -50,7 +51,7 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error('Settings fetch error:', error)
+    logger.error('Settings fetch error:', { error })
     return NextResponse.json(
       { error: 'Failed to fetch settings' },
       { status: 500 }
@@ -96,7 +97,7 @@ export async function PUT(request) {
     })
 
   } catch (error) {
-    console.error('Settings update error:', error)
+    logger.error('Settings update error:', { error })
     return NextResponse.json(
       { error: 'Failed to update settings' },
       { status: 500 }

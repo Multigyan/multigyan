@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 import { apiCache } from '@/lib/cache'
+import logger from '@/lib/logger'
 
 export async function GET() {
   try {
@@ -30,7 +31,7 @@ export async function GET() {
     return NextResponse.json(response)
 
   } catch (error) {
-    console.error('Error fetching authors count:', error)
+    logger.error('Error fetching authors count:', { error })
     return NextResponse.json(
       { error: 'Failed to fetch authors count' },
       { status: 500 }

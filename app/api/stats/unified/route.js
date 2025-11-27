@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getUnifiedStats } from '@/lib/stats'
+import logger from '@/lib/logger'
 
 // ✅ Unified stats API - now uses centralized stats service
 export async function GET() {
@@ -16,7 +17,7 @@ export async function GET() {
         })
 
     } catch (error) {
-        console.error('Error fetching unified stats:', error)
+        logger.error('Error fetching unified stats:', { error })
         return NextResponse.json(
             { success: false, error: 'Failed to calculate stats' },
             { status: 500 }

@@ -984,7 +984,7 @@ PostSchema.methods.addLike = async function (userId) {
           link: `/blog/${this.slug}`
         })
       } catch (error) {
-        console.error('Error creating like notification:', error)
+        // Silent fail - don't break like functionality if notification fails
       }
     }
   }
@@ -1027,7 +1027,7 @@ PostSchema.methods.addComment = async function (commentData) {
         link: `/blog/${this.slug}#comments`
       })
     } catch (error) {
-      console.error('Error creating comment notification:', error)
+      // Silent fail - don't break comment functionality if notification fails
     }
   }
 
@@ -1049,7 +1049,7 @@ PostSchema.methods.addComment = async function (commentData) {
           link: `/blog/${this.slug}#comment-${parentComment._id}`
         })
       } catch (error) {
-        console.error('Error creating reply notification:', error)
+        // Silent fail - don't break reply functionality if notification fails
       }
     }
   }
@@ -1122,7 +1122,7 @@ PostSchema.methods.toggleCommentLike = async function (commentId, userId) {
             link: `/blog/${this.slug}#comment-${comment._id}`
           })
         } catch (error) {
-          console.error('Error creating comment like notification:', error)
+          // Silent fail - don't break like functionality if notification fails
         }
       }
     }

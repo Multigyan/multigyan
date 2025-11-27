@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { connectDB } from '@/lib/mongodb'
 import User from '@/models/User'
+import logger from '@/lib/logger'
 
 export async function POST(request) {
   try {
@@ -64,7 +65,7 @@ export async function POST(request) {
     })
 
   } catch (error) {
-    console.error('Username check error:', error)
+    logger.error('Username check error:', { error })
     return NextResponse.json(
       { error: 'Failed to check username availability' },
       { status: 500 }
