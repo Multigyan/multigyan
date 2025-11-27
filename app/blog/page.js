@@ -1,3 +1,4 @@
+import React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -19,11 +20,13 @@ import {
 import { formatDate, getPostUrl } from "@/lib/helpers"
 import AdSense from "@/components/AdSense"
 import SearchForm from "@/components/blog/SearchForm"
-import SortDropdown from "@/components/blog/SortDropdown"
 import NewsletterSubscribe from "@/components/newsletter/NewsletterSubscribe"
 import StructuredData, { generateBreadcrumbSchema, generateItemListSchema, generateWebSiteSchema } from "@/components/seo/StructuredData"
 import Breadcrumbs from "@/components/ui/Breadcrumbs"
 import { BLOG_CONFIG } from "@/lib/constants"
+import Pagination from "@/components/blog/Pagination"
+import EmptyState from "@/components/blog/EmptyState"
+import PopularPosts from "@/components/blog/PopularPosts"
 
 // ✅ SEO: Comprehensive metadata for blog listing page
 export const metadata = {
@@ -273,7 +276,6 @@ export default async function BlogPage({ searchParams }) {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Posts Area */}
             <div className="lg:col-span-3">
-              {/* Section Header with Sort */}
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-2xl sm:text-3xl font-bold mb-2">
@@ -283,32 +285,16 @@ export default async function BlogPage({ searchParams }) {
                     {pagination?.total || 0} articles available
                   </p>
                 </div>
-                <SortDropdown />
               </div>
 
               {/* Posts Grid */}
               {posts.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                      <BookOpen className="h-10 w-10 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">
-                      {search ? 'No articles found' : 'No articles published yet'}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-6">
-                      {search
-                        ? 'Try adjusting your search terms or browse our popular categories.'
-                        : 'Check back soon for new content!'}
-                    </p>
-
-                    {search && (
-                      <Button asChild>
-                        <Link href="/blog">Browse All Articles</Link>
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
+                <EmptyState
+                  icon={BookOpen}
+                  title={search ? "No articles found" : "No articles yet"}
+                  description={search ? `No results for "${search}"` : "Check back soon"}
+                  action={search && <Button asChild><Link href="/blog">Clear Search</Link></Button>}
+                />
               ) : (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
@@ -317,8 +303,8 @@ export default async function BlogPage({ searchParams }) {
                       const showAdsAfter = index === 2
 
                       return (
-                        <>
-                          <div key={post._id}>
+                        <React.Fragment key={post._id}>
+                          <div>
                             {/* Blog Post Card */}
                             <Link href={getPostUrl(post)} className="block">
                               <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group h-full">
@@ -463,48 +449,19 @@ export default async function BlogPage({ searchParams }) {
                               </Card>
                             </div>
                           )}
-                        </>
+                        </React.Fragment>
                       )
                     })}
                   </div>
 
-                  {/* Pagination */}
+                  {/* Enhanced Pagination */}
                   {pagination && pagination.pages > 1 && (
-                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-2">
-                      <Button
-                        variant="outline"
-                        disabled={!pagination.hasPrev}
-                        className="w-full sm:w-auto"
-                        asChild={pagination.hasPrev}
-                      >
-                        {pagination.hasPrev ? (
-                          <Link href={`/blog?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ''}${sort !== 'latest' ? `&sort=${sort}` : ''}`}>
-                            Previous
-                          </Link>
-                        ) : (
-                          <span>Previous</span>
-                        )}
-                      </Button>
-
-                      <span className="flex items-center px-4 text-sm text-muted-foreground">
-                        Page {pagination.current} of {pagination.pages}
-                      </span>
-
-                      <Button
-                        variant="outline"
-                        disabled={!pagination.hasNext}
-                        className="w-full sm:w-auto"
-                        asChild={pagination.hasNext}
-                      >
-                        {pagination.hasNext ? (
-                          <Link href={`/blog?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ''}${sort !== 'latest' ? `&sort=${sort}` : ''}`}>
-                            Next
-                          </Link>
-                        ) : (
-                          <span>Next</span>
-                        )}
-                      </Button>
-                    </div>
+                    <Pagination
+                      currentPage={page}
+                      totalPages={pagination.pages}
+                      baseUrl="/blog"
+                      searchParams={{ search, sort }}
+                    />
                   )}
                 </>
               )}
@@ -512,7 +469,6 @@ export default async function BlogPage({ searchParams }) {
 
             {/* Sidebar */}
             <div className="space-y-8">
-              {/* Featured In-Feed Ad */}
               <Card>
                 <CardContent className="p-4">
                   {/* Desktop Ad */}
@@ -535,6 +491,9 @@ export default async function BlogPage({ searchParams }) {
                   </div>
                 </CardContent>
               </Card>
+              {/* Popular Posts */}
+              <PopularPosts limit={5} />
+
 
               {/* Categories */}
               {categories.length > 0 && (
