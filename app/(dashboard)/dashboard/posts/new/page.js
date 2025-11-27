@@ -513,7 +513,7 @@ export default function NewPostPage() {
     <>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-start md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
               <Link href="/dashboard/posts">
@@ -521,17 +521,17 @@ export default function NewPostPage() {
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Create New Post</h1>
-              <p className="text-muted-foreground">Write and publish a new blog post, DIY tutorial, or recipe</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground">Create New Post</h1>
+              <p className="text-muted-foreground text-sm hidden md:block">Write and publish a new blog post, DIY tutorial, or recipe</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-3">
             {/* Last Saved Indicator */}
             {lastSaved && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
-                <span>Saved {lastSaved.toLocaleTimeString()}</span>
+                <span className="hidden sm:inline">Saved {lastSaved.toLocaleTimeString()}</span>
               </div>
             )}
 
@@ -583,9 +583,10 @@ export default function NewPostPage() {
               }}
               disabled={!formData.title && !formData.content}
               className="text-destructive hover:text-destructive"
+              title="Clear Auto Saved Draft"
             >
-              <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
-              Clear Auto Saved Draft
+              <Trash2 className="h-4 w-4 md:mr-2" aria-hidden="true" />
+              <span className="hidden md:inline">Clear Auto Saved Draft</span>
             </Button>
 
             {/* Save Draft Button - Now saves to database */}
@@ -594,16 +595,17 @@ export default function NewPostPage() {
               size="sm"
               onClick={() => handleSubmit('draft')}
               disabled={!formData.title && !formData.content || loading}
+              title="Save Draft"
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                  Saving...
+                  <Loader2 className="h-4 w-4 md:mr-2 animate-spin" aria-hidden="true" />
+                  <span className="hidden md:inline">Saving...</span>
                 </>
               ) : (
                 <>
-                  <Save className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Save Draft
+                  <Save className="h-4 w-4 md:mr-2" aria-hidden="true" />
+                  <span className="hidden md:inline">Save Draft</span>
                 </>
               )}
             </Button>
@@ -614,9 +616,10 @@ export default function NewPostPage() {
               size="sm"
               onClick={() => setShowPreview(true)}
               disabled={!formData.title && !formData.content}
+              title="Preview Post"
             >
-              <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
-              Preview Post
+              <Eye className="h-4 w-4 md:mr-2" aria-hidden="true" />
+              <span className="hidden md:inline">Preview</span>
             </Button>
           </div>
         </div>
