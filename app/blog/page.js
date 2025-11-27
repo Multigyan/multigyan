@@ -11,11 +11,15 @@ import {
   Heart,
   MessageCircle,
   TrendingUp,
-  BookOpen
+  BookOpen,
+  Star,
+  Sparkles,
+  ArrowRight
 } from "lucide-react"
 import { formatDate, getPostUrl } from "@/lib/helpers"
 import AdSense from "@/components/AdSense"
 import SearchForm from "@/components/blog/SearchForm"
+import SortDropdown from "@/components/blog/SortDropdown"
 import NewsletterSubscribe from "@/components/newsletter/NewsletterSubscribe"
 import StructuredData, { generateBreadcrumbSchema, generateItemListSchema, generateWebSiteSchema } from "@/components/seo/StructuredData"
 import Breadcrumbs from "@/components/ui/Breadcrumbs"
@@ -52,21 +56,37 @@ export const metadata = {
 }
 
 // ✅ COST OPTIMIZATION: Revalidate every 5 minutes (300 seconds)
-// This reduces function invocations by 98% compared to per-request
 export const revalidate = 300
 
 export default async function BlogPage({ searchParams }) {
   // ✅ FIX: Await searchParams before accessing properties (Next.js 15+ requirement)
   const resolvedParams = await searchParams
 
-  // Get search and pagination params
+  // Get search, pagination, and sort params
   const page = parseInt(resolvedParams.page) || 1
   const search = resolvedParams.search || ''
+  const sort = resolvedParams.sort || 'latest'
+
+  // Build API URL with sort parameter (11 posts per page)
+  const postsPerPage = 11
+  let apiUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/posts?status=published&excludeRecipes=true&page=${page}&limit=${postsPerPage}`
+
+  if (search) {
+    apiUrl += `&search=${encodeURIComponent(search)}`
+  }
+
+  // Add sort parameter
+  if (sort === 'popular') {
+    apiUrl += '&sortBy=views&sortOrder=desc'
+  } else if (sort === 'trending') {
+    apiUrl += '&sortBy=likes&sortOrder=desc'
+  } else {
+    apiUrl += '&sortBy=publishedAt&sortOrder=desc'
+  }
 
   // ✅ COST OPTIMIZATION: Fetch data server-side with caching
-  // This eliminates 3 API calls per visitor
   const [postsData, featuredData, categoriesData] = await Promise.all([
-    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/posts?status=published&excludeRecipes=true&page=${page}&limit=${BLOG_CONFIG.POSTS_PER_PAGE}${search ? `&search=${encodeURIComponent(search)}` : ''}`, {
+    fetch(apiUrl, {
       next: { revalidate: BLOG_CONFIG.POSTS_REVALIDATE }
     }).then(res => res.json()).catch(() => ({ posts: [], pagination: null })),
 
@@ -100,258 +120,190 @@ export default async function BlogPage({ searchParams }) {
       <StructuredData data={itemListSchema} />
       <StructuredData data={websiteSchema} />
 
-      {/* ✅ IMPROVED: Hero Section with Better Mobile Spacing */}
-      {featuredPosts.length > 0 && (
-        <section id="main-content" className="bg-gradient-to-br from-background via-background to-muted/20 py-12 sm:py-14 md:py-16 fade-in">
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="text-center mb-8 sm:mb-10 md:mb-12">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
-                Featured <span className="title-gradient">Stories</span>
-              </h2>
-              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-                Discover our most popular and trending articles
+      {/* 🎨 ENHANCED HERO SECTION */}
+      <section id="main-content" className="relative overflow-hidden py-6 sm:py-8 md:py-10 lg:py-12 bg-gradient-to-br from-background via-primary/5 to-background">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-6xl mx-auto">
+            {/* Breadcrumbs */}
+            <Breadcrumbs
+              items={[
+                { name: 'Blog', url: '/blog' }
+              ]}
+              className="mb-6 fade-in"
+            />
+
+            {/* Hero Content */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full mb-4 border border-primary/20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-xs font-medium text-primary uppercase tracking-wider">Blog</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight tracking-tight animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150">
+                {search ? 'Search Results' : 'Latest'}{" "}
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary to-primary/60 animate-gradient">
+                  Articles
+                </span>
+              </h1>
+
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                {search
+                  ? `Found ${pagination?.total || 0} articles for "${search}"`
+                  : 'Discover expert insights, practical guides, and trending stories'}
               </p>
+
+              {/* Search Bar */}
+              <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-10 duration-700 delay-450">
+                <SearchForm initialSearch={search} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ⭐ REDESIGNED FEATURED STORIES SECTION */}
+      {featuredPosts.length > 0 && !search && (
+        <section className="py-12 sm:py-16 bg-muted/30">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full mb-3 border border-primary/20">
+                  <Star className="h-4 w-4 text-primary fill-primary" />
+                  <span className="text-xs font-medium text-primary uppercase tracking-wider">Featured</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold mb-2">
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Top Stories</span>
+                </h2>
+                <p className="text-muted-foreground">
+                  Handpicked articles you shouldn't miss
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-              {/* Main featured post */}
-              {featuredPosts[0] && (
-                <Link href={getPostUrl(featuredPosts[0])} className="lg:col-span-2 block slide-in">
-                  <Card className="blog-card h-full overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group">
-                    <div className="relative h-56 sm:h-64 lg:h-80">
-                      {featuredPosts[0].featuredImageUrl ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredPosts.slice(0, 3).map((post, index) => (
+                <Link key={post._id} href={getPostUrl(post)} className="block group">
+                  <Card className="overflow-hidden hover:shadow-2xl transition-all duration-500 border-2 border-primary/20 hover:border-primary/40 bg-gradient-to-br from-background to-primary/5 h-full">
+                    {/* Image */}
+                    <div className="relative h-48 overflow-hidden bg-muted">
+                      {post.featuredImageUrl ? (
                         <Image
-                          src={featuredPosts[0].featuredImageUrl}
-                          alt={featuredPosts[0].featuredImageAlt || featuredPosts[0].title}
+                          src={post.featuredImageUrl}
+                          alt={post.featuredImageAlt || post.title}
                           fill
-                          priority={true}
-                          sizes="(max-width: 1024px) 100vw, 66vw"
-                          className="object-cover transition-transform duration-300 group-hover:scale-110"
+                          priority={index === 0}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-                          <BookOpen className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 text-primary/60" />
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                          <BookOpen className="h-16 w-16 text-primary/60" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 text-white">
-                        <Badge className="mb-2 text-xs sm:text-sm" style={{ backgroundColor: featuredPosts[0].category?.color }}>
-                          {featuredPosts[0].category?.name}
-                        </Badge>
-                        <h2 className="text-xl sm:text-2xl font-bold mb-2 line-clamp-2 group-hover:text-primary-foreground">
-                          {featuredPosts[0].title}
-                        </h2>
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm opacity-90">
-                          <span className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            <span className="truncate max-w-[120px] sm:max-w-none">{featuredPosts[0].author?.name}</span>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span className="hidden sm:inline">{formatDate(featuredPosts[0].publishedAt)}</span>
-                            <span className="sm:hidden">{formatDate(featuredPosts[0].publishedAt).split(',')[0]}</span>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {featuredPosts[0].readingTime} min
-                          </span>
-                        </div>
-                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
+
+                    {/* Content */}
+                    <CardContent className="p-6">
+                      <Badge
+                        className="w-fit mb-3"
+                        style={{ backgroundColor: post.category?.color }}
+                      >
+                        {post.category?.name}
+                      </Badge>
+
+                      <h3 className="text-xl font-bold mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                        {post.title}
+                      </h3>
+
+                      {post.excerpt && (
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
+                          {post.excerpt}
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          {post.author?.profilePictureUrl ? (
+                            <Image
+                              src={post.author.profilePictureUrl}
+                              alt={post.author.name}
+                              width={20}
+                              height={20}
+                              className="rounded-full"
+                            />
+                          ) : (
+                            <div className="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center">
+                              <User className="h-3 w-3 text-primary" />
+                            </div>
+                          )}
+                          <span className="font-medium">{post.author?.name}</span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{post.readingTime} min read</span>
+                        </div>
+
+                        {post.views > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-3 w-3" />
+                            <span>{post.views}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
                   </Card>
                 </Link>
-              )}
-
-              {/* Secondary featured posts with In-Feed Ad */}
-              <div className="space-y-4 sm:space-y-6">
-                {/* First featured post */}
-                {featuredPosts[1] && (
-                  <Link href={getPostUrl(featuredPosts[1])} className="block scale-in" style={{ animationDelay: '100ms' }}>
-                    <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group">
-                      <div className="flex gap-3 sm:gap-4 p-3 sm:p-4">
-                        <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 overflow-hidden rounded">
-                          {featuredPosts[1].featuredImageUrl ? (
-                            <Image
-                              src={featuredPosts[1].featuredImageUrl}
-                              alt={featuredPosts[1].featuredImageAlt || featuredPosts[1].title}
-                              fill
-                              priority={true}
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                              className="object-cover transition-transform duration-300 group-hover:scale-110"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded">
-                              <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-primary/60" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <Badge
-                            size="sm"
-                            className="mb-1.5 sm:mb-2 text-xs"
-                            style={{ backgroundColor: featuredPosts[1].category?.color }}
-                          >
-                            {featuredPosts[1].category?.name}
-                          </Badge>
-                          <h3 className="font-semibold text-sm line-clamp-2 mb-1.5 sm:mb-2 group-hover:text-primary transition-colors">
-                            {featuredPosts[1].title}
-                          </h3>
-                          <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                            <span className="truncate max-w-[100px] sm:max-w-none">{featuredPosts[1].author?.name}</span>
-                            <span className="hidden sm:inline">{formatDate(featuredPosts[1].publishedAt)}</span>
-                            <span className="sm:hidden">{formatDate(featuredPosts[1].publishedAt).split(',')[0]}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  </Link>
-                )}
-
-                {/* ✅ IN-FEED AD - Featured Section */}
-                <div className="scale-in" style={{ animationDelay: '200ms' }}>
-                  {/* Desktop Ad */}
-                  <div className="hidden sm:block">
-                    <AdSense
-                      adSlot="2469183021"
-                      adFormat="fluid"
-                      adLayout="in-article"
-                      adStyle={{ display: 'block', minHeight: '100px' }}
-                    />
-                  </div>
-                  {/* Mobile Ad */}
-                  <div className="block sm:hidden">
-                    <AdSense
-                      adSlot="9146272012"
-                      adFormat="fluid"
-                      adLayout="in-article"
-                      adStyle={{ display: 'block', minHeight: '100px' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Second featured post */}
-                {featuredPosts[2] && (
-                  <Link href={getPostUrl(featuredPosts[2])} className="block scale-in" style={{ animationDelay: '300ms' }}>
-                    <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group">
-                      <div className="flex gap-3 sm:gap-4 p-3 sm:p-4">
-                        <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 overflow-hidden rounded">
-                          {featuredPosts[2].featuredImageUrl ? (
-                            <Image
-                              src={featuredPosts[2].featuredImageUrl}
-                              alt={featuredPosts[2].featuredImageAlt || featuredPosts[2].title}
-                              fill
-                              priority={true}
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                              className="object-cover transition-transform duration-300 group-hover:scale-110"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center rounded">
-                              <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-primary/60" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <Badge
-                            size="sm"
-                            className="mb-1.5 sm:mb-2 text-xs"
-                            style={{ backgroundColor: featuredPosts[2].category?.color }}
-                          >
-                            {featuredPosts[2].category?.name}
-                          </Badge>
-                          <h3 className="font-semibold text-sm line-clamp-2 mb-1.5 sm:mb-2 group-hover:text-primary transition-colors">
-                            {featuredPosts[2].title}
-                          </h3>
-                          <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                            <span className="truncate max-w-[100px] sm:max-w-none">{featuredPosts[2].author?.name}</span>
-                            <span className="hidden sm:inline">{formatDate(featuredPosts[2].publishedAt)}</span>
-                            <span className="sm:hidden">{formatDate(featuredPosts[2].publishedAt).split(',')[0]}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  </Link>
-                )}
-              </div>
+              ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* ✅ IMPROVED: Main Content Section */}
-      <section className="py-12 sm:py-14 md:py-16">
+      {/* 📰 MAIN CONTENT SECTION */}
+      <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4 sm:px-6">
-          {/* ✅ ACCESSIBILITY: Breadcrumbs Navigation */}
-          <Breadcrumbs
-            items={[
-              { name: 'Blog', url: '/blog' }
-            ]}
-            className="mb-6 sm:mb-8 fade-in"
-          />
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Posts Area */}
             <div className="lg:col-span-3">
-              {/* ✅ Search Bar - Client Component */}
-              <div className="mb-6 sm:mb-8 fade-in">
-                <SearchForm initialSearch={search} />
-              </div>
-
-              {/* Section Header */}
-              <div className="flex items-center justify-between mb-6 sm:mb-8 fade-in">
+              {/* Section Header with Sort */}
+              <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold">
-                    {search ? 'Search Results' : 'Latest Articles'}
-                  </h1>
-                  <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
-                    {search
-                      ? `Found ${pagination?.total || 0} articles for "${search}"`
-                      : 'Discover our latest insights and stories'
-                    }
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+                    All <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Articles</span>
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {pagination?.total || 0} articles available
                   </p>
                 </div>
+                <SortDropdown />
               </div>
 
               {/* Posts Grid */}
               {posts.length === 0 ? (
-                <Card className="scale-in">
-                  <CardContent className="text-center py-10 sm:py-12">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                      <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                      <BookOpen className="h-10 w-10 text-muted-foreground" />
                     </div>
-                    <h3 className="text-base sm:text-lg font-semibold mb-2">
+                    <h3 className="text-lg font-semibold mb-2">
                       {search ? 'No articles found' : 'No articles published yet'}
                     </h3>
-                    <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
+                    <p className="text-sm text-muted-foreground mb-6">
                       {search
                         ? 'Try adjusting your search terms or browse our popular categories.'
                         : 'Check back soon for new content!'}
                     </p>
 
-                    {/* Category Suggestions */}
-                    {categories.length > 0 && (
-                      <div className="mt-6">
-                        <p className="text-sm font-medium mb-3">Browse Popular Categories:</p>
-                        <div className="flex flex-wrap gap-2 justify-center">
-                          {categories.slice(0, 5).map((category) => (
-                            <Link
-                              key={category._id}
-                              href={`/category/${category.slug}`}
-                            >
-                              <Badge
-                                variant="outline"
-                                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                                style={{ borderColor: category.color }}
-                              >
-                                {category.name} ({category.postCount})
-                              </Badge>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {search && (
-                      <Button asChild className="w-full sm:w-auto mt-4">
+                      <Button asChild>
                         <Link href="/blog">Browse All Articles</Link>
                       </Button>
                     )}
@@ -359,151 +311,174 @@ export default async function BlogPage({ searchParams }) {
                 </Card>
               ) : (
                 <>
-                  {/* ✅ IMPROVED: Better responsive grid with In-Feed Ads */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-10 sm:mb-12">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
                     {posts.map((post, index) => {
-                      // Insert ad after 3rd post (index 2) on both desktop and mobile
-                      const showAdAfter = index === 2 && posts.length > 3;
+                      // Show 2 stacked ads after Post 3 (index 2)
+                      const showAdsAfter = index === 2
 
                       return (
-                        <div key={post._id} className="contents">
-                          {/* Blog Post Card */}
-                          <Link href={getPostUrl(post)} className="block scale-in" style={{ animationDelay: `${index * 50}ms` }}>
-                            <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group h-full">
-                              <div className="relative h-40 sm:h-48 overflow-hidden">
-                                {post.featuredImageUrl ? (
-                                  <Image
-                                    src={post.featuredImageUrl}
-                                    alt={post.featuredImageAlt || post.title}
-                                    fill
-                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                    className="object-cover transition-transform duration-300 group-hover:scale-110"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-                                    <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-primary/60 transition-transform duration-300 group-hover:scale-110" />
-                                  </div>
-                                )}
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
-                              </div>
-
-                              <CardContent className="p-4 sm:p-6">
-                                <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                                  <Badge style={{ backgroundColor: post.category?.color }} className="text-xs sm:text-sm">
-                                    {post.category?.name}
-                                  </Badge>
+                        <>
+                          <div key={post._id}>
+                            {/* Blog Post Card */}
+                            <Link href={getPostUrl(post)} className="block">
+                              <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group h-full">
+                                <div className="relative h-48 overflow-hidden">
+                                  {post.featuredImageUrl ? (
+                                    <Image
+                                      src={post.featuredImageUrl}
+                                      alt={post.featuredImageAlt || post.title}
+                                      fill
+                                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                      className="object-cover transition-transform duration-300 group-hover:scale-110"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
+                                      <BookOpen className="h-12 w-12 text-primary/60" />
+                                    </div>
+                                  )}
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
                                 </div>
 
-                                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 line-clamp-2 group-hover:text-primary transition-colors">
-                                  {post.title}
-                                </h3>
-
-                                <p className="text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
-                                  {post.excerpt}
-                                </p>
-
-                                <div className="space-y-2 sm:space-y-3">
-                                  {/* Author & Date */}
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
-                                      {post.author?.profilePictureUrl ? (
-                                        <Image
-                                          src={post.author.profilePictureUrl}
-                                          alt={post.author.name}
-                                          width={20}
-                                          height={20}
-                                          className="rounded-full ring-2 ring-transparent group-hover:ring-primary transition-all sm:w-6 sm:h-6"
-                                        />
-                                      ) : (
-                                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-primary/10 rounded-full flex items-center justify-center ring-2 ring-transparent group-hover:ring-primary transition-all flex-shrink-0">
-                                          <User className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
-                                        </div>
-                                      )}
-                                      <span className="text-xs sm:text-sm text-muted-foreground group-hover:text-foreground transition-colors truncate">
-                                        {post.author?.name}
-                                      </span>
-                                    </div>
-
-                                    <div className="flex items-center gap-1 text-xs text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0">
-                                      <Calendar className="h-3 w-3" />
-                                      <span className="hidden sm:inline">{formatDate(post.publishedAt)}</span>
-                                      <span className="sm:hidden">{formatDate(post.publishedAt).split(',')[0]}</span>
-                                    </div>
+                                <CardContent className="p-6 pt-0 mt-6">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Badge style={{ backgroundColor: post.category?.color }}>
+                                      {post.category?.name}
+                                    </Badge>
                                   </div>
 
-                                  {/* Divider */}
-                                  <div className="border-t" />
+                                  <h3 className="text-xl font-semibold mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                                    {post.title}
+                                  </h3>
 
-                                  {/* Stats */}
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2 sm:gap-3 text-xs">
-                                      <span className="flex items-center gap-1 group-hover:text-foreground transition-colors text-muted-foreground">
-                                        <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                                        {post.readingTime} min
-                                      </span>
-                                      {post.views > 0 && (
-                                        <span className="flex items-center gap-1 group-hover:text-foreground transition-colors text-muted-foreground">
-                                          <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                                          {post.views}
+                                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                                    {post.excerpt}
+                                  </p>
+
+                                  <div className="space-y-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        {post.author?.profilePictureUrl ? (
+                                          <Image
+                                            src={post.author.profilePictureUrl}
+                                            alt={post.author.name}
+                                            width={24}
+                                            height={24}
+                                            className="rounded-full"
+                                          />
+                                        ) : (
+                                          <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
+                                            <User className="h-3 w-3 text-primary" />
+                                          </div>
+                                        )}
+                                        <span className="text-sm text-muted-foreground truncate">
+                                          {post.author?.name}
                                         </span>
-                                      )}
+                                      </div>
+
+                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <Calendar className="h-3 w-3" />
+                                        <span className="hidden sm:inline">{formatDate(post.publishedAt)}</span>
+                                        <span className="sm:hidden">{formatDate(post.publishedAt).split(',')[0]}</span>
+                                      </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2">
-                                      <span className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-full bg-red-50 text-red-600 group-hover:bg-red-100 group-hover:scale-105 transition-all">
-                                        <Heart className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current" />
-                                        <span className="text-xs font-semibold">{post.likeCount ?? post.likes?.length ?? 0}</span>
-                                      </span>
-                                      <span className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:scale-105 transition-all">
-                                        <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                                        <span className="text-xs font-semibold">{post.commentCount ?? post.comments?.filter(c => c.isApproved).length ?? 0}</span>
-                                      </span>
+                                    <div className="border-t" />
+
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3 text-xs">
+                                        <span className="flex items-center gap-1 text-muted-foreground">
+                                          <Clock className="h-3 w-3" />
+                                          {post.readingTime} min
+                                        </span>
+                                        {post.views > 0 && (
+                                          <span className="flex items-center gap-1 text-muted-foreground">
+                                            <Eye className="h-3 w-3" />
+                                            {post.views}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      <div className="flex items-center gap-2">
+                                        <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-600 group-hover:bg-red-100">
+                                          <Heart className="h-3 w-3 fill-current" />
+                                          <span className="text-xs font-semibold">{post.likeCount ?? post.likes?.length ?? 0}</span>
+                                        </span>
+                                        <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-100">
+                                          <MessageCircle className="h-3 w-3" />
+                                          <span className="text-xs font-semibold">{post.commentCount ?? post.comments?.filter(c => c.isApproved).length ?? 0}</span>
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </Link>
+                                </CardContent>
+                              </Card>
+                            </Link>
+                          </div>
 
-                          {/* ✅ IN-FEED AD - After 3rd Post in Latest Articles */}
-                          {showAdAfter && (
-                            <div className="scale-in" style={{ animationDelay: `${(index + 1) * 50}ms` }}>
-                              {/* Desktop Ad */}
-                              <div className="hidden sm:block">
-                                <AdSense
-                                  adSlot="9582096729"
-                                  adFormat="fluid"
-                                  adLayout="in-article"
-                                  adStyle={{ display: 'block', minHeight: '250px' }}
-                                />
-                              </div>
-                              {/* Mobile Ad */}
-                              <div className="block sm:hidden">
-                                <AdSense
-                                  adSlot="3893945332"
-                                  adFormat="fluid"
-                                  adLayout="in-article"
-                                  adStyle={{ display: 'block', minHeight: '250px' }}
-                                />
-                              </div>
+                          {/* 2 Stacked Ads - After 1st post only */}
+                          {showAdsAfter && (
+                            <div key="ads-stack" className="space-y-6">
+                              {/* Ad 1 */}
+                              <Card className="overflow-hidden">
+                                <CardContent className="p-0">
+                                  <div className="hidden sm:block">
+                                    <AdSense
+                                      adSlot="9582096729"
+                                      adFormat="fluid"
+                                      adLayout="in-article"
+                                      adStyle={{ display: 'block', minHeight: '210px' }}
+                                    />
+                                  </div>
+                                  <div className="block sm:hidden">
+                                    <AdSense
+                                      adSlot="3893945332"
+                                      adFormat="fluid"
+                                      adLayout="in-article"
+                                      adStyle={{ display: 'block', minHeight: '210px' }}
+                                    />
+                                  </div>
+                                </CardContent>
+                              </Card>
+
+                              {/* Ad 2 */}
+                              <Card className="overflow-hidden">
+                                <CardContent className="p-0">
+                                  <div className="hidden sm:block">
+                                    <AdSense
+                                      adSlot="9582096729"
+                                      adFormat="fluid"
+                                      adLayout="in-article"
+                                      adStyle={{ display: 'block', minHeight: '210px' }}
+                                    />
+                                  </div>
+                                  <div className="block sm:hidden">
+                                    <AdSense
+                                      adSlot="3893945332"
+                                      adFormat="fluid"
+                                      adLayout="in-article"
+                                      adStyle={{ display: 'block', minHeight: '210px' }}
+                                    />
+                                  </div>
+                                </CardContent>
+                              </Card>
                             </div>
                           )}
-                        </div>
+                        </>
                       )
                     })}
                   </div>
 
-                  {/* ✅ IMPROVED: Pagination with Better Mobile Layout */}
+                  {/* Pagination */}
                   {pagination && pagination.pages > 1 && (
-                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-2 fade-in">
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-2">
                       <Button
                         variant="outline"
                         disabled={!pagination.hasPrev}
-                        className="w-full sm:w-auto h-11 sm:h-10"
+                        className="w-full sm:w-auto"
                         asChild={pagination.hasPrev}
                       >
                         {pagination.hasPrev ? (
-                          <Link href={`/blog?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`} prefetch={true}>
+                          <Link href={`/blog?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ''}${sort !== 'latest' ? `&sort=${sort}` : ''}`}>
                             Previous
                           </Link>
                         ) : (
@@ -518,11 +493,11 @@ export default async function BlogPage({ searchParams }) {
                       <Button
                         variant="outline"
                         disabled={!pagination.hasNext}
-                        className="w-full sm:w-auto h-11 sm:h-10"
+                        className="w-full sm:w-auto"
                         asChild={pagination.hasNext}
                       >
                         {pagination.hasNext ? (
-                          <Link href={`/blog?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ''}`} prefetch={true}>
+                          <Link href={`/blog?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ''}${sort !== 'latest' ? `&sort=${sort}` : ''}`}>
                             Next
                           </Link>
                         ) : (
@@ -535,34 +510,58 @@ export default async function BlogPage({ searchParams }) {
               )}
             </div>
 
-            {/* ✅ IMPROVED: Sidebar with Better Mobile Layout */}
-            <div className="space-y-6 sm:space-y-8">
+            {/* Sidebar */}
+            <div className="space-y-8">
+              {/* Featured In-Feed Ad */}
+              <Card>
+                <CardContent className="p-4">
+                  {/* Desktop Ad */}
+                  <div className="hidden sm:block">
+                    <AdSense
+                      adSlot="2469183021"
+                      adFormat="fluid"
+                      adLayout="in-article"
+                      adStyle={{ display: 'block', minHeight: '250px' }}
+                    />
+                  </div>
+                  {/* Mobile Ad - Using specified slot */}
+                  <div className="block sm:hidden">
+                    <AdSense
+                      adSlot="9146272012"
+                      adFormat="fluid"
+                      adLayout="in-article"
+                      adStyle={{ display: 'block', minHeight: '250px' }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Categories */}
               {categories.length > 0 && (
-                <Card className="fade-in">
-                  <CardHeader className="p-4 sm:p-6">
-                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                      <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
                       Categories
                     </CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
+                    <CardDescription>
                       Browse articles by topic
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-4 sm:p-6 pt-0">
+                  <CardContent>
                     <div className="space-y-2">
                       {categories.slice(0, BLOG_CONFIG.SIDEBAR_CATEGORIES_COUNT).map((category) => (
                         <Link
                           key={category._id}
                           href={`/category/${category.slug}`}
-                          className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors group min-h-[44px]"
+                          className="flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors group"
                         >
                           <div className="flex items-center gap-2">
                             <div
-                              className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-transform group-hover:scale-125"
+                              className="w-3 h-3 rounded-full transition-transform group-hover:scale-125"
                               style={{ backgroundColor: category.color }}
                             />
-                            <span className="text-xs sm:text-sm font-medium group-hover:text-primary transition-colors">{category.name}</span>
+                            <span className="text-sm font-medium group-hover:text-primary transition-colors">{category.name}</span>
                           </div>
                           <Badge variant="secondary" className="text-xs">
                             {category.postCount}
@@ -570,13 +569,12 @@ export default async function BlogPage({ searchParams }) {
                         </Link>
                       ))}
 
-                      {/* View All Categories Link */}
                       {categories.length > BLOG_CONFIG.SIDEBAR_CATEGORIES_COUNT && (
                         <Link
                           href="/categories"
-                          className="flex items-center justify-center p-2 text-sm text-primary hover:text-primary/80 hover:bg-accent rounded-md transition-all min-h-[44px] font-medium"
+                          className="flex items-center justify-center p-2 text-sm text-primary hover:text-primary/80 hover:bg-accent rounded-md transition-all font-medium"
                         >
-                          View All Categories →
+                          View All Categories <ArrowRight className="ml-1 h-4 w-4" />
                         </Link>
                       )}
                     </div>
@@ -584,20 +582,19 @@ export default async function BlogPage({ searchParams }) {
                 </Card>
               )}
 
-              {/* Newsletter Signup */}
-              <Card className="fade-in">
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-base sm:text-lg">Stay Updated</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
+              {/* Newsletter */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Stay Updated</CardTitle>
+                  <CardDescription>
                     Get the latest articles delivered to your inbox
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6 pt-0">
+                <CardContent>
                   <NewsletterSubscribe
                     source="blog-sidebar"
                     showTitle={false}
                     compact={true}
-                    className="space-y-3 sm:space-y-4"
                   />
                 </CardContent>
               </Card>

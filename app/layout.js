@@ -14,6 +14,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { useServiceWorker } from './register-sw'
 
+// Optimize font loading
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',

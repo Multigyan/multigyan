@@ -1,19 +1,20 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { BookOpen, PenTool, ArrowRight, TrendingUp, Sparkles, Users, FileText, Layers, Zap, Star, Clock, Eye, Calendar, User, ChevronRight } from "lucide-react"
+import { BookOpen, PenTool, ArrowRight, TrendingUp, Sparkles, Users, FileText, Layers, Zap, Star, Clock, Eye, Calendar, User, ChevronRight, Mail, Award } from "lucide-react"
 import PostCard from "@/components/blog/PostCard"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { formatDate, getPostUrl } from "@/lib/helpers"
 import HomeSchemas from "@/components/seo/HomeSchemas"
+import NewsletterSubscribe from "@/components/newsletter/NewsletterSubscribe"
 
 // ✅ COST OPTIMIZATION: Revalidate every 60 seconds
 export const revalidate = 60
 
 export default async function HomePage() {
   // Fetch data server-side with caching
-  const [statsData, latestData, categoriesData] = await Promise.all([
+  const [statsData, latestData, categoriesData, topAuthorsData] = await Promise.all([
     fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/stats/public`, {
       next: { revalidate: 60 }
     }).then(res => res.json()).catch(() => ({ totalPosts: 0, totalAuthors: 0, totalCategories: 0 })),
@@ -24,11 +25,16 @@ export default async function HomePage() {
 
     fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/categories/top?limit=8`, {
       next: { revalidate: 60 }
-    }).then(res => res.json()).catch(() => ({ categories: [] }))
+    }).then(res => res.json()).catch(() => ({ categories: [] })),
+
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/authors/top?limit=6`, {
+      next: { revalidate: 60 }
+    }).then(res => res.json()).catch(() => ({ authors: [] }))
   ])
 
   const latestPosts = latestData.posts || []
   const topCategories = categoriesData.categories || []
+  const topAuthors = topAuthorsData.authors || []
   const stats = {
     totalPosts: statsData.totalPosts || 0,
     totalAuthors: statsData.totalAuthors || 0,
@@ -206,6 +212,41 @@ export default async function HomePage() {
           </section>
         )}
 
+        {/* 📧 NEWSLETTER SIGNUP SECTION */}
+        <section className="py-20 bg-gradient-to-br from-primary/10 via-primary/5 to-background relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          </div>
+
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="max-w-4xl mx-auto">
+              <Card className="border-2 border-primary/20 shadow-2xl">
+                <CardContent className="p-8 md:p-12 text-center">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6 border border-primary/20">
+                    <Mail className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-semibold text-primary">Stay Updated</span>
+                  </div>
+
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                    Never Miss an <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Update</span>
+                  </h2>
+                  <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+                    Get the latest articles, insights, and exclusive content delivered straight to your inbox. Join our growing community of readers!
+                  </p>
+
+                  <NewsletterSubscribe />
+
+                  <p className="text-xs text-muted-foreground mt-4">
+                    🔒 We respect your privacy. Unsubscribe at any time.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         {/* 🎯 CATEGORIES SHOWCASE */}
         {topCategories.length > 0 && (
           <section className="py-20">
@@ -260,6 +301,75 @@ export default async function HomePage() {
                     <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </Button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 👥 TOP AUTHORS SPOTLIGHT */}
+        {topAuthors.length > 0 && (
+          <section className="py-20">
+            <div className="container mx-auto px-4 sm:px-6">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full mb-4 border border-primary/20">
+                  <Award className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-medium text-primary uppercase tracking-wider">Top Contributors</span>
+                </div>
+                <h2 className="text-4xl font-bold mb-4">
+                  Meet Our <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Authors</span>
+                </h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Talented writers sharing their knowledge and expertise
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-8">
+                {topAuthors.slice(0, 6).map((author, index) => (
+                  <Link
+                    key={author._id}
+                    href={`/author/${author.username}`}
+                    className="group"
+                  >
+                    <Card className="h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer border-2 border-transparent hover:border-primary/30 bg-gradient-to-br from-background to-muted/30">
+                      <CardContent className="p-6 text-center">
+                        {/* Author Avatar */}
+                        <div className="relative w-24 h-24 mx-auto mb-4">
+                          {author.profilePictureUrl ? (
+                            <Image
+                              src={author.profilePictureUrl}
+                              alt={author.name}
+                              fill
+                              className="rounded-full object-cover border-4 border-primary/20 group-hover:border-primary/40 transition-all"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 rounded-full flex items-center justify-center border-4 border-primary/20 group-hover:border-primary/40 transition-all">
+                              <User className="h-12 w-12 text-primary/60" />
+                            </div>
+                          )}
+                          <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold shadow-lg">
+                            {author.postCount}
+                          </div>
+                        </div>
+
+                        {/* Author Info */}
+                        <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">
+                          {author.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          @{author.username}
+                        </p>
+                        {author.bio && (
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                            {author.bio}
+                          </p>
+                        )}
+                        <Badge variant="secondary" className="text-xs w-fit mx-auto">
+                          {author.postCount} article{author.postCount !== 1 ? 's' : ''}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
               </div>
             </div>
           </section>
