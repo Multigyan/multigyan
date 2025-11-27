@@ -46,6 +46,13 @@ function stripHtml(html) {
   return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
 }
 
+// Helper function to remove inline styles from HTML content
+function stripInlineStyles(html) {
+  if (!html) return ''
+  // Remove style attributes that contain potentially dangerous content
+  return html.replace(/\s+style=["'][^"']*["']/gi, '')
+}
+
 export async function GET() {
   try {
     await connectDB()
@@ -71,7 +78,7 @@ export async function GET() {
     <description><![CDATA[${SITE_DESCRIPTION}]]></description>
     <language>en</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/atom+xml" />
+    <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>`
 
@@ -101,8 +108,9 @@ export async function GET() {
       }
       description = escapeXml(description)
 
-      // Clean content - convert relative URLs to absolute URLs
+      // Clean content - convert relative URLs to absolute URLs and strip inline styles
       let cleanContent = makeUrlsAbsolute(post.content || '', SITE_URL)
+      cleanContent = stripInlineStyles(cleanContent)
 
       // Build enclosure for featured image if exists
       let enclosureTag = ''
@@ -154,7 +162,7 @@ export async function GET() {
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <pubDate>${lastBuildDate}</pubDate>
     <ttl>1440</ttl>
-    <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/atom+xml" />
+    <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml" />
     <image>
       <url>${SITE_URL}/Multigyan_Logo_bg.png</url>
       <title>${SITE_NAME}</title>
