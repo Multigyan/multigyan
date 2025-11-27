@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Search, Menu, X, PenTool, BookOpen, Users, Home, User, Settings, LogOut, Shield, LayoutDashboard, Wrench, ChefHat, Bookmark } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
+import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { cn } from "@/lib/utils"
 import { prefetchOnHover } from "@/lib/prefetch"
 
@@ -233,6 +234,8 @@ export default function Navbar() {
 
                   <NotificationBell />
 
+                  <ThemeToggle />
+
                   <Button
                     variant={isActiveLink('/dashboard') ? "default" : "ghost"}
                     size="sm"
@@ -348,6 +351,7 @@ export default function Navbar() {
 
             {/* ✅ IMPROVED: Mobile Menu Button with better touch targets */}
             <div className="flex items-center space-x-2 md:hidden">
+              <ThemeToggle />
               {session && (
                 <NotificationBell />
               )}

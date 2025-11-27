@@ -111,9 +111,12 @@ export const metadata = {
   manifest: '/manifest.json',
 }
 
+import { ThemeProvider } from "@/components/theme/ThemeProvider"
+import { AutoThemeHandler } from "@/components/theme/AutoThemeHandler"
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en" className={inter.className} suppressHydrationWarning>
       <body
         className="min-h-screen bg-background font-sans antialiased"
         suppressHydrationWarning={true}
@@ -148,17 +151,25 @@ export default function RootLayout({ children }) {
           strategy="lazyOnload"
         />
 
-        <AuthProvider>
-          <LoadingBar />
-          <div className="relative flex min-h-screen flex-col">
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <FloatingSocialSidebar />
-          <BackToTop />
-          <Toaster />
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="auto"
+          enableSystem={false}
+          storageKey="multigyan-theme"
+        >
+          <AutoThemeHandler />
+          <AuthProvider>
+            <LoadingBar />
+            <div className="relative flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <FloatingSocialSidebar />
+            <BackToTop />
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
 
         {/* Vercel Analytics */}
         <Analytics />
