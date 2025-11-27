@@ -67,10 +67,10 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ✅ ACCESSIBILITY: Skip to main content link */}
+      {/* ✅ ACCESSIBILITY: Skip to main content link - only visible on keyboard focus */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[60] bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium shadow-lg"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[60] bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium shadow-lg"
       >
         Skip to main content
       </a>
