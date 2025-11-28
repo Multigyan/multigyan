@@ -79,6 +79,22 @@ async function getAuthor(username) {
         }
       },
       {
+        $lookup: {
+          from: 'users',
+          let: { authorId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$$authorId', { $ifNull: ['$following', []] }]
+                }
+              }
+            }
+          ],
+          as: 'followers'
+        }
+      },
+      {
         $addFields: {
           publishedPosts: {
             $filter: {
@@ -93,7 +109,8 @@ async function getAuthor(username) {
         $project: {
           totalPosts: { $size: '$publishedPosts' },
           totalViews: { $sum: '$publishedPosts.views' },
-          totalLikes: { $sum: '$publishedPosts.likes' }
+          totalLikes: { $sum: '$publishedPosts.likes' },
+          followersCount: { $size: '$followers' }
         }
       }
     ])
@@ -207,8 +224,18 @@ export default async function AuthorPage({ params }) {
 
   return (
     <>
-      <EnhancedSchema schemas={[personSchema]} />
-      <AuthorClient params={params} />
+      {/* Skip to main content - Accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+
+      <main id="main-content">
+        <EnhancedSchema schemas={[personSchema]} />
+        <AuthorClient params={params} />
+      </main>
     </>
   )
 }

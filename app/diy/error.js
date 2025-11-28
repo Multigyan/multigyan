@@ -37,7 +37,7 @@ export default function DIYError({
                             We encountered an error while loading the DIY tutorials page.
                         </p>
                         <p className="text-sm text-muted-foreground mb-8">
-                            Don't worry, our team has been notified and we're working on it!
+                            Don&#39;t worry, our team has been notified and we&#39;re working on it!
                         </p>
 
                         {/* Error Details (Development Only) */}

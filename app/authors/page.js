@@ -98,14 +98,18 @@ export default async function AuthorsPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
 
-        <div className="min-h-screen py-8">
+        <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-white to-purple-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-8">
           <div className="container mx-auto px-4">
             <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                  Meet Our <span className="title-gradient">Authors</span>
+              {/* Decorative Background Elements */}
+              <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="absolute bottom-20 left-10 w-64 h-64 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+              <div className="text-center mb-12 relative">
+                <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent animate-fade-in">
+                  Meet Our <span className="inline-block animate-bounce-slow">Authors</span>
                 </h1>
-                <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed animate-fade-in-delay">
                   Discover the talented writers behind Multigyan. Our community of experts
                   shares knowledge, insights, and experiences across various topics.
                 </p>
