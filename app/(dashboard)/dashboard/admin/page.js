@@ -105,38 +105,42 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      {/* Enhanced Header */}
+      <div className="flex items-center justify-between mb-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-yellow/5 via-transparent to-yellow/5 rounded-lg -z-10"></div>
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2">
             <Crown className="h-8 w-8 text-yellow-500" />
-            Admin Dashboard
+            <span className="bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-400 bg-clip-text text-transparent">Admin Dashboard</span>
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground/80">
             Overview and management of your Multigyan platform
           </p>
         </div>
         <div className="flex gap-2">
-          <Button asChild>
+          <Button asChild className="bg-gradient-to-r from-primary to-primary/90 hover:shadow-xl transition-all">
             <Link href="/dashboard/admin/users">Manage Users</Link>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="hover:border-primary/50 transition-colors">
             <Link href="/dashboard/admin/review">Review Posts</Link>
           </Button>
         </div>
       </div>
 
-      {/* Key Stats */}
+      {/* Enhanced Key Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Users Stats */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-blue-500/30 bg-gradient-to-br from-background to-blue-50/30 dark:to-blue-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Users className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.users.total}</div>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{stats.users.total}</div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground/80 mt-2">
               <span className="flex items-center gap-1">
                 <Crown className="h-3 w-3 text-yellow-500" />
                 {stats.users.admins} Admins
@@ -147,14 +151,17 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* Posts Stats */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-green-500/30 bg-gradient-to-br from-background to-green-50/30 dark:to-green-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <FileText className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.posts.total}</div>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{stats.posts.total}</div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground/80 mt-2">
               <span className="text-green-600">{stats.posts.published} Published</span>
               <span className="text-yellow-600">{stats.posts.pending} Pending</span>
             </div>
@@ -162,14 +169,17 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* Engagement Stats */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-purple-500/30 bg-gradient-to-br from-background to-purple-50/30 dark:to-purple-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Eye className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.engagement.totalViews.toLocaleString()}</div>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{stats.engagement.totalViews.toLocaleString()}</div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground/80 mt-2">
               <span className="flex items-center gap-1">
                 <Heart className="h-3 w-3" />
                 {stats.engagement.totalLikes} Likes
@@ -179,23 +189,26 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* Pending Review */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-yellow-500/30 bg-gradient-to-br from-background to-yellow-50/30 dark:to-yellow-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Clock className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.posts.pending}</div>
-            <p className="text-xs text-muted-foreground mt-2">
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent">{stats.posts.pending}</div>
+            <p className="text-xs text-muted-foreground/80 mt-2">
               {stats.posts.pending > 0 ? 'Needs attention' : 'All caught up!'}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Detailed Stats */}
+      {/* Enhanced Detailed Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-lg">Content Status</CardTitle>
           </CardHeader>
@@ -233,7 +246,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-lg">User Management</CardTitle>
           </CardHeader>
@@ -271,7 +284,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-lg">Platform Health</CardTitle>
           </CardHeader>
@@ -311,13 +324,13 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* Quick Actions & Pending Posts */}
+      {/* Enhanced Quick Actions & Pending Posts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Quick Actions */}
-        <Card>
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground/80">
               Frequently used admin functions
             </CardDescription>
           </CardHeader>
@@ -390,11 +403,11 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Recent Pending Posts */}
-        <Card>
+        {/* Enhanced Recent Pending Posts */}
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Posts Awaiting Review</CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground/80">
               Latest submissions from authors
             </CardDescription>
           </CardHeader>

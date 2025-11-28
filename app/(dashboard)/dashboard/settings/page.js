@@ -293,23 +293,29 @@ export default function SettingsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
-        <p className="text-muted-foreground">
+      {/* Enhanced Header */}
+      <div className="mb-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-teal/5 via-transparent to-teal/5 rounded-lg -z-10"></div>
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          <span className="bg-gradient-to-r from-teal-600 via-teal-500 to-teal-400 bg-clip-text text-transparent">Settings</span>
+        </h1>
+        <p className="text-muted-foreground/80">
           Manage your account preferences and privacy settings
         </p>
       </div>
 
       <div className="space-y-8">
-        {/* Notification Settings */}
-        <Card>
-          <CardHeader>
+        {/* Enhanced Notification Settings */}
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-blue-500/30 bg-gradient-to-br from-background to-blue-50/30 dark:to-blue-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                <Bell className="h-5 w-5 text-white" />
+              </div>
               Notification Preferences
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground/80">
               Choose what notifications you&apos;d like to receive
             </CardDescription>
           </CardHeader>
@@ -374,14 +380,17 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Privacy Settings */}
-        <Card>
-          <CardHeader>
+        {/* Enhanced Privacy Settings */}
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-green-500/30 bg-gradient-to-br from-background to-green-50/30 dark:to-green-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-md">
+                <Eye className="h-5 w-5 text-white" />
+              </div>
               Privacy Settings
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground/80">
               Control your profile visibility and privacy
             </CardDescription>
           </CardHeader>
@@ -432,14 +441,17 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Content Settings */}
-        <Card>
-          <CardHeader>
+        {/* Enhanced Content Settings */}
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-purple-500/30 bg-gradient-to-br from-background to-purple-50/30 dark:to-purple-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                <Globe className="h-5 w-5 text-white" />
+              </div>
               Content Preferences
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground/80">
               Manage your content creation and display preferences
             </CardDescription>
           </CardHeader>
@@ -506,14 +518,17 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Security Settings */}
-        <Card>
-          <CardHeader>
+        {/* Enhanced Security Settings */}
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-orange-500/30 bg-gradient-to-br from-background to-orange-50/30 dark:to-orange-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md">
+                <Shield className="h-5 w-5 text-white" />
+              </div>
               Security
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground/80">
               Manage your account security and access
             </CardDescription>
           </CardHeader>
@@ -758,9 +773,9 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Save Button */}
+        {/* Enhanced Save Button */}
         <div className="flex justify-end">
-          <Button onClick={handleSaveSettings} disabled={loading}>
+          <Button onClick={handleSaveSettings} disabled={loading} className="bg-gradient-to-r from-primary to-primary/90 hover:shadow-xl transition-all">
             {loading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>

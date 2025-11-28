@@ -9,19 +9,19 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog"
-import { 
-  Folder, 
-  Plus, 
-  Trash2, 
-  Edit, 
+import {
+  Folder,
+  Plus,
+  Trash2,
+  Edit,
   Merge,
   BookOpen,
   AlertTriangle,
@@ -38,7 +38,7 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
-  
+
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [newCategory, setNewCategory] = useState({
     name: "",
@@ -60,7 +60,7 @@ export default function AdminCategoriesPage() {
 
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (status === 'unauthenticated' || session?.user?.role !== 'admin') {
       router.push('/dashboard')
       return
@@ -227,7 +227,7 @@ export default function AdminCategoriesPage() {
   }
 
   function toggleCategorySelection(categoryId) {
-    setSelectedCategories(prev => 
+    setSelectedCategories(prev =>
       prev.includes(categoryId)
         ? prev.filter(id => id !== categoryId)
         : [...prev, categoryId]
@@ -265,57 +265,70 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Category Management</h1>
-        <p className="text-muted-foreground">
+      {/* Enhanced Header */}
+      <div className="mb-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-orange/5 via-transparent to-orange/5 rounded-lg -z-10"></div>
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          <span className="bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 bg-clip-text text-transparent">Category Management</span>
+        </h1>
+        <p className="text-muted-foreground/80">
           Create, edit, delete, and merge blog categories
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
-          <CardHeader className="pb-3">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-orange-500/30 bg-gradient-to-br from-background to-orange-50/30 dark:to-orange-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Folder className="h-4 w-4" />
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <Folder className="h-5 w-5 text-white" />
+              </div>
               Total Categories
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{categories.length}</div>
+          <CardContent className="relative z-10">
+            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{categories.length}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-blue-500/30 bg-gradient-to-br from-background to-blue-50/30 dark:to-blue-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <BookOpen className="h-5 w-5 text-white" />
+              </div>
               Total Posts
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{getTotalPosts()}</div>
+          <CardContent className="relative z-10">
+            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{getTotalPosts()}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-purple-500/30 bg-gradient-to-br from-background to-purple-50/30 dark:to-purple-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="pb-3 relative z-10">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Merge className="h-4 w-4" />
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <Merge className="h-5 w-5 text-white" />
+              </div>
               Selected for Merge
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{selectedCategories.length}</div>
+          <CardContent className="relative z-10">
+            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{selectedCategories.length}</div>
           </CardContent>
         </Card>
       </div>
 
       <div className="flex gap-3 mb-6">
-        <Button onClick={() => setShowCreateDialog(true)}>
+        <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-primary to-primary/90 hover:shadow-xl transition-all">
           <Plus className="h-4 w-4 mr-2" />
           Create Category
         </Button>
-        
+
         <Button
           variant="outline"
           onClick={() => setShowMergeDialog(true)}
@@ -338,13 +351,12 @@ export default function AdminCategoriesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map((category) => (
-          <Card 
+          <Card
             key={category._id}
-            className={`relative ${
-              selectedCategories.includes(category._id) 
-                ? 'ring-2 ring-primary' 
-                : ''
-            }`}
+            className={`relative hover:shadow-2xl transition-all duration-500 border-2 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm ${selectedCategories.includes(category._id)
+                ? 'ring-2 ring-primary border-primary/50'
+                : 'border-transparent hover:border-primary/20'
+              }`}
           >
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -625,16 +637,16 @@ export default function AdminCategoriesPage() {
           </div>
 
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowDeleteDialog(false)}
               disabled={actionLoading}
             >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteCategory} 
+            <Button
+              variant="destructive"
+              onClick={handleDeleteCategory}
               disabled={actionLoading}
             >
               {actionLoading ? (
@@ -645,7 +657,7 @@ export default function AdminCategoriesPage() {
               ) : (
                 <>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  {deletingCategory?.postCount > 0 
+                  {deletingCategory?.postCount > 0
                     ? `Delete & Move ${deletingCategory.postCount} Post${deletingCategory.postCount === 1 ? '' : 's'}`
                     : 'Delete Category'
                   }
@@ -728,7 +740,7 @@ export default function AdminCategoriesPage() {
 
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
               <p className="text-sm text-blue-800">
-                ℹ️ All posts from selected categories will be moved to the new category. 
+                ℹ️ All posts from selected categories will be moved to the new category.
                 The old categories will be deleted.
               </p>
             </div>

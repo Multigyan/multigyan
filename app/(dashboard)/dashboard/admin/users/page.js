@@ -8,19 +8,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog"
-import { 
-  Users, 
-  Crown, 
-  UserPlus, 
-  UserMinus, 
+import {
+  Users,
+  Crown,
+  UserPlus,
+  UserMinus,
   Search,
   Mail,
   Calendar,
@@ -53,7 +53,7 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (status === 'unauthenticated' || session?.user?.role !== 'admin') {
       router.push('/dashboard')
       return
@@ -145,14 +145,14 @@ export default function AdminUsersPage() {
   function getRoleBadge(role) {
     if (role === 'admin') {
       return (
-        <Badge className="bg-purple-500 hover:bg-purple-600">
+        <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-lg transition-shadow text-white">
           <Crown className="h-3 w-3 mr-1" />
           Admin
         </Badge>
       )
     }
     return (
-      <Badge variant="outline">
+      <Badge variant="outline" className="hover:border-primary/50 transition-colors">
         <User className="h-3 w-3 mr-1" />
         Author
       </Badge>
@@ -209,61 +209,77 @@ export default function AdminUsersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">User Management</h1>
-        <p className="text-muted-foreground">
+      {/* Enhanced Header */}
+      <div className="mb-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple/5 via-transparent to-purple/5 rounded-lg -z-10"></div>
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          <span className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-400 bg-clip-text text-transparent">User Management</span>
+        </h1>
+        <p className="text-muted-foreground/80">
           Manage user accounts, roles, and permissions
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-blue-500/30 bg-gradient-to-br from-background to-blue-50/30 dark:to-blue-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Users className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">Registered accounts</p>
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{users.length}</div>
+            <p className="text-xs text-muted-foreground/80">Registered accounts</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-purple-500/30 bg-gradient-to-br from-background to-purple-50/30 dark:to-purple-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Administrators</CardTitle>
-            <Crown className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Crown className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
               {stats.adminCount} / {stats.maxAdmins}
             </div>
-            <p className="text-xs text-muted-foreground">Current admin slots</p>
+            <p className="text-xs text-muted-foreground/80">Current admin slots</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-green-500/30 bg-gradient-to-br from-background to-green-50/30 dark:to-green-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Authors</CardTitle>
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <UserPlus className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent">
               {users.filter(user => user.role === 'author').length}
             </div>
-            <p className="text-xs text-muted-foreground">Content creators</p>
+            <p className="text-xs text-muted-foreground/80">Content creators</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-yellow-500/30 bg-gradient-to-br from-background to-yellow-50/30 dark:to-yellow-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Can Promote</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Shield className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
               {stats.canPromoteMore ? 'Yes' : 'No'}
             </div>
-            <p className="text-xs text-muted-foreground">Admin slots available</p>
+            <p className="text-xs text-muted-foreground/80">Admin slots available</p>
           </CardContent>
         </Card>
       </div>
@@ -283,7 +299,7 @@ export default function AdminUsersPage() {
 
       <div className="space-y-4">
         {filteredUsers.map((user) => (
-          <Card key={user._id}>
+          <Card key={user._id} className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm group">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -312,7 +328,7 @@ export default function AdminUsersPage() {
                         <Badge variant="secondary">You</Badge>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-6 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Mail className="h-3 w-3" />

@@ -235,10 +235,13 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Profile Settings</h1>
-        <p className="text-muted-foreground">
+      {/* Enhanced Header */}
+      <div className="mb-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo/5 via-transparent to-indigo/5 rounded-lg -z-10"></div>
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          <span className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-400 bg-clip-text text-transparent">Profile Settings</span>
+        </h1>
+        <p className="text-muted-foreground/80">
           Manage your public profile and account information
         </p>
       </div>
@@ -246,14 +249,16 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Profile Picture */}
-          <Card>
+          {/* Enhanced Profile Picture */}
+          <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Camera className="h-5 w-5" />
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-md">
+                  <Camera className="h-5 w-5 text-white" />
+                </div>
                 Profile Picture
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-muted-foreground/80">
                 Upload a profile picture or use a URL from any source
               </CardDescription>
             </CardHeader>
@@ -268,14 +273,16 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Basic Information */}
-          <Card>
+          {/* Enhanced Basic Information */}
+          <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                  <User className="h-5 w-5 text-white" />
+                </div>
                 Basic Information
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-muted-foreground/80">
                 Your personal information visible to other users
               </CardDescription>
             </CardHeader>
@@ -408,7 +415,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading} className="bg-gradient-to-r from-primary to-primary/90 hover:shadow-xl transition-all">
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
@@ -428,11 +435,12 @@ export default function ProfilePage() {
 
         {/* Sidebar */}
         <div className="space-y-8">
-          {/* Profile Preview */}
-          <Card>
-            <CardHeader>
+          {/* Enhanced Profile Preview */}
+          <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-indigo-500/30 bg-gradient-to-br from-background to-indigo-50/30 dark:to-indigo-950/20 backdrop-blur-sm relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <CardHeader className="relative z-10">
               <CardTitle>Profile Preview</CardTitle>
-              <CardDescription>
+              <CardDescription className="text-muted-foreground/80">
                 How others see your profile
               </CardDescription>
             </CardHeader>
@@ -491,9 +499,10 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Account Stats */}
-          <Card>
-            <CardHeader>
+          {/* Enhanced Account Stats */}
+          <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-green-500/30 bg-gradient-to-br from-background to-green-50/30 dark:to-green-950/20 backdrop-blur-sm relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <CardHeader className="relative z-10">
               <CardTitle>Your Statistics</CardTitle>
             </CardHeader>
             <CardContent>
@@ -520,9 +529,10 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Account Info */}
-          <Card>
-            <CardHeader>
+          {/* Enhanced Account Info */}
+          <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-purple-500/30 bg-gradient-to-br from-background to-purple-50/30 dark:to-purple-950/20 backdrop-blur-sm relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <CardHeader className="relative z-10">
               <CardTitle>Account Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">

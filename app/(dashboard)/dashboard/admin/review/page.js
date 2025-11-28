@@ -265,41 +265,50 @@ export default function AdminReviewPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Content Review</h1>
-        <p className="text-muted-foreground">
+      {/* Enhanced Header */}
+      <div className="mb-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-green/5 via-transparent to-green/5 rounded-lg -z-10"></div>
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          <span className="bg-gradient-to-r from-green-600 via-green-500 to-green-400 bg-clip-text text-transparent">Content Review</span>
+        </h1>
+        <p className="text-muted-foreground/80">
           Review and moderate posts submitted by authors
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Enhanced Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-yellow-500/30 bg-gradient-to-br from-background to-yellow-50/30 dark:to-yellow-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <Clock className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent">
               {pagination?.total || 0}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground/80">
               Posts awaiting review
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-blue-500/30 bg-gradient-to-br from-background to-blue-50/30 dark:to-blue-950/20 backdrop-blur-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
             <CardTitle className="text-sm font-medium">Review Queue</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <AlertCircle className="h-5 w-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="relative z-10">
+            <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
               {pendingPosts.length > 0 ? 'Active' : 'Empty'}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground/80">
               Current queue status
             </p>
           </CardContent>
@@ -381,7 +390,7 @@ export default function AdminReviewPage() {
       ) : (
         <div className="space-y-6">
           {pendingPosts.map((post) => (
-            <Card key={post._id} className={`overflow-hidden ${selectedPosts.includes(post._id) ? 'border-primary border-2' : ''}`}>
+            <Card key={post._id} className={`overflow-hidden hover:shadow-2xl transition-all duration-500 border-2 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm ${selectedPosts.includes(post._id) ? 'border-primary' : 'border-transparent hover:border-primary/20'}`}>
               <CardContent className="p-0">
                 <div className="flex flex-col lg:flex-row">
                   {/* Selection Checkbox */}

@@ -29,10 +29,10 @@ import { toast } from "sonner"
 import { formatDate } from "@/lib/helpers"
 
 const statusConfig = {
-  draft: { label: 'Draft', icon: FileText, color: 'bg-gray-500' },
-  pending_review: { label: 'Pending Review', icon: Clock, color: 'bg-yellow-500' },
-  published: { label: 'Published', icon: CheckCircle, color: 'bg-green-500' },
-  rejected: { label: 'Rejected', icon: XCircle, color: 'bg-red-500' }
+  draft: { label: 'Draft', icon: FileText, color: 'bg-gradient-to-r from-gray-500 to-gray-600', textColor: 'text-white' },
+  pending_review: { label: 'Pending Review', icon: Clock, color: 'bg-gradient-to-r from-yellow-500 to-yellow-600', textColor: 'text-white' },
+  published: { label: 'Published', icon: CheckCircle, color: 'bg-gradient-to-r from-green-500 to-green-600', textColor: 'text-white' },
+  rejected: { label: 'Rejected', icon: XCircle, color: 'bg-gradient-to-r from-red-500 to-red-600', textColor: 'text-white' }
 }
 
 export default function PostsPage() {
@@ -122,7 +122,7 @@ export default function PostsPage() {
     const Icon = config.icon
 
     return (
-      <Badge variant="secondary" className={`${config.color} text-white`}>
+      <Badge variant="secondary" className={`${config.color} ${config.textColor} shadow-md hover:shadow-lg transition-shadow`}>
         <Icon className="w-3 h-3 mr-1" />
         {config.label}
       </Badge>
@@ -147,13 +147,18 @@ export default function PostsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            {isAdmin ? 'All Posts' : 'Your Posts'}
+      {/* Enhanced Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 rounded-lg -z-10"></div>
+        <div className="py-2">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            {isAdmin ? (
+              <span className="bg-gradient-to-r from-primary via-primary to-primary/60 bg-clip-text text-transparent">All Posts</span>
+            ) : (
+              <span className="bg-gradient-to-r from-primary via-primary to-primary/60 bg-clip-text text-transparent">Your Posts</span>
+            )}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground/80">
             {isAdmin
               ? 'Manage all posts from all authors'
               : 'Manage and organize your blog posts'}
@@ -169,7 +174,7 @@ export default function PostsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setStatusFilter('draft')}
-                  className="h-7 text-xs"
+                  className="h-7 text-xs hover:border-primary/50 hover:shadow-md transition-all"
                 >
                   <FileText className="h-3 w-3 mr-1" />
                   View Drafts
@@ -178,7 +183,7 @@ export default function PostsPage() {
             </div>
           )}
         </div>
-        <Button asChild>
+        <Button asChild className="bg-gradient-to-r from-primary to-primary/90 hover:shadow-xl transition-all">
           <Link href="/dashboard/posts/new">
             <Plus className="mr-2 h-4 w-4" />
             Create New Post
@@ -208,8 +213,8 @@ export default function PostsPage() {
         </Card>
       )}
 
-      {/* Filters */}
-      <Card className="mb-6">
+      {/* Enhanced Filters */}
+      <Card className="mb-6 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm transition-all duration-300">
         <CardContent className="p-6">
           <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -220,12 +225,12 @@ export default function PostsPage() {
                   placeholder="Search posts by title or content..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 focus:border-primary/50 transition-colors"
                 />
               </div>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full md:w-48 focus:border-primary/50">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -236,7 +241,7 @@ export default function PostsPage() {
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
-            <Button type="submit">Search</Button>
+            <Button type="submit" className="bg-gradient-to-r from-primary to-primary/90 hover:shadow-lg">Search</Button>
           </form>
         </CardContent>
       </Card>
@@ -263,25 +268,26 @@ export default function PostsPage() {
       ) : (
         <div className="space-y-4">
           {posts.map((post) => (
-            <Card key={post._id} className="hover:shadow-md transition-shadow">
+            <Card key={post._id} className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm group">
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row gap-4">
-                  {/* Featured Image */}
+                  {/* Enhanced Featured Image */}
                   <div className="flex-shrink-0">
-                    <div className="relative w-full md:w-40 h-40 rounded-lg overflow-hidden bg-muted">
+                    <div className="relative w-full md:w-40 h-40 rounded-lg overflow-hidden bg-gradient-to-br from-muted to-muted/50">
                       {post.featuredImageUrl ? (
                         <Image
                           src={post.featuredImageUrl}
                           alt={post.title}
                           fill
-                          className="object-cover"
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
                           sizes="(max-width: 768px) 100vw, 160px"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-                          <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-primary/20 to-primary/30">
+                          <ImageIcon className="h-12 w-12 text-primary/60 transition-transform group-hover:scale-110" />
                         </div>
                       )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                   </div>
 
@@ -348,16 +354,16 @@ export default function PostsPage() {
                   </div>
                 </div>
 
-                {/* Actions Row */}
+                {/* Enhanced Actions Row */}
                 <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t">
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" asChild className="hover:border-primary/50 hover:shadow-md transition-all">
                     <Link href={`/dashboard/posts/${post._id}/edit`}>
                       <Edit className="h-4 w-4" />
                     </Link>
                   </Button>
 
                   {post.status === 'published' && (
-                    <Button variant="outline" size="sm" asChild>
+                    <Button variant="outline" size="sm" asChild className="hover:border-green-500/50 hover:shadow-md transition-all">
                       <Link href={`/blog/${post.slug}`} target="_blank">
                         <Eye className="h-4 w-4" />
                       </Link>
@@ -370,7 +376,7 @@ export default function PostsPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(post)}
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive hover:border-destructive/50 hover:shadow-md transition-all"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

@@ -104,11 +104,14 @@ export default function AnalyticsDashboard() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            {/* Enhanced Header */}
+            <div className="flex items-center justify-between mb-8 relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple/5 via-transparent to-purple/5 rounded-lg -z-10"></div>
                 <div>
-                    <h1 className="text-3xl font-bold mb-2">Analytics Dashboard</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                        <span className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-400 bg-clip-text text-transparent">Analytics Dashboard</span>
+                    </h1>
+                    <p className="text-muted-foreground/80">
                         Comprehensive insights and performance metrics
                     </p>
                 </div>
@@ -133,59 +136,71 @@ export default function AnalyticsDashboard() {
                 </div>
             </div>
 
-            {/* Key Metrics */}
+            {/* Enhanced Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-blue-500/30 bg-gradient-to-br from-background to-blue-50/30 dark:to-blue-950/20 backdrop-blur-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                         <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <Users className="h-5 w-5 text-white" />
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{analytics?.users?.total || 0}</div>
-                        <p className="text-xs text-muted-foreground">
+                    <CardContent className="relative z-10">
+                        <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{analytics?.users?.total || 0}</div>
+                        <p className="text-xs text-muted-foreground/80">
                             <span className="text-green-600">+{analytics?.users?.newUsers || 0}</span> new this period
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-green-500/30 bg-gradient-to-br from-background to-green-50/30 dark:to-green-950/20 backdrop-blur-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                         <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <FileText className="h-5 w-5 text-white" />
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{analytics?.posts?.total || 0}</div>
-                        <p className="text-xs text-muted-foreground">
+                    <CardContent className="relative z-10">
+                        <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">{analytics?.posts?.total || 0}</div>
+                        <p className="text-xs text-muted-foreground/80">
                             <span className="text-blue-600">{analytics?.posts?.published || 0}</span> published
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-purple-500/30 bg-gradient-to-br from-background to-purple-50/30 dark:to-purple-950/20 backdrop-blur-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                         <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <Eye className="h-5 w-5 text-white" />
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
+                    <CardContent className="relative z-10">
+                        <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
                             {(analytics?.posts?.totalViews || 0).toLocaleString()}
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground/80">
                             Across all content
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-pink-500/30 bg-gradient-to-br from-background to-pink-50/30 dark:to-pink-950/20 backdrop-blur-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-transparent to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                         <CardTitle className="text-sm font-medium">Total Likes</CardTitle>
-                        <Heart className="h-4 w-4 text-muted-foreground" />
+                        <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <Heart className="h-5 w-5 text-white" />
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">
+                    <CardContent className="relative z-10">
+                        <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
                             {(analytics?.posts?.totalLikes || 0).toLocaleString()}
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground/80">
                             User engagement
                         </p>
                     </CardContent>
@@ -205,10 +220,10 @@ export default function AnalyticsDashboard() {
                 <TabsContent value="growth" className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* User Growth Chart */}
-                        <Card>
+                        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle>User Growth</CardTitle>
-                                <CardDescription>New users over time</CardDescription>
+                                <CardDescription className="text-muted-foreground/80">New users over time</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={300}>
@@ -225,10 +240,10 @@ export default function AnalyticsDashboard() {
                         </Card>
 
                         {/* Post Growth Chart */}
-                        <Card>
+                        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle>Content Growth</CardTitle>
-                                <CardDescription>New posts over time</CardDescription>
+                                <CardDescription className="text-muted-foreground/80">New posts over time</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={300}>
@@ -250,10 +265,10 @@ export default function AnalyticsDashboard() {
                 <TabsContent value="activity" className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Activity Timeline */}
-                        <Card>
+                        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle>Admin Activity</CardTitle>
-                                <CardDescription>Actions performed over time</CardDescription>
+                                <CardDescription className="text-muted-foreground/80">Actions performed over time</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={300}>
@@ -270,10 +285,10 @@ export default function AnalyticsDashboard() {
                         </Card>
 
                         {/* Activity by Type */}
-                        <Card>
+                        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle>Actions by Type</CardTitle>
-                                <CardDescription>Distribution of admin actions</CardDescription>
+                                <CardDescription className="text-muted-foreground/80">Distribution of admin actions</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={300}>
@@ -304,10 +319,10 @@ export default function AnalyticsDashboard() {
                 <TabsContent value="content" className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Category Distribution */}
-                        <Card>
+                        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle>Posts by Category</CardTitle>
-                                <CardDescription>Content distribution</CardDescription>
+                                <CardDescription className="text-muted-foreground/80">Content distribution</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={300}>
@@ -324,10 +339,10 @@ export default function AnalyticsDashboard() {
                         </Card>
 
                         {/* Top Posts */}
-                        <Card>
+                        <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle>Top Performing Posts</CardTitle>
-                                <CardDescription>Most viewed content</CardDescription>
+                                <CardDescription className="text-muted-foreground/80">Most viewed content</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
