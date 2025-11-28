@@ -235,7 +235,7 @@ export default async function CategoriesPage() {
                 <Card className="bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-pink-500/10 border-2 border-purple-500/20 backdrop-blur-sm shadow-2xl">
                   <CardContent className="py-12 px-6">
                     <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
-                      Can't Find What You're Looking For?
+                      Can&#39;t Find What You&#39;re Looking For?
                     </h2>
                     <p className="text-muted-foreground mb-6 max-w-2xl mx-auto text-lg">
                       Browse all articles or use the search function to find specific topics
