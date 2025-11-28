@@ -29,13 +29,31 @@ export default function PopularPosts({ contentType = null, authorId = null, limi
             }
 
             const res = await fetch(url)
+
+            // Validate response before parsing
+            if (!res.ok) {
+                console.error(`PopularPosts API error: ${res.status}`)
+                setPosts([])
+                return
+            }
+
+            const contentTypeHeader = res.headers.get('content-type')
+            if (!contentTypeHeader || !contentTypeHeader.includes('application/json')) {
+                console.error('PopularPosts: Non-JSON response received')
+                setPosts([])
+                return
+            }
+
             const data = await res.json()
 
-            if (res.ok) {
+            if (res.ok && data.posts) {
                 setPosts(data.posts || [])
+            } else {
+                setPosts([])
             }
         } catch (error) {
             console.error('Error fetching popular posts:', error)
+            setPosts([])
         } finally {
             setLoading(false)
         }

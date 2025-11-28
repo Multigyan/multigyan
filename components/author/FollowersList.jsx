@@ -24,15 +24,38 @@ export default function FollowersList({ authorId, isOpen, onClose }) {
         try {
             setLoading(true)
             const res = await fetch(`/api/author/${authorId}/followers?page=${page}&limit=10`)
+
+            // Check if response is OK before parsing
+            if (!res.ok) {
+                console.error(`Followers API returned ${res.status}: ${res.statusText}`)
+                setFollowers([])
+                setTotal(0)
+                return
+            }
+
+            // Check if response is JSON
+            const contentType = res.headers.get('content-type')
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('Followers API returned non-JSON response:', contentType)
+                setFollowers([])
+                setTotal(0)
+                return
+            }
+
             const data = await res.json()
 
             if (data.success) {
-                setFollowers(data.followers)
-                setTotal(data.total)
-                setHasMore(data.hasMore)
+                setFollowers(data.followers || [])
+                setTotal(data.total || 0)
+                setHasMore(data.hasMore || false)
+            } else {
+                setFollowers([])
+                setTotal(0)
             }
         } catch (error) {
             console.error('Error fetching followers:', error)
+            setFollowers([])
+            setTotal(0)
         } finally {
             setLoading(false)
         }
