@@ -91,7 +91,7 @@ export async function GET(request, context) {
           // ✅ Don't filter out posts without category
           options: { strictPopulate: false }
         })
-        .select('title slug excerpt featuredImageUrl publishedAt readingTime views likes category')
+        .select('title slug excerpt featuredImageUrl publishedAt readingTime views likes category contentType')
         .sort({ publishedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)

@@ -7,6 +7,7 @@ import { Eye, Heart, MessageSquare, TrendingUp, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getPostUrl } from '@/lib/helpers'
 
 /**
  * TopPosts Component
@@ -72,7 +73,7 @@ export default function TopPosts({ days = 30, limit = 10 }) {
                         {topPosts.map((item, index) => (
                             <Link
                                 key={item.post._id}
-                                href={`/blog/${item.post.slug}`}
+                                href={getPostUrl(item.post)}
                                 className="block"
                             >
                                 <div className="flex items-start gap-4 p-4 rounded-lg border hover:border-primary transition-colors">

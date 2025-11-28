@@ -30,6 +30,7 @@ import {
   UserMinus,
   Share2
 } from "lucide-react"
+import { formatDate, getPostUrl } from '@/lib/helpers'
 
 export default function AuthorClient({ params }) {
   // ✅ FIX for Next.js 15: Unwrap params Promise using React.use()
@@ -523,7 +524,7 @@ export default function AuthorClient({ params }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                       {posts.map((post) => (
                         <Card key={post._id} className="blog-card overflow-hidden hover:shadow-lg transition-all">
-                          <Link href={`/blog/${post.slug}`}>
+                          <Link href={getPostUrl(post)}>
                             <div className="relative" style={{ aspectRatio: '16 / 9' }}>
                               {post.featuredImageUrl ? (
                                 <Image

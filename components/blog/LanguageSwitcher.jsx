@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Globe, Languages } from "lucide-react"
+import { Globe, ChevronDown } from 'lucide-react'
+import { getPostUrl } from '@/lib/helpers'
 import { toast } from "sonner"
 
 /**
@@ -35,9 +36,9 @@ export default function LanguageSwitcher({ post }) {
         console.log('Fetching original post:', post.translationOf)
         const response = await fetch(`/api/posts/${post.translationOf}`)
         const data = await response.json()
-        
+
         console.log('Original post response:', data)
-        
+
         if (response.ok && data.post) {
           console.log('Setting translated post to:', data.post.title, data.post.slug)
           setTranslatedPost(data.post)
@@ -49,9 +50,9 @@ export default function LanguageSwitcher({ post }) {
         console.log('Searching for translation of post:', post._id)
         const response = await fetch(`/api/posts?translationOf=${post._id}&status=published&limit=1`)
         const data = await response.json()
-        
+
         console.log('Translation search response:', data)
-        
+
         if (response.ok && data.posts && data.posts.length > 0) {
           console.log('Setting translated post to:', data.posts[0].title, data.posts[0].slug)
           setTranslatedPost(data.posts[0])
@@ -85,9 +86,9 @@ export default function LanguageSwitcher({ post }) {
   return (
     <div className="flex items-center gap-2">
       {/* Mobile & Tablet View: Compact Button */}
-      <Link href={`/blog/${translatedPost.slug}`} className="lg:hidden">
-        <Button 
-          variant="outline" 
+      <Link href={getPostUrl(translatedPost)} className="lg:hidden">
+        <Button
+          variant="outline"
           size="sm"
           className="gap-1.5 hover:bg-primary/10 border-primary/30 text-xs"
           title={target.label}
@@ -99,9 +100,9 @@ export default function LanguageSwitcher({ post }) {
       </Link>
 
       {/* Desktop View: Full Button with Label */}
-      <Link href={`/blog/${translatedPost.slug}`} className="hidden lg:block">
-        <Button 
-          variant="outline" 
+      <Link href={getPostUrl(translatedPost)} className="hidden lg:block">
+        <Button
+          variant="outline"
           size="sm"
           className="gap-2 hover:bg-primary/10 border-primary/30"
         >

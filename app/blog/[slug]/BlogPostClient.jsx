@@ -23,7 +23,7 @@ import {
   Copy,
   Share2
 } from "lucide-react"
-import { formatDate } from "@/lib/helpers"
+import { formatDate, getPostUrl } from "@/lib/helpers"
 import { toast } from "sonner"
 import CommentSection from "@/components/comments/CommentSection"
 import { PostLikeButton } from "@/components/interactions/LikeButton"
@@ -949,7 +949,7 @@ export default function BlogPostClient({ post }) {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                       {relatedPosts.map((relatedPost) => (
-                        <Link key={relatedPost._id} href={`/blog/${relatedPost.slug}`} className="block min-h-[44px]">
+                        <Link key={relatedPost._id} href={getPostUrl(relatedPost)} className="block min-h-[44px]">
                           <Card className="blog-card hover:shadow-lg transition-all cursor-pointer group h-full">
                             <div className="relative h-32 sm:h-40 overflow-hidden">
                               {relatedPost.featuredImageUrl ? (
