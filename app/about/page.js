@@ -157,7 +157,7 @@ export default function AboutPage() {
                   Built with Next.js 15, MongoDB, and modern web technologies, Multigyan combines
                   powerful features like real-time analytics, advanced filtering, dark mode support,
                   and a rich TipTap editor. We believe great content deserves a great platform, and
-                  we've built exactly that.
+                  we&#39;ve built exactly that.
                 </p>
               </CardContent>
             </Card>
