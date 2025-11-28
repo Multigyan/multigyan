@@ -5,6 +5,7 @@ import connectDB from '@/lib/mongodb'
 import Post from '@/models/Post'
 import Category from '@/models/Category' // ✅ FIX: Import Category model for populate()
 import DIYListingClient from './DIYListingClient'
+import StructuredData, { generateBreadcrumbSchema, generateItemListSchema, generateWebSiteSchema } from '@/components/seo/StructuredData'
 
 // =========================================
 // DIY LISTING PAGE - ENHANCED WITH FILTERING
@@ -12,10 +13,54 @@ import DIYListingClient from './DIYListingClient'
 // Shows all DIY tutorial posts with filter/sort functionality
 // URL: https://www.multigyan.in/diy
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.multigyan.in'
+
 export const metadata = {
   title: 'DIY Tutorials - Do It Yourself Projects | Multigyan',
   description: 'Explore creative DIY tutorials, craft projects, and step-by-step guides. Learn to make amazing things with your own hands.',
-  keywords: ['DIY', 'tutorials', 'crafts', 'projects', 'handmade', 'creative'],
+  keywords: ['DIY', 'tutorials', 'crafts', 'projects', 'handmade', 'creative', 'do it yourself', 'DIY ideas'],
+
+  openGraph: {
+    title: 'DIY Tutorials - Creative Projects | Multigyan',
+    description: 'Explore creative DIY tutorials, craft projects, and step-by-step guides. Learn to make amazing things with your own hands.',
+    url: `${SITE_URL}/diy`,
+    siteName: 'Multigyan',
+    images: [
+      {
+        url: `${SITE_URL}/images/diy-og.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'DIY Tutorials on Multigyan',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DIY Tutorials - Creative Projects',
+    description: 'Explore creative DIY tutorials and step-by-step guides',
+    images: [`${SITE_URL}/images/diy-og.jpg`],
+    creator: '@multigyan',
+    site: '@multigyan',
+  },
+
+  alternates: {
+    canonical: `${SITE_URL}/diy`,
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 // Revalidate every 60 seconds
@@ -123,8 +168,37 @@ export default async function DIYPage() {
       }
     })
 
+    // Generate structured data schemas
+    const breadcrumbSchema = generateBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'DIY Tutorials', url: '/diy' }
+    ])
+
+    const itemListSchema = generateItemListSchema(
+      serializedPosts.slice(0, 12).map(post => ({
+        title: post.title,
+        slug: post.slug,
+        url: `/diy/${post.slug}`
+      }))
+    )
+
+    const websiteSchema = generateWebSiteSchema()
+
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-orange-50/30">
+      <div className="min-h-screen bg-gradient-to-b from-white to-orange-50/30 dark:from-gray-900 dark:to-gray-800">
+        {/* Structured Data for SEO */}
+        <StructuredData data={breadcrumbSchema} />
+        <StructuredData data={itemListSchema} />
+        <StructuredData data={websiteSchema} />
+
+        {/* Skip to main content - Accessibility */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
+
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-16">
           <div className="container mx-auto px-4">
@@ -141,29 +215,33 @@ export default async function DIYPage() {
           </div>
         </div>
 
-        {/* 🎨 Client Component with Filtering */}
-        <DIYListingClient initialPosts={serializedPosts} />
+        {/* Main Content */}
+        <main id="main-content">
 
-        {/* Call to Action */}
-        <div className="container mx-auto px-4 py-12">
-          <Card className="bg-gradient-to-r from-orange-500 to-red-500 border-none">
-            <CardContent className="p-8 text-white text-center">
-              <Wrench className="h-12 w-12 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold mb-4">
-                Have a DIY Project Idea?
-              </h2>
-              <p className="text-xl text-orange-50 mb-6 max-w-2xl mx-auto">
-                Share your creative projects with our community and inspire others to create amazing things!
-              </p>
-              <Link
-                href="/dashboard/posts/new"
-                className="inline-block bg-white text-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition shadow-lg"
-              >
-                Create DIY Tutorial
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+          {/* 🎨 Client Component with Filtering */}
+          <DIYListingClient initialPosts={serializedPosts} />
+
+          {/* Call to Action */}
+          <div className="container mx-auto px-4 py-12">
+            <Card className="bg-gradient-to-r from-orange-500 to-red-500 border-none">
+              <CardContent className="p-8 text-white text-center">
+                <Wrench className="h-12 w-12 mx-auto mb-4" />
+                <h2 className="text-3xl font-bold mb-4">
+                  Have a DIY Project Idea?
+                </h2>
+                <p className="text-xl text-orange-50 mb-6 max-w-2xl mx-auto">
+                  Share your creative projects with our community and inspire others to create amazing things!
+                </p>
+                <Link
+                  href="/dashboard/posts/new"
+                  className="inline-block bg-white text-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition shadow-lg"
+                >
+                  Create DIY Tutorial
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
     )
   } catch (error) {
