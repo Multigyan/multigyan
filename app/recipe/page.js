@@ -6,6 +6,7 @@ import Post from '@/models/Post'
 import Category from '@/models/Category' // ✅ FIX: Import Category model for populate()
 import RecipeListingClient from './RecipeListingClient'
 import { Suspense } from 'react'
+import StructuredData, { generateBreadcrumbSchema, generateItemListSchema, generateWebSiteSchema } from '@/components/seo/StructuredData'
 
 // =========================================
 // RECIPE LISTING PAGE - ENHANCED WITH FILTERING
@@ -13,10 +14,54 @@ import { Suspense } from 'react'
 // Shows all recipe posts with filter/sort functionality
 // URL: https://www.multigyan.in/recipe
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.multigyan.in'
+
 export const metadata = {
   title: 'Recipes - Delicious Cooking Guides | Multigyan',
   description: 'Discover amazing recipes, cooking tips, and step-by-step culinary guides. From traditional dishes to modern cuisine.',
-  keywords: ['recipes', 'cooking', 'food', 'cuisine', 'meals', 'dishes'],
+  keywords: ['recipes', 'cooking', 'food', 'cuisine', 'meals', 'dishes', 'culinary', 'cooking guides'],
+
+  openGraph: {
+    title: 'Recipes - Delicious Cooking Guides | Multigyan',
+    description: 'Discover amazing recipes, cooking tips, and step-by-step culinary guides. From traditional dishes to modern cuisine.',
+    url: `${SITE_URL}/recipe`,
+    siteName: 'Multigyan',
+    images: [
+      {
+        url: `${SITE_URL}/images/recipe-og.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'Recipes on Multigyan',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Recipes - Delicious Cooking Guides',
+    description: 'Discover amazing recipes and cooking tips',
+    images: [`${SITE_URL}/images/recipe-og.jpg`],
+    creator: '@multigyan',
+    site: '@multigyan',
+  },
+
+  alternates: {
+    canonical: `${SITE_URL}/recipe`,
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 // Revalidate every 60 seconds
@@ -53,7 +98,15 @@ export default async function RecipePage() {
     // If no recipes found, show empty state instead of error
     if (recipePosts.length === 0) {
       return (
-        <div className="min-h-screen bg-gradient-to-b from-white to-green-50/30">
+        <div className="min-h-screen bg-gradient-to-b from-white to-green-50/30 dark:from-gray-900 dark:to-gray-800">
+          {/* Skip to main content - Accessibility */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-green-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+          >
+            Skip to main content
+          </a>
+
           {/* Hero Section */}
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-16">
             <div className="container mx-auto px-4">
@@ -71,23 +124,25 @@ export default async function RecipePage() {
           </div>
 
           {/* Empty State */}
-          <div className="container mx-auto px-4 py-12">
-            <div className="text-center py-16">
-              <ChefHat className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <p className="text-2xl text-gray-600 mb-4">
-                No recipes available yet 🍳
-              </p>
-              <p className="text-gray-500 mb-6">
-                Check back soon for delicious cooking guides!
-              </p>
-              <Link
-                href="/blog"
-                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
-              >
-                Browse All Posts
-              </Link>
+          <main id="main-content">
+            <div className="container mx-auto px-4 py-12">
+              <div className="text-center py-16">
+                <ChefHat className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                <p className="text-2xl text-gray-600 mb-4">
+                  No recipes available yet 🍳
+                </p>
+                <p className="text-gray-500 mb-6">
+                  Check back soon for delicious cooking guides!
+                </p>
+                <Link
+                  href="/blog"
+                  className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+                >
+                  Browse All Posts
+                </Link>
+              </div>
             </div>
-          </div>
+          </main>
         </div>
       )
     }
@@ -166,8 +221,37 @@ export default async function RecipePage() {
       }
     })
 
+    // Generate structured data schemas
+    const breadcrumbSchema = generateBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Recipes', url: '/recipe' }
+    ])
+
+    const itemListSchema = generateItemListSchema(
+      serializedPosts.slice(0, 12).map(post => ({
+        title: post.title,
+        slug: post.slug,
+        url: `/recipe/${post.slug}`
+      }))
+    )
+
+    const websiteSchema = generateWebSiteSchema()
+
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-green-50/30">
+      <div className="min-h-screen bg-gradient-to-b from-white to-green-50/30 dark:from-gray-900 dark:to-gray-800">
+        {/* Structured Data for SEO */}
+        <StructuredData data={breadcrumbSchema} />
+        <StructuredData data={itemListSchema} />
+        <StructuredData data={websiteSchema} />
+
+        {/* Skip to main content - Accessibility */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-green-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
+
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-16">
           <div className="container mx-auto px-4">
@@ -184,46 +268,49 @@ export default async function RecipePage() {
           </div>
         </div>
 
-        {/* 🍳 Client Component with Filtering */}
-        <Suspense fallback={
-          <div className="container mx-auto px-4 py-12">
-            <div className="animate-pulse space-y-8">
-              <div className="h-12 bg-gray-200 rounded w-1/3"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[1, 2, 3, 4, 5, 6].map(i => (
-                  <div key={i} className="space-y-4">
-                    <div className="h-48 bg-gray-200 rounded"></div>
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                ))}
+        {/* Main Content */}
+        <main id="main-content">
+          {/* 🍳 Client Component with Filtering */}
+          <Suspense fallback={
+            <div className="container mx-auto px-4 py-12">
+              <div className="animate-pulse space-y-8">
+                <div className="h-12 bg-gray-200 rounded w-1/3"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {[1, 2, 3, 4, 5, 6].map(i => (
+                    <div key={i} className="space-y-4">
+                      <div className="h-48 bg-gray-200 rounded"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        }>
-          <RecipeListingClient initialPosts={serializedPosts} />
-        </Suspense>
+          }>
+            <RecipeListingClient initialPosts={serializedPosts} />
+          </Suspense>
 
-        {/* Call to Action */}
-        <div className="container mx-auto px-4 py-12">
-          <Card className="bg-gradient-to-r from-green-600 to-emerald-600 border-none">
-            <CardContent className="p-8 text-white text-center">
-              <ChefHat className="h-12 w-12 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold mb-4">
-                Have a Delicious Recipe to Share?
-              </h2>
-              <p className="text-xl text-green-50 mb-6 max-w-2xl mx-auto">
-                Share your favorite recipes with our community and inspire home cooks around the world!
-              </p>
-              <Link
-                href="/dashboard/posts/new"
-                className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition shadow-lg"
-              >
-                Share Your Recipe
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Call to Action */}
+          <div className="container mx-auto px-4 py-12">
+            <Card className="bg-gradient-to-r from-green-600 to-emerald-600 border-none">
+              <CardContent className="p-8 text-white text-center">
+                <ChefHat className="h-12 w-12 mx-auto mb-4" />
+                <h2 className="text-3xl font-bold mb-4">
+                  Have a Delicious Recipe to Share?
+                </h2>
+                <p className="text-xl text-green-50 mb-6 max-w-2xl mx-auto">
+                  Share your favorite recipes with our community and inspire home cooks around the world!
+                </p>
+                <Link
+                  href="/dashboard/posts/new"
+                  className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition shadow-lg"
+                >
+                  Share Your Recipe
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
     )
   } catch (error) {
