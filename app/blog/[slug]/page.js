@@ -181,6 +181,26 @@ export default async function BlogPostPage({ params }) {
     // Increment view count (we'll do this async to not block rendering)
     Post.findByIdAndUpdate(post._id, { $inc: { views: 1 } }).exec()
 
+    // ✅ OPTIMIZATION: Fetch related posts server-side (eliminates client-side API call)
+    let relatedPosts = []
+    try {
+      if (post.author?._id) {
+        relatedPosts = await Post.find({
+          status: 'published',
+          author: post.author._id,
+          _id: { $ne: post._id }
+        })
+          .limit(3)
+          .select('title slug featuredImageUrl featuredImageAlt category publishedAt readingTime')
+          .populate('category', 'name color slug')
+          .sort({ views: -1 }) // Get most viewed posts by same author
+          .lean()
+      }
+    } catch (error) {
+      console.error('Error fetching related posts:', error)
+      // Continue without related posts if error occurs
+    }
+
     // ✅ NEW: Find translation for language switcher
     const translation = post.translationOf
       ? await Post.findById(post.translationOf).select('slug lang').lean()
@@ -289,11 +309,28 @@ export default async function BlogPostPage({ params }) {
       // DO NOT include revision, hasRevision, or other MongoDB internal fields!
     }
 
+    // ✅ OPTIMIZATION: Serialize related posts
+    const serializedRelatedPosts = relatedPosts.map(rp => ({
+      _id: rp._id.toString(),
+      title: rp.title,
+      slug: rp.slug,
+      featuredImageUrl: rp.featuredImageUrl,
+      featuredImageAlt: rp.featuredImageAlt,
+      publishedAt: rp.publishedAt ? new Date(rp.publishedAt).toISOString() : null,
+      readingTime: rp.readingTime,
+      category: rp.category ? {
+        _id: rp.category._id.toString(),
+        name: rp.category.name,
+        slug: rp.category.slug,
+        color: rp.category.color
+      } : null
+    }))
+
     return (
       <>
         {/* ✅ Using Enhanced Schema with author URL */}
         <EnhancedSchema schemas={[enhancedArticleSchema, breadcrumbSchema]} />
-        <BlogPostClient post={serializedPost} />
+        <BlogPostClient post={serializedPost} relatedPosts={serializedRelatedPosts} />
       </>
     )
   } catch (error) {

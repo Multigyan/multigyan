@@ -13,7 +13,7 @@ export default function TOCDesktopSidebar({ headings, activeId, readingProgress,
     if (!headings || headings.length === 0) return null
 
     return (
-        <Card className="shadow-xl border-2 border-primary/10">
+        <Card className="shadow-xl border-2 border-primary/10 backdrop-blur-md bg-background/80 dark:bg-background/60">
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-lg flex items-center gap-2">
