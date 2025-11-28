@@ -1,13 +1,22 @@
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { BookOpen, PenTool, ArrowRight, TrendingUp, Sparkles, Users, FileText, Layers, Zap, Star, Clock, Eye, Calendar, User, ChevronRight, Mail, Award } from "lucide-react"
+import { BookOpen, PenTool, ArrowRight, TrendingUp, Sparkles, Users, FileText, Layers, Zap, Star, Clock, Eye, Calendar, User, ChevronRight, Mail, Award, Heart, MessageCircle } from "lucide-react"
 import PostCard from "@/components/blog/PostCard"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { formatDate, getPostUrl } from "@/lib/helpers"
 import HomeSchemas from "@/components/seo/HomeSchemas"
-import NewsletterSubscribe from "@/components/newsletter/NewsletterSubscribe"
+// ✅ OPTIMIZATION: Lazy load NewsletterSubscribe (reduces bundle by ~25KB)
+const NewsletterSubscribe = dynamic(() => import("@/components/newsletter/NewsletterSubscribe"), {
+  loading: () => (
+    <div className="animate-pulse space-y-4">
+      <div className="h-12 bg-muted rounded w-full"></div>
+      <div className="h-10 bg-muted rounded w-32 mx-auto"></div>
+    </div>
+  )
+})
 
 // ✅ COST OPTIMIZATION: Revalidate every 60 seconds
 export const revalidate = 60
@@ -82,10 +91,13 @@ export default async function HomePage() {
                   </div>
 
                   <Link href={getPostUrl(featuredPost)} className="block group">
-                    <Card className="overflow-hidden hover:shadow-2xl transition-all duration-500 border-2 border-primary/30 hover:border-primary/50 bg-gradient-to-br from-background to-primary/5">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+                    <Card className="overflow-hidden hover:shadow-2xl transition-all duration-500 border-2 border-primary/20 hover:border-primary/40 bg-gradient-to-br from-background via-primary/5 to-background backdrop-blur-sm relative">
+                      {/* Decorative gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative z-10">
                         {/* Image */}
-                        <div className="relative h-64 md:h-full overflow-hidden bg-muted">
+                        <div className="relative h-64 md:h-full overflow-hidden bg-gradient-to-br from-muted to-muted/50">
                           {featuredPost.featuredImageUrl ? (
                             <Image
                               src={featuredPost.featuredImageUrl}
@@ -93,36 +105,48 @@ export default async function HomePage() {
                               fill
                               priority={true}
                               sizes="(max-width: 768px) 100vw, 50vw"
-                              className="object-cover transition-transform duration-500 group-hover:scale-110"
+                              className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
-                              <BookOpen className="h-20 w-20 text-primary/60" />
+                            <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/30 to-primary/40 flex items-center justify-center">
+                              <BookOpen className="h-20 w-20 text-primary/60 group-hover:scale-110 transition-transform" />
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          {/* Enhanced gradient overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
+                          {/* Shimmer effect */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                         </div>
 
                         {/* Content */}
                         <CardContent className="p-8 flex flex-col justify-center">
-                          <Badge
-                            className="w-fit mb-3"
-                            style={{ backgroundColor: featuredPost.category?.color }}
-                          >
-                            {featuredPost.category?.name}
-                          </Badge>
+                          {/* Animated category badge */}
+                          <div className="flex items-center gap-2 mb-4">
+                            <Badge
+                              className="w-fit px-4 py-1.5 shadow-lg backdrop-blur-sm bg-opacity-90 hover:bg-opacity-100 transition-all hover:scale-105 animate-in fade-in slide-in-from-left duration-500"
+                              style={{ backgroundColor: featuredPost.category?.color }}
+                            >
+                              {featuredPost.category?.name}
+                            </Badge>
+                            {featuredPost.isFeatured && (
+                              <Badge variant="secondary" className="px-3 py-1.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 text-yellow-700 dark:text-yellow-300 backdrop-blur-sm animate-in fade-in slide-in-from-right duration-500">
+                                ⭐ Featured
+                              </Badge>
+                            )}
+                          </div>
 
-                          <h3 className="text-3xl font-bold mb-4 line-clamp-2 group-hover:text-primary transition-colors">
+                          <h3 className="text-3xl sm:text-4xl font-bold mb-4 line-clamp-2 bg-gradient-to-r from-foreground via-foreground to-foreground/80 bg-clip-text group-hover:from-primary group-hover:to-primary/60 transition-all duration-500">
                             {featuredPost.title}
                           </h3>
 
                           {featuredPost.excerpt && (
-                            <p className="text-muted-foreground mb-6 line-clamp-3 leading-relaxed">
+                            <p className="text-muted-foreground mb-6 line-clamp-3 leading-relaxed text-base group-hover:text-foreground/80 transition-colors">
                               {featuredPost.excerpt}
                             </p>
                           )}
 
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                          {/* Enhanced metadata with icons */}
+                          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground/80 group-hover:text-muted-foreground transition-colors">
                             <div className="flex items-center gap-2">
                               {featuredPost.author?.profilePictureUrl ? (
                                 <Image
@@ -156,6 +180,16 @@ export default async function HomePage() {
                                 <span>{featuredPost.views} views</span>
                               </div>
                             )}
+
+                            <div className="flex items-center gap-1">
+                              <Heart className="h-4 w-4 text-red-500 fill-red-500" />
+                              <span>{featuredPost.likeCount || 0}</span>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <MessageCircle className="h-4 w-4 text-blue-500 fill-blue-500" />
+                              <span>{featuredPost.commentCount || 0}</span>
+                            </div>
                           </div>
                         </CardContent>
                       </div>

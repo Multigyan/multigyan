@@ -39,56 +39,61 @@ export default function PostCard({ post, featured = false }) {
 
   return (
     <Link href={getPostUrl(post)} className="block h-full">
-      <Card className="blog-card overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+      <Card className="blog-card overflow-hidden group cursor-pointer hover:shadow-2xl transition-all duration-500 h-full flex flex-col border-2 border-transparent hover:border-primary/30 bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm relative">
+        {/* Decorative gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
         {/* ✅ IMPROVED: Featured Image - Consistent 16:9 Aspect Ratio */}
-        <div className="relative w-full" style={{ aspectRatio: '16 / 9' }}>
+        <div className="relative w-full z-10" style={{ aspectRatio: '16 / 9' }}>
           {imageUrl ? (
             <Image
               src={imageUrl}
               alt={post.featuredImageAlt || post.title}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-110"
+              className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
             />
           ) : (
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-              <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-primary/60 transition-transform duration-300 group-hover:scale-110" />
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/10 via-primary/20 to-primary/30 flex items-center justify-center">
+              <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-primary/60 transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12" />
             </div>
           )}
 
-          {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+          {/* Enhanced gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-40 group-hover:opacity-60 transition-opacity duration-500" />
+          {/* Shimmer effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
 
           {/* Featured Badge */}
-          {featured && (
+          {(featured || post.isFeatured) && (
             <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-10">
-              <Badge variant="secondary" className="bg-yellow-500 text-white shadow-lg text-xs sm:text-sm">
-                Featured
+              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg text-xs sm:text-sm px-3 py-1 backdrop-blur-sm border border-yellow-400/50 animate-pulse">
+                ⭐ Featured
               </Badge>
             </div>
           )}
         </div>
 
         {/* ✅ IMPROVED: Content with better mobile spacing */}
-        <CardContent className="p-4 sm:p-5 md:p-6 flex-1 flex flex-col">
+        <CardContent className="p-4 sm:p-5 md:p-6 flex-1 flex flex-col relative z-10">
           {/* Category Badge */}
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
             <Badge
               style={{ backgroundColor: post.category?.color }}
-              className="text-white text-xs sm:text-sm"
+              className="text-white text-xs sm:text-sm px-3 py-1.5 shadow-md backdrop-blur-sm bg-opacity-90 hover:bg-opacity-100 transition-all hover:scale-105"
             >
               {post.category?.name}
             </Badge>
           </div>
 
           {/* ✅ IMPROVED: Title with better mobile sizing */}
-          <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 line-clamp-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text group-hover:from-primary group-hover:to-primary/60 transition-all duration-500">
             {post.title}
           </h3>
 
           {/* Excerpt */}
           {post.excerpt && (
-            <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 flex-1">
+            <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 flex-1 group-hover:text-foreground/70 transition-colors">
               {post.excerpt}
             </p>
           )}
