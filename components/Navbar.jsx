@@ -75,7 +75,8 @@ export default function Navbar() {
         Skip to main content
       </a>
 
-      <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="sticky top-0 z-50 w-full border-b border-white/20 dark:border-gray-700/20 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 pointer-events-none"></div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16">
           {/* ✅ IMPROVED: Better mobile header height and spacing */}
           <div className="flex h-14 sm:h-16 items-center justify-between">
