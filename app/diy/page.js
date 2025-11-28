@@ -185,7 +185,12 @@ export default async function DIYPage() {
     const websiteSchema = generateWebSiteSchema()
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-orange-50/30 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-gradient-to-b from-orange-50/50 via-white to-orange-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-20 right-10 w-96 h-96 bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-20 left-10 w-80 h-80 bg-gradient-to-tr from-red-500/10 to-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-orange-500/5 to-red-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
         {/* Structured Data for SEO */}
         <StructuredData data={breadcrumbSchema} />
         <StructuredData data={itemListSchema} />
@@ -199,22 +204,6 @@ export default async function DIYPage() {
           Skip to main content
         </a>
 
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-16">
-          <div className="container mx-auto px-4">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 flex items-center gap-3">
-              <Wrench className="h-10 w-10" />
-              DIY Tutorials
-            </h1>
-            <p className="text-xl md:text-2xl text-orange-50 mb-2">
-              Do It Yourself - Creative Projects & Tutorials
-            </p>
-            <p className="text-orange-100 max-w-2xl">
-              Learn to create amazing things with step-by-step guides, from crafts to home improvements.
-            </p>
-          </div>
-        </div>
-
         {/* Main Content */}
         <main id="main-content">
 
@@ -223,18 +212,18 @@ export default async function DIYPage() {
 
           {/* Call to Action */}
           <div className="container mx-auto px-4 py-12">
-            <Card className="bg-gradient-to-r from-orange-500 to-red-500 border-none">
+            <Card className="bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-900/40 dark:to-red-900/40 border-none">
               <CardContent className="p-8 text-white text-center">
                 <Wrench className="h-12 w-12 mx-auto mb-4" />
                 <h2 className="text-3xl font-bold mb-4">
                   Have a DIY Project Idea?
                 </h2>
-                <p className="text-xl text-orange-50 mb-6 max-w-2xl mx-auto">
+                <p className="text-xl text-orange-50 dark:text-orange-200 mb-6 max-w-2xl mx-auto">
                   Share your creative projects with our community and inspire others to create amazing things!
                 </p>
                 <Link
                   href="/dashboard/posts/new"
-                  className="inline-block bg-white text-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 transition shadow-lg"
+                  className="inline-block bg-white text-orange-600 dark:bg-orange-100 dark:text-orange-900 px-8 py-3 rounded-lg font-semibold hover:bg-orange-50 dark:hover:bg-orange-200 transition shadow-lg"
                 >
                   Create DIY Tutorial
                 </Link>

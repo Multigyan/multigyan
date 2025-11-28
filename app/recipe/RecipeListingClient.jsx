@@ -140,248 +140,279 @@ export default function RecipeListingClient({ initialPosts }) {
   // RENDER
   // ========================================
   return (
-    <div className="container mx-auto px-4 py-12">
-      {posts.length === 0 ? (
-        <EmptyState
-          icon={ChefHat}
-          title="No recipes available yet"
-          description="Check back soon for delicious cooking guides!"
-          action={
-            <Link
-              href="/blog"
-              className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
-            >
-              Browse All Posts
-            </Link>
-          }
-        />
-      ) : (
-        <>
-          {/* 🔍 Filter & Sort Component */}
-          <FilterSort
-            contentType="recipe"
-            onFilterChange={handleFilter}
-            onSortChange={handleSort}
-          />
+    <>
+      {/* 🎨 HERO SECTION - Similar to Blog Page */}
+      <section className="relative overflow-hidden py-8 md:py-12 bg-gradient-to-br from-background via-green-500/5 to-background dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-green-500/10 dark:bg-green-500/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
 
-          {/* Results Count */}
-          <div className="mb-8 flex items-center justify-between">
-            <p className="text-gray-600">
-              Showing <span className="font-semibold text-green-600">{filteredPosts.length}</span> of <span className="font-semibold">{posts.length}</span> Recipe{posts.length !== 1 ? 's' : ''}
-            </p>
-            <Badge className="bg-green-100 text-green-800 border-green-300">
-              <ChefHat className="w-3 h-3 mr-1" />
-              Recipe Collection
-            </Badge>
-          </div>
-
-          {/* Loading Overlay */}
-          {isLoading && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full mb-4 border border-green-500/20">
+              <ChefHat className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <span className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider">Recipes</span>
             </div>
-          )}
 
-          {/* 2-Column Layout: Main Content + Sidebar */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Main Content Area - 3 columns */}
-            <div className="lg:col-span-3">
-              {/* Posts Grid - 2 columns */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {currentPosts.map((post) => {
-                  const totalTime = post.recipePrepTime && post.recipeCookTime
-                    ? `${post.recipePrepTime} + ${post.recipeCookTime}`
-                    : post.recipePrepTime || post.recipeCookTime || null
+            {/* Heading */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight">
+              Delicious <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400">Recipes</span> & Cooking Guides
+            </h1>
 
-                  return (
-                    <Link
-                      key={post._id}
-                      href={`/recipe/${post.slug}`}
-                      className="group"
-                    >
-                      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col border-green-100">
-                        {/* Featured Image */}
-                        <div className="relative h-48 overflow-hidden">
-                          <Image
-                            src={post.featuredImageUrl || '/fallback.webp'}
-                            alt={post.featuredImageAlt || post.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
+            {/* Description */}
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
+              From traditional family recipes to modern cuisine, discover delicious meals with step-by-step instructions
+            </p>
+          </div>
+        </div>
+      </section>
 
-                          {/* Cuisine Badge */}
-                          {post.recipeCuisine && (
-                            <div className="absolute top-4 left-4">
-                              <Badge className="bg-green-600 text-white border-none shadow-lg font-semibold">
-                                {post.recipeCuisine.charAt(0).toUpperCase() + post.recipeCuisine.slice(1)}
-                              </Badge>
-                            </div>
-                          )}
+      <div className="container mx-auto px-4 py-12">
+        {posts.length === 0 ? (
+          <EmptyState
+            icon={ChefHat}
+            title="No recipes available yet"
+            description="Check back soon for delicious cooking guides!"
+            action={
+              <Link
+                href="/blog"
+                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+              >
+                Browse All Posts
+              </Link>
+            }
+          />
+        ) : (
+          <>
+            {/* 🔍 Filter & Sort Component */}
+            <FilterSort
+              contentType="recipe"
+              onFilterChange={handleFilter}
+              onSortChange={handleSort}
+            />
 
-                          {/* Category Badge */}
-                          {post.category && (
-                            <div className="absolute top-4 right-4">
-                              <Badge
-                                className="text-white border-none shadow-lg"
-                                style={{ backgroundColor: post.category.color || '#16A34A' }}
-                              >
-                                {post.category.name}
-                              </Badge>
-                            </div>
-                          )}
+            {/* Results Count */}
+            <div className="mb-8 flex items-center justify-between">
+              <p className="text-gray-600 dark:text-gray-400">
+                Showing <span className="font-semibold text-green-600 dark:text-green-400">{filteredPosts.length}</span> of <span className="font-semibold">{posts.length}</span> Recipe{posts.length !== 1 ? 's' : ''}
+              </p>
+              <Badge className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
+                <ChefHat className="w-3 h-3 mr-1" />
+                Recipe Collection
+              </Badge>
+            </div>
 
-                          {/* Rating Badge (if exists) */}
-                          {post.averageRating > 0 && (
-                            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow-lg">
-                              <div className="flex items-center gap-1 text-sm font-semibold">
-                                <span className="text-yellow-500">⭐</span>
-                                <span>{post.averageRating.toFixed(1)}</span>
-                              </div>
-                            </div>
-                          )}
+            {/* Loading Overlay */}
+            {isLoading && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+              </div>
+            )}
 
-                          {/* Diet Tags (if any) */}
-                          {post.recipeDiet && post.recipeDiet.length > 0 && (
-                            <div className="absolute bottom-4 left-4 flex flex-wrap gap-1">
-                              {post.recipeDiet.slice(0, 2).map((diet, idx) => (
-                                <Badge
-                                  key={idx}
-                                  variant="secondary"
-                                  className="text-xs bg-white/90 text-green-800 border-green-200"
-                                >
-                                  <CheckCircle2 className="w-2 h-2 mr-1" />
-                                  {diet.split('-')[0]}
+            {/* 2-Column Layout: Main Content + Sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Main Content Area - 3 columns */}
+              <div className="lg:col-span-3">
+                {/* Posts Grid - 2 columns */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  {currentPosts.map((post) => {
+                    const totalTime = post.recipePrepTime && post.recipeCookTime
+                      ? `${post.recipePrepTime} + ${post.recipeCookTime}`
+                      : post.recipePrepTime || post.recipeCookTime || null
+
+                    return (
+                      <Link
+                        key={post._id}
+                        href={`/recipe/${post.slug}`}
+                        className="group"
+                      >
+                        <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col border-green-100">
+                          {/* Featured Image */}
+                          <div className="relative h-48 overflow-hidden">
+                            <Image
+                              src={post.featuredImageUrl || '/fallback.webp'}
+                              alt={post.featuredImageAlt || post.title}
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+
+                            {/* Cuisine Badge */}
+                            {post.recipeCuisine && (
+                              <div className="absolute top-4 left-4">
+                                <Badge className="bg-green-600 text-white border-none shadow-lg font-semibold">
+                                  {post.recipeCuisine.charAt(0).toUpperCase() + post.recipeCuisine.slice(1)}
                                 </Badge>
-                              ))}
-                              {post.recipeDiet.length > 2 && (
+                              </div>
+                            )}
+
+                            {/* Category Badge */}
+                            {post.category && (
+                              <div className="absolute top-4 right-4">
                                 <Badge
-                                  variant="secondary"
-                                  className="text-xs bg-white/90 text-green-800 border-green-200"
+                                  className="text-white border-none shadow-lg"
+                                  style={{ backgroundColor: post.category.color || '#16A34A' }}
                                 >
-                                  +{post.recipeDiet.length - 2}
+                                  {post.category.name}
                                 </Badge>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                              </div>
+                            )}
 
-                        {/* Content */}
-                        <CardContent className="p-6 flex-1 flex flex-col">
-                          {/* Title */}
-                          <h2 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-green-600 transition line-clamp-2">
-                            {post.title}
-                          </h2>
+                            {/* Rating Badge (if exists) */}
+                            {post.averageRating > 0 && (
+                              <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow-lg">
+                                <div className="flex items-center gap-1 text-sm font-semibold">
+                                  <span className="text-yellow-500">⭐</span>
+                                  <span>{post.averageRating.toFixed(1)}</span>
+                                </div>
+                              </div>
+                            )}
 
-                          {/* Excerpt */}
-                          <p className="text-gray-600 mb-4 line-clamp-2 flex-1 text-sm">
-                            {post.excerpt}
-                          </p>
-
-                          {/* Recipe Info */}
-                          {(totalTime || post.recipeServings || (post.recipeIngredients && post.recipeIngredients.length > 0)) && (
-                            <div className="mb-4 p-3 bg-green-50 rounded-lg space-y-2">
-                              <div className="grid grid-cols-2 gap-2">
-                                {totalTime && (
-                                  <div className="flex items-center gap-2 text-sm text-green-800">
-                                    <Timer className="w-4 h-4 text-green-600" />
-                                    <span className="font-medium">{totalTime}</span>
-                                  </div>
-                                )}
-                                {post.recipeServings && (
-                                  <div className="flex items-center gap-2 text-sm text-green-800">
-                                    <UsersIcon className="w-4 h-4 text-green-600" />
-                                    <span className="font-medium">{post.recipeServings}</span>
-                                  </div>
+                            {/* Diet Tags (if any) */}
+                            {post.recipeDiet && post.recipeDiet.length > 0 && (
+                              <div className="absolute bottom-4 left-4 flex flex-wrap gap-1">
+                                {post.recipeDiet.slice(0, 2).map((diet, idx) => (
+                                  <Badge
+                                    key={idx}
+                                    variant="secondary"
+                                    className="text-xs bg-white/90 text-green-800 border-green-200"
+                                  >
+                                    <CheckCircle2 className="w-2 h-2 mr-1" />
+                                    {diet.split('-')[0]}
+                                  </Badge>
+                                ))}
+                                {post.recipeDiet.length > 2 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs bg-white/90 text-green-800 border-green-200"
+                                  >
+                                    +{post.recipeDiet.length - 2}
+                                  </Badge>
                                 )}
                               </div>
-                              {post.recipeIngredients && post.recipeIngredients.length > 0 && (
-                                <div className="flex items-center gap-2 text-sm text-green-800">
-                                  <CookingPot className="w-4 h-4 text-green-600" />
-                                  <span>{post.recipeIngredients.length} ingredients</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Meta Information */}
-                          <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-green-100">
-                            <div className="flex items-center gap-2">
-                              {post.author?.profilePictureUrl ? (
-                                <Image
-                                  src={post.author.profilePictureUrl}
-                                  alt={post.author.name}
-                                  width={24}
-                                  height={24}
-                                  className="rounded-full"
-                                />
-                              ) : (
-                                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                                  <User className="w-4 h-4 text-green-600" />
-                                </div>
-                              )}
-                              <span className="truncate max-w-[120px] font-medium text-gray-700">
-                                {post.author?.name}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                              {/* Likes */}
-                              {post.likes && post.likes.length > 0 && (
-                                <span className="flex items-center gap-1 text-red-600">
-                                  <Heart className="w-4 h-4 fill-current" />
-                                  {post.likes.length}
-                                </span>
-                              )}
-
-                              {/* Saves */}
-                              {post.saves && post.saves.length > 0 && (
-                                <span className="flex items-center gap-1 text-yellow-600">
-                                  <Bookmark className="w-4 h-4 fill-current" />
-                                  {post.saves.length}
-                                </span>
-                              )}
-
-                              {/* Views */}
-                              <span className="flex items-center gap-1">
-                                <Eye className="w-4 h-4 text-green-600" />
-                                {post.views || 0}
-                              </span>
-                            </div>
+                            )}
                           </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  )
-                })}
+
+                          {/* Content */}
+                          <CardContent className="p-6 flex-1 flex flex-col">
+                            {/* Title */}
+                            <h2 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-green-600 transition line-clamp-2">
+                              {post.title}
+                            </h2>
+
+                            {/* Excerpt */}
+                            <p className="text-gray-600 mb-4 line-clamp-2 flex-1 text-sm">
+                              {post.excerpt}
+                            </p>
+
+                            {/* Recipe Info */}
+                            {(totalTime || post.recipeServings || (post.recipeIngredients && post.recipeIngredients.length > 0)) && (
+                              <div className="mb-4 p-3 bg-green-50 rounded-lg space-y-2">
+                                <div className="grid grid-cols-2 gap-2">
+                                  {totalTime && (
+                                    <div className="flex items-center gap-2 text-sm text-green-800">
+                                      <Timer className="w-4 h-4 text-green-600" />
+                                      <span className="font-medium">{totalTime}</span>
+                                    </div>
+                                  )}
+                                  {post.recipeServings && (
+                                    <div className="flex items-center gap-2 text-sm text-green-800">
+                                      <UsersIcon className="w-4 h-4 text-green-600" />
+                                      <span className="font-medium">{post.recipeServings}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                {post.recipeIngredients && post.recipeIngredients.length > 0 && (
+                                  <div className="flex items-center gap-2 text-sm text-green-800">
+                                    <CookingPot className="w-4 h-4 text-green-600" />
+                                    <span>{post.recipeIngredients.length} ingredients</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Meta Information */}
+                            <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-green-100">
+                              <div className="flex items-center gap-2">
+                                {post.author?.profilePictureUrl ? (
+                                  <Image
+                                    src={post.author.profilePictureUrl}
+                                    alt={post.author.name}
+                                    width={24}
+                                    height={24}
+                                    className="rounded-full"
+                                  />
+                                ) : (
+                                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                    <User className="w-4 h-4 text-green-600" />
+                                  </div>
+                                )}
+                                <span className="truncate max-w-[120px] font-medium text-gray-700">
+                                  {post.author?.name}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                {/* Likes */}
+                                {post.likes && post.likes.length > 0 && (
+                                  <span className="flex items-center gap-1 text-red-600">
+                                    <Heart className="w-4 h-4 fill-current" />
+                                    {post.likes.length}
+                                  </span>
+                                )}
+
+                                {/* Saves */}
+                                {post.saves && post.saves.length > 0 && (
+                                  <span className="flex items-center gap-1 text-yellow-600">
+                                    <Bookmark className="w-4 h-4 fill-current" />
+                                    {post.saves.length}
+                                  </span>
+                                )}
+
+                                {/* Views */}
+                                <span className="flex items-center gap-1">
+                                  <Eye className="w-4 h-4 text-green-600" />
+                                  {post.views || 0}
+                                </span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    )
+                  })}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <ClientPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    className="mt-8"
+                  />
+                )}
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <ClientPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                  className="mt-8"
-                />
-              )}
+              {/* Sidebar - 1 column */}
+              <div className="space-y-6">
+                {/* Popular Recipes */}
+                <PopularPosts contentType="recipe" limit={5} />
+
+                {/* Categories */}
+                <CategoriesWidget contentType="recipe" limit={8} />
+
+                {/* Newsletter */}
+                <NewsletterCard />
+              </div>
             </div>
-
-            {/* Sidebar - 1 column */}
-            <div className="space-y-6">
-              {/* Popular Recipes */}
-              <PopularPosts contentType="recipe" limit={5} />
-
-              {/* Categories */}
-              <CategoriesWidget contentType="recipe" limit={8} />
-
-              {/* Newsletter */}
-              <NewsletterCard />
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+    </>
   )
 }
 

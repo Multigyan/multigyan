@@ -238,7 +238,12 @@ export default async function RecipePage() {
     const websiteSchema = generateWebSiteSchema()
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-green-50/30 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-green-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-20 right-10 w-96 h-96 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-20 left-10 w-80 h-80 bg-gradient-to-tr from-emerald-500/10 to-green-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-green-500/5 to-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
         {/* Structured Data for SEO */}
         <StructuredData data={breadcrumbSchema} />
         <StructuredData data={itemListSchema} />
@@ -251,22 +256,6 @@ export default async function RecipePage() {
         >
           Skip to main content
         </a>
-
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-16">
-          <div className="container mx-auto px-4">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 flex items-center gap-3">
-              <ChefHat className="h-10 w-10" />
-              Recipes Collection
-            </h1>
-            <p className="text-xl md:text-2xl text-green-50 mb-2">
-              Delicious Recipes & Cooking Guides
-            </p>
-            <p className="text-green-100 max-w-2xl">
-              From traditional family recipes to modern cuisine, discover delicious meals with step-by-step instructions.
-            </p>
-          </div>
-        </div>
 
         {/* Main Content */}
         <main id="main-content">
@@ -292,18 +281,18 @@ export default async function RecipePage() {
 
           {/* Call to Action */}
           <div className="container mx-auto px-4 py-12">
-            <Card className="bg-gradient-to-r from-green-600 to-emerald-600 border-none">
+            <Card className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-900/40 dark:to-emerald-900/40 border-none">
               <CardContent className="p-8 text-white text-center">
                 <ChefHat className="h-12 w-12 mx-auto mb-4" />
                 <h2 className="text-3xl font-bold mb-4">
                   Have a Delicious Recipe to Share?
                 </h2>
-                <p className="text-xl text-green-50 mb-6 max-w-2xl mx-auto">
+                <p className="text-xl text-green-50 dark:text-green-200 mb-6 max-w-2xl mx-auto">
                   Share your favorite recipes with our community and inspire home cooks around the world!
                 </p>
                 <Link
                   href="/dashboard/posts/new"
-                  className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition shadow-lg"
+                  className="inline-block bg-white text-green-600 dark:bg-green-100 dark:text-green-900 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 dark:hover:bg-green-200 transition shadow-lg"
                 >
                   Share Your Recipe
                 </Link>
