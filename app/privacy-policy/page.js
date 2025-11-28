@@ -17,7 +17,7 @@ export const dynamic = 'force-static'
 export const revalidate = 86400 // Revalidate daily
 
 export default function PrivacyPolicyPage() {
-  const lastUpdated = "January 1, 2025"
+  const lastUpdated = "June 1, 2025"
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50/50 via-white to-gray-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 relative overflow-hidden">
