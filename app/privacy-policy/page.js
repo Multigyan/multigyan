@@ -82,14 +82,15 @@ export default function PrivacyPolicyPage() {
               <div>
                 <h3 className="font-semibold text-lg mb-2">Automatically Collected Information</h3>
                 <p className="text-muted-foreground mb-2">
-                  When you visit our website, we automatically collect certain information about your device, including:
+                  When you visit our website, we automatically collect certain information about your device and usage, including:
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                  <li>IP address</li>
+                  <li>IP address and location data</li>
                   <li>Browser type and version</li>
                   <li>Operating system</li>
-                  <li>Pages visited and time spent</li>
+                  <li>Pages visited, time spent, and navigation patterns</li>
                   <li>Referring website addresses</li>
+                  <li>Device information and screen resolution</li>
                 </ul>
               </div>
             </CardContent>
@@ -135,11 +136,13 @@ export default function PrivacyPolicyPage() {
                 information against unauthorized access, alteration, disclosure, or destruction. These measures include:
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
-                <li>Secure Socket Layer (SSL) encryption technology</li>
+                <li>Secure Socket Layer (SSL/TLS) encryption for all data transmission</li>
                 <li>Regular security audits and updates</li>
-                <li>Restricted access to personal information</li>
+                <li>Restricted access to personal information (role-based access control)</li>
                 <li>Secure password hashing with bcrypt</li>
-                <li>NextAuth.js for secure authentication</li>
+                <li>NextAuth.js for secure authentication and session management</li>
+                <li>MongoDB Atlas with encryption at rest and in transit</li>
+                <li>Cloudinary for secure image storage and delivery</li>
               </ul>
               <p className="text-muted-foreground mt-4">
                 However, no method of transmission over the Internet or electronic storage is 100% secure.
@@ -164,10 +167,16 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
                 <li><strong>With your consent:</strong> When you explicitly agree to share your information</li>
-                <li><strong>Service providers:</strong> With third-party vendors who assist us in operating our platform
-                  (e.g., Cloudinary for image hosting, MongoDB Atlas for database services)</li>
-                <li><strong>Legal requirements:</strong> When required by law or to protect our rights and safety</li>
-                <li><strong>Business transfers:</strong> In connection with any merger, sale, or acquisition</li>
+                <li><strong>Service providers:</strong> With third-party vendors who assist us in operating our platform:
+                  <ul className="list-disc list-inside ml-6 mt-1">
+                    <li>Cloudinary for image hosting and optimization</li>
+                    <li>MongoDB Atlas for secure database services</li>
+                    <li>Vercel for hosting and content delivery</li>
+                    <li>Email service providers for newsletters and notifications</li>
+                  </ul>
+                </li>
+                <li><strong>Legal requirements:</strong> When required by law or to protect our rights, safety, and property</li>
+                <li><strong>Business transfers:</strong> In connection with any merger, sale, or acquisition of our business</li>
               </ul>
             </CardContent>
           </Card>

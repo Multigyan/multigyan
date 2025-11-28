@@ -81,7 +81,7 @@ export default function NewsletterPage() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Latest Articles</h3>
                 <p className="text-muted-foreground">
-                  Expert articles on technology, programming, web development, and software engineering
+                  Insightful blog posts on technology, web development, programming, lifestyle, and more from our community of expert writers
                 </p>
               </div>
 
@@ -92,7 +92,7 @@ export default function NewsletterPage() {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Delicious Recipes</h3>
                 <p className="text-muted-foreground">
-                  New recipes, cooking tips, and culinary adventures from around the world
+                  New recipes with detailed instructions, ingredient lists, prep times, and dietary information for various cuisines
                 </p>
               </div>
 
@@ -103,7 +103,7 @@ export default function NewsletterPage() {
                 </div>
                 <h3 className="text-xl font-semibold mb-3">DIY Tutorials</h3>
                 <p className="text-muted-foreground">
-                  Step-by-step guides for exciting DIY projects and creative crafts
+                  Creative DIY projects with step-by-step instructions, difficulty levels, and material lists for crafts and home improvements
                 </p>
               </div>
 
@@ -112,9 +112,9 @@ export default function NewsletterPage() {
                 <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
                   <Zap className="h-6 w-6 text-purple-500" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Exclusive Content</h3>
+                <h3 className="text-xl font-semibold mb-2">Curated Content</h3>
                 <p className="text-muted-foreground">
-                  Subscriber-only tips, resources, and early access to new content
+                  Handpicked selection of the best blog posts, tutorials, and recipes published each week
                 </p>
               </div>
 

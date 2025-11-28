@@ -87,8 +87,8 @@ export default function AboutPage() {
               {[
                 {
                   icon: Users,
-                  title: "Diverse Perspectives",
-                  description: "Read from multiple authors with unique viewpoints and expertise across various topics and industries.",
+                  title: "Multi-Author Platform",
+                  description: "Collaborate with talented writers across blog posts, DIY tutorials, and recipes. Each author brings unique expertise and perspectives.",
                   gradient: "from-blue-500 to-blue-600"
                 },
                 {
@@ -99,8 +99,8 @@ export default function AboutPage() {
                 },
                 {
                   icon: Search,
-                  title: "Easy Discovery",
-                  description: "Find exactly what you're looking for with organized categories, tags, and powerful search functionality.",
+                  title: "Smart Filtering",
+                  description: "Find content easily with advanced filters for categories, difficulty levels, cuisines, dietary preferences, and more.",
                   gradient: "from-blue-500 to-blue-600"
                 },
                 {
@@ -111,8 +111,8 @@ export default function AboutPage() {
                 },
                 {
                   icon: Zap,
-                  title: "Always Fresh",
-                  description: "New articles published regularly across all categories, so there's always something new to discover.",
+                  title: "Diverse Content",
+                  description: "From tech articles to DIY projects and delicious recipes - discover blog posts, step-by-step tutorials, and cooking guides all in one place.",
                   gradient: "from-orange-500 to-red-600"
                 },
                 {
@@ -149,14 +149,15 @@ export default function AboutPage() {
               <CardContent className="prose prose-lg max-w-none">
                 <p>
                   Multigyan was born from a simple yet powerful idea: knowledge grows when shared.
-                  In today&#39;s fast-paced digital world, we recognized the need for a platform that
-                  not only makes it easy to share insights but also fosters genuine collaboration
-                  among writers, thinkers, and creators.
+                  We created a platform where writers can share blog articles, DIY enthusiasts can
+                  teach creative projects, and home cooks can share their favorite recipes - all in
+                  one collaborative space.
                 </p>
                 <p>
-                  Built with modern web technologies, Multigyan represents the perfect blend of
-                  cutting-edge technology and user-friendly design. We believe that great content
-                  deserves a great platform, and we&#39;ve worked tirelessly to create exactly that.
+                  Built with Next.js 15, MongoDB, and modern web technologies, Multigyan combines
+                  powerful features like real-time analytics, advanced filtering, dark mode support,
+                  and a rich TipTap editor. We believe great content deserves a great platform, and
+                  we've built exactly that.
                 </p>
               </CardContent>
             </Card>
@@ -173,9 +174,9 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  To empower writers and content creators with a powerful, secure, and intuitive
-                  platform that makes sharing knowledge effortless. We strive to build a community
-                  where ideas flourish and collaboration drives innovation.
+                  To empower writers, makers, and creators with a powerful platform for sharing blog posts,
+                  DIY tutorials, and recipes. We provide the tools and community support needed to create,
+                  publish, and grow your audience across multiple content types.
                 </p>
               </CardContent>
             </Card>
@@ -189,9 +190,9 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  To become the go-to platform for collaborative content creation, where writers
-                  from around the world can connect, share, and grow together. We envision a future
-                  where quality content is accessible to everyone, everywhere.
+                  To become the leading multi-format content platform where creators can seamlessly share
+                  articles, tutorials, and recipes. We envision a community where knowledge, creativity,
+                  and culinary arts come together to inspire and educate.
                 </p>
               </CardContent>
             </Card>
@@ -277,9 +278,9 @@ export default function AboutPage() {
                     <div className="w-16 h-16 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-sm">
                       <BookOpen className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">Rich Editor</h3>
+                    <h3 className="font-semibold text-lg mb-2">TipTap Editor</h3>
                     <p className="text-sm text-muted-foreground">
-                      Powerful TipTap editor with formatting, images, and code blocks
+                      Advanced rich text editor with formatting, images, code blocks, and real-time preview
                     </p>
                   </div>
 
@@ -287,9 +288,9 @@ export default function AboutPage() {
                     <div className="w-16 h-16 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-sm">
                       <Users className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">Multi-Author</h3>
+                    <h3 className="font-semibold text-lg mb-2">Role-Based Access</h3>
                     <p className="text-sm text-muted-foreground">
-                      Role-based access with author and admin permissions
+                      Author and admin roles with up to 4 admins, content approval workflow, and analytics dashboard
                     </p>
                   </div>
 
@@ -297,9 +298,9 @@ export default function AboutPage() {
                     <div className="w-16 h-16 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-sm">
                       <PenTool className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">Easy Publishing</h3>
+                    <h3 className="font-semibold text-lg mb-2">Smart Features</h3>
                     <p className="text-sm text-muted-foreground">
-                      Streamlined workflow from draft to published content
+                      Flexible post creation with Quick Post (6 fields) or Full Post (30+ fields), Wizard Mode for guided flow, auto-save, draft management, live preview, dark mode, comment system, and Cloudinary image hosting
                     </p>
                   </div>
                 </div>

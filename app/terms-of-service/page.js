@@ -101,6 +101,7 @@ export default function TermsOfServicePage() {
                   <li>Keep your password secure and confidential</li>
                   <li>Not impersonate any person or entity</li>
                   <li>Not use the account to violate any laws or regulations</li>
+                  <li>Respect the 4-admin account limit for the platform</li>
                 </ul>
               </div>
             </CardContent>
@@ -118,11 +119,12 @@ export default function TermsOfServicePage() {
               <div>
                 <h3 className="font-semibold text-lg mb-2">Your Content</h3>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
-                  <li>You retain all rights to content you create and publish on Multigyan</li>
-                  <li>By publishing content, you grant us a license to display, distribute, and promote your content</li>
+                  <li>You retain all rights to content you create and publish on Multigyan (blog posts, DIY tutorials, recipes)</li>
+                  <li>By publishing content, you grant us a non-exclusive license to display, distribute, and promote your content</li>
                   <li>You are solely responsible for the content you publish</li>
-                  <li>You must have rights to any content you publish</li>
-                  <li>You must not publish copyrighted material without permission</li>
+                  <li>You must have rights to any content, images, or media you publish</li>
+                  <li>You must not publish copyrighted material without proper permission or attribution</li>
+                  <li>Images uploaded are stored on Cloudinary and must comply with their terms of service</li>
                 </ul>
               </div>
 
@@ -147,8 +149,9 @@ export default function TermsOfServicePage() {
                 <h3 className="font-semibold text-lg mb-2">Content Moderation</h3>
                 <p className="text-muted-foreground">
                   We reserve the right to review, remove, or modify any content that violates these terms.
-                  Published content may be subject to approval before becoming public. We may suspend or
-                  terminate accounts that repeatedly violate our content policy.
+                  All published content (blog posts, DIY tutorials, recipes) must be approved by an admin before
+                  becoming public. We may suspend or terminate accounts that repeatedly violate our content policy
+                  or community guidelines.
                 </p>
               </div>
             </CardContent>

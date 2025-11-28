@@ -36,7 +36,7 @@ export default function HelpPage() {
         },
         {
           q: 'What are the different user roles?',
-          a: 'Multigyan has two main roles: Authors can create and manage their own posts, while Admins have additional permissions including approving posts, managing users, and accessing site-wide settings. The platform supports up to 3 admin accounts.'
+          a: 'Multigyan has two main roles: Authors can create and manage their own posts (blog articles, DIY tutorials, or recipes), while Admins have additional permissions including approving posts, managing users, moderating comments, and accessing site-wide analytics. The platform supports up to 4 admin accounts.'
         },
         {
           q: 'Is Multigyan free to use?',
@@ -50,11 +50,11 @@ export default function HelpPage() {
       questions: [
         {
           q: 'How do I create a new post?',
-          a: 'After signing in, navigate to your dashboard and click "New Post". Use our TipTap editor to write your content, add images, format text, and more. When ready, you can save as draft or submit for review.'
+          a: 'Navigate to Dashboard → New Post. Choose between two modes: (1) Creation Mode - Quick Post (6 essential fields) or Full Post (30+ fields) with all features and advanced options, or (2) Wizard Mode - Traditional 3-step guided flow (Basic Info → Content → Settings). Use the TipTap editor, add images via Cloudinary, and submit for admin review. Three action buttons are available: Clear Auto Saved Draft, Save Draft (manual save), and Preview (see how it looks before publishing).'
         },
         {
           q: 'What is the post approval process?',
-          a: 'All posts must be submitted for review before publication. Admin users will review your content for quality and compliance with our guidelines. Once approved, your post will be published and visible to all visitors.'
+          a: 'After creating your post, save it as a draft or submit it for review. Admin users will review your content for quality and compliance. Once approved, your post (blog article, DIY tutorial, or recipe) will be published and visible to all visitors. You\'ll receive notifications about the approval status.'
         },
         {
           q: 'Can I edit my published posts?',
@@ -62,11 +62,11 @@ export default function HelpPage() {
         },
         {
           q: 'What image formats are supported?',
-          a: 'We support JPG, PNG, WebP, and GIF formats. Images are automatically optimized and hosted on Cloudinary for fast loading. Maximum file size is 5MB per image.'
+          a: 'We support JPG, PNG, WebP, and GIF formats. Images are automatically optimized and hosted on Cloudinary for fast, reliable delivery. Maximum file size is 5MB per image. All images are automatically compressed and converted to WebP format for optimal performance.'
         },
         {
           q: 'How do I add categories and tags?',
-          a: 'When creating or editing a post, you can select a category from the available options and add relevant tags. Categories help organize content by topic, while tags provide additional keywords for discovery.'
+          a: 'When creating or editing a post, select a category from the dropdown (Blog, DIY, or Recipe). For DIY posts, you can also set difficulty level (Easy/Medium/Hard). For Recipe posts, add cuisine type, dietary preferences, prep time, and cook time. Tags help with discovery and SEO.'
         }
       ]
     },
@@ -129,12 +129,12 @@ export default function HelpPage() {
       icon: <Settings className="h-5 w-5" />,
       questions: [
         {
-          q: 'Why can&apos;t I upload images?',
-          a: 'Check that your image is under 5MB and in a supported format (JPG, PNG, WebP, GIF). Clear your browser cache and try again. If the issue persists, contact support.'
+          q: 'Why can\'t I upload images?',
+          a: 'Check that your image is under 5MB and in a supported format (JPG, PNG, WebP, GIF). Ensure you have a stable internet connection as images are uploaded to Cloudinary. Clear your browser cache and try again. If the issue persists, contact support at contact@multigyan.com.'
         },
         {
           q: 'The editor is not loading properly',
-          a: 'Try refreshing your browser or clearing your cache. Make sure JavaScript is enabled. If using an ad blocker, try disabling it temporarily. Contact support if the problem continues.'
+          a: 'The TipTap editor requires JavaScript to be enabled. Try refreshing your browser or clearing your cache. Disable ad blockers temporarily as they may interfere with the editor. Ensure you\'re using a modern browser (Chrome, Firefox, Safari, or Edge). Contact support if problems continue.'
         },
         {
           q: 'I&apos;m not receiving email notifications',
