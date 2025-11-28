@@ -15,6 +15,7 @@ import PopularPosts from '@/components/blog/PopularPosts'
 import CategoriesWidget from '@/components/blog/CategoriesWidget'
 import NewsletterCard from '@/components/blog/NewsletterCard'
 import FollowersList from '@/components/author/FollowersList'
+import ShareButtons from '@/components/ShareButtons'
 import {
   Search,
   Calendar,
@@ -339,13 +340,13 @@ export default function AuthorClient({ params }) {
                   {/* Author Info */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-6">
-                      <div>
-                        <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                      <div className="flex-1 min-w-0">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent break-words">
                           {author.name}
                         </h1>
 
                         {author.username && (
-                          <p className="text-lg text-muted-foreground mb-4 flex items-center gap-2">
+                          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-3 md:mb-4 flex items-center gap-2">
                             <span className="text-blue-600 dark:text-blue-400">@</span>{author.username}
                           </p>
                         )}
@@ -353,27 +354,37 @@ export default function AuthorClient({ params }) {
 
                       {/* ✅ ADD: Action Buttons - Only show if not viewing own profile */}
                       {session?.user?.id !== author._id && (
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-0">
                           <Button
                             onClick={handleFollow}
                             disabled={followLoading}
                             variant={isFollowing ? "outline" : "default"}
                             size="sm"
+                            className="w-full sm:w-auto"
                           >
                             {followLoading ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                              <Loader2 className="h-4 w-4 animate-spin" />
                             ) : isFollowing ? (
-                              <UserMinus className="h-4 w-4 mr-2" />
+                              <>
+                                <UserMinus className="h-4 w-4 mr-2" />
+                                Unfollow
+                              </>
                             ) : (
-                              <UserPlus className="h-4 w-4 mr-2" />
+                              <>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Follow
+                              </>
                             )}
-                            {isFollowing ? 'Unfollow' : 'Follow'}
                           </Button>
-
                           <Button
-                            onClick={handleShare}
+                            onClick={() => {
+                              const url = `${process.env.NEXT_PUBLIC_SITE_URL}/author/${author.username || author._id}`
+                              navigator.clipboard.writeText(url)
+                              toast.success('Link copied to clipboard!')
+                            }}
                             variant="outline"
                             size="sm"
+                            className="w-full sm:w-auto"
                           >
                             <Share2 className="h-4 w-4 mr-2" />
                             Share
@@ -391,39 +402,39 @@ export default function AuthorClient({ params }) {
                     )}
 
                     {/* Author Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <div className="text-center p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
-                        <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+                      <div className="text-center p-3 md:p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/10 dark:from-blue-500/20 dark:to-blue-600/20 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
+                        <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent">
                           {author.stats?.totalPosts || 0}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
+                        <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
                           Articles
                         </div>
                       </div>
-                      <div className="text-center p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/10 dark:from-purple-500/20 dark:to-purple-600/20 border border-purple-200 dark:border-purple-800 hover:shadow-lg transition-shadow">
-                        <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-400 dark:to-purple-500 bg-clip-text text-transparent">
+                      <div className="text-center p-3 md:p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/10 dark:from-purple-500/20 dark:to-purple-600/20 border border-purple-200 dark:border-purple-800 hover:shadow-lg transition-shadow">
+                        <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-400 dark:to-purple-500 bg-clip-text text-transparent">
                           {author.stats?.totalViews?.toLocaleString() || 0}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
+                        <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
                           Total Views
                         </div>
                       </div>
                       <button
                         onClick={() => setShowFollowersModal(true)}
-                        className="text-center p-4 rounded-xl bg-gradient-to-br from-pink-500/10 to-pink-600/10 dark:from-pink-500/20 dark:to-pink-600/20 border border-pink-200 dark:border-pink-800 hover:shadow-lg transition-all hover:scale-105 cursor-pointer w-full"
+                        className="text-center p-3 md:p-4 rounded-xl bg-gradient-to-br from-pink-500/10 to-pink-600/10 dark:from-pink-500/20 dark:to-pink-600/20 border border-pink-200 dark:border-pink-800 hover:shadow-lg transition-all hover:scale-105 cursor-pointer w-full"
                       >
-                        <div className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-pink-700 dark:from-pink-400 dark:to-pink-500 bg-clip-text text-transparent">
+                        <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-600 to-pink-700 dark:from-pink-400 dark:to-pink-500 bg-clip-text text-transparent">
                           {author.stats?.followersCount || 0}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
+                        <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
                           Followers
                         </div>
                       </button>
-                      <div className="text-center p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-red-600/10 dark:from-red-500/20 dark:to-red-600/20 border border-red-200 dark:border-red-800 hover:shadow-lg transition-shadow">
-                        <div className="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-700 dark:from-red-400 dark:to-red-500 bg-clip-text text-transparent">
+                      <div className="text-center p-3 md:p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-red-600/10 dark:from-red-500/20 dark:to-red-600/20 border border-red-200 dark:border-red-800 hover:shadow-lg transition-shadow">
+                        <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-600 to-red-700 dark:from-red-400 dark:to-red-500 bg-clip-text text-transparent">
                           {author.stats?.totalLikes || 0}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
+                        <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
                           Total Likes
                         </div>
                       </div>
