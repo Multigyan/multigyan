@@ -160,171 +160,177 @@ export default function HelpPage() {
   }
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4">
-        {/* Hero Section */}
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <div className="w-16 h-16 bg-primary/10 rounded-full mx-auto mb-6 flex items-center justify-center">
-            <HelpCircle className="h-8 w-8 text-primary" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Help & <span className="title-gradient">Support</span>
-          </h1>
-          <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-            Find answers to common questions and get the help you need
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-green-50/50 via-white to-emerald-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-20 right-10 w-96 h-96 bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/5 dark:to-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-20 left-10 w-80 h-80 bg-gradient-to-tr from-emerald-500/10 to-green-500/10 dark:from-emerald-500/5 dark:to-green-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-          {/* Search Bar */}
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search for help..."
-              className="pl-12 py-6 text-lg"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Quick Links */}
-        <div className="grid md:grid-cols-4 gap-4 mb-16 max-w-6xl mx-auto">
-          <Card className="blog-card cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
-                <BookOpen className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Getting Started</CardTitle>
-              <CardDescription className="text-sm">
-                New to Multigyan? Start here
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="blog-card cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
-                <PenTool className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Writing Guide</CardTitle>
-              <CardDescription className="text-sm">
-                Learn how to create great content
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="blog-card cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
-                <Lock className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Security</CardTitle>
-              <CardDescription className="text-sm">
-                Keep your account safe
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="blog-card cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
-                <Mail className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Contact Us</CardTitle>
-              <CardDescription className="text-sm">
-                Still need help? Get in touch
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* FAQs */}
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">
-            Frequently Asked <span className="title-gradient">Questions</span>
-          </h2>
-
-          {filteredFAQs.length === 0 ? (
-            <Card className="blog-card">
-              <CardContent className="p-12 text-center">
-                <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg text-muted-foreground">
-                  No results found for &quot;{searchQuery}&quot;
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Try a different search term or contact us for help
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              {filteredFAQs.map((category, categoryIndex) => (
-                <Card key={categoryIndex} className="blog-card">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {category.icon}
-                      {category.category}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {category.questions.map((faq, questionIndex) => {
-                      const key = `${categoryIndex}-${questionIndex}`
-                      const isExpanded = expandedFAQ === key
-
-                      return (
-                        <div
-                          key={questionIndex}
-                          className="border rounded-lg overflow-hidden"
-                        >
-                          <button
-                            onClick={() => toggleFAQ(categoryIndex, questionIndex)}
-                            className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors text-left"
-                          >
-                            <span className="font-medium">{faq.q}</span>
-                            {isExpanded ? (
-                              <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                            ) : (
-                              <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                            )}
-                          </button>
-                          {isExpanded && (
-                            <div className="px-4 py-3 bg-muted/30 border-t">
-                              <p className="text-muted-foreground">{faq.a}</p>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </CardContent>
-                </Card>
-              ))}
+      <div className="relative z-10 py-12">
+        <div className="container mx-auto px-4">
+          {/* Hero Section */}
+          <div className="text-center max-w-4xl mx-auto mb-16">
+            <div className="w-16 h-16 bg-primary/10 rounded-full mx-auto mb-6 flex items-center justify-center">
+              <HelpCircle className="h-8 w-8 text-primary" />
             </div>
-          )}
-        </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              Help & <span className="title-gradient">Support</span>
+            </h1>
+            <p className="text-xl text-muted-foreground leading-relaxed mb-8">
+              Find answers to common questions and get the help you need
+            </p>
 
-        {/* Contact Support */}
-        <Card className="blog-card bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 mt-16 max-w-4xl mx-auto">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Still Need Help?</CardTitle>
-            <CardDescription className="text-base">
-              Can&apos;t find what you&apos;re looking for? Our support team is here to help
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link href="/contact">
-                <Mail className="mr-2 h-5 w-5" />
-                Contact Support
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <a href="mailto:support@multigyan.com">
-                <Mail className="mr-2 h-5 w-5" />
-                Email Us
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
+            {/* Search Bar */}
+            <div className="relative max-w-2xl mx-auto">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search for help..."
+                className="pl-12 py-6 text-lg"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div className="grid md:grid-cols-4 gap-4 mb-16 max-w-6xl mx-auto">
+            <Card className="blog-card cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <BookOpen className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Getting Started</CardTitle>
+                <CardDescription className="text-sm">
+                  New to Multigyan? Start here
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="blog-card cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <PenTool className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Writing Guide</CardTitle>
+                <CardDescription className="text-sm">
+                  Learn how to create great content
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="blog-card cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Lock className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Security</CardTitle>
+                <CardDescription className="text-sm">
+                  Keep your account safe
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="blog-card cursor-pointer hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Mail className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Contact Us</CardTitle>
+                <CardDescription className="text-sm">
+                  Still need help? Get in touch
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+
+          {/* FAQs */}
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold mb-8 text-center">
+              Frequently Asked <span className="title-gradient">Questions</span>
+            </h2>
+
+            {filteredFAQs.length === 0 ? (
+              <Card className="blog-card">
+                <CardContent className="p-12 text-center">
+                  <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg text-muted-foreground">
+                    No results found for &quot;{searchQuery}&quot;
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Try a different search term or contact us for help
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {filteredFAQs.map((category, categoryIndex) => (
+                  <Card key={categoryIndex} className="blog-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        {category.icon}
+                        {category.category}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {category.questions.map((faq, questionIndex) => {
+                        const key = `${categoryIndex}-${questionIndex}`
+                        const isExpanded = expandedFAQ === key
+
+                        return (
+                          <div
+                            key={questionIndex}
+                            className="border rounded-lg overflow-hidden"
+                          >
+                            <button
+                              onClick={() => toggleFAQ(categoryIndex, questionIndex)}
+                              className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors text-left"
+                            >
+                              <span className="font-medium">{faq.q}</span>
+                              {isExpanded ? (
+                                <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                              ) : (
+                                <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                              )}
+                            </button>
+                            {isExpanded && (
+                              <div className="px-4 py-3 bg-muted/30 border-t">
+                                <p className="text-muted-foreground">{faq.a}</p>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Contact Support */}
+          <Card className="blog-card bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 mt-16 max-w-4xl mx-auto">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Still Need Help?</CardTitle>
+              <CardDescription className="text-base">
+                Can&apos;t find what you&apos;re looking for? Our support team is here to help
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" asChild>
+                <Link href="/contact">
+                  <Mail className="mr-2 h-5 w-5" />
+                  Contact Support
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <a href="mailto:support@multigyan.com">
+                  <Mail className="mr-2 h-5 w-5" />
+                  Email Us
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )
