@@ -7,7 +7,7 @@ export async function GET(request, { params }) {
         await connectDB()
 
         const resolvedParams = await params
-        const { id } = resolvedParams
+        const { identifier } = resolvedParams
         const { searchParams } = new URL(request.url)
         const page = parseInt(searchParams.get('page') || '1')
         const limit = parseInt(searchParams.get('limit') || '10')
@@ -15,7 +15,7 @@ export async function GET(request, { params }) {
 
         // Find users who follow this author
         const followers = await User.find({
-            following: id,
+            following: identifier,
             isActive: true
         })
             .select('name username profilePictureUrl')
@@ -25,7 +25,7 @@ export async function GET(request, { params }) {
 
         // Get total count
         const total = await User.countDocuments({
-            following: id,
+            following: identifier,
             isActive: true
         })
 
