@@ -330,12 +330,12 @@ export default function BulkUploadPage() {
                                 <li>Use brand/category <strong>names</strong>, not IDs</li>
                                 <li>For images: provide direct URLs (Cloudinary, Amazon S3, etc.)</li>
                                 <li>Separate multiple values with commas (tags, subcategories, image URLs)</li>
-                                <li>Use "true" or "false" for boolean fields</li>
+                                <li>Use &#34;true&#34; or &#34;false&#34; for boolean fields</li>
                             </ul>
                         </li>
                         <li>Upload the completed CSV file</li>
                         <li>Review validation results</li>
-                        <li>Click "Upload Products" to complete the import</li>
+                        <li>Click &#34;Upload Products&#34; to complete the import</li>
                     </ol>
 
                     <div className="flex gap-2">
