@@ -31,6 +31,11 @@ export default function StoreAnalyticsPage() {
     })
     const [loading, setLoading] = useState(true)
 
+    // Set page title
+    useEffect(() => {
+        document.title = "Store Analytics | Multigyan"
+    }, [])
+
     useEffect(() => {
         fetchAnalytics()
     }, [])

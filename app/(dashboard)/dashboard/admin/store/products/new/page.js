@@ -46,6 +46,11 @@ export default function NewProductPage() {
         metaDescription: "",
     })
 
+    // Set page title
+    useEffect(() => {
+        document.title = "Add New Product | Multigyan"
+    }, [])
+
     useEffect(() => {
         fetchBrandsAndCategories()
     }, [])

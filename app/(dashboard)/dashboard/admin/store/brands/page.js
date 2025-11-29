@@ -45,6 +45,11 @@ export default function BrandsManagementPage() {
         logo: null,
     })
 
+    // Set page title
+    useEffect(() => {
+        document.title = "Brand Management | Multigyan"
+    }, [])
+
     useEffect(() => {
         fetchBrands()
     }, [])

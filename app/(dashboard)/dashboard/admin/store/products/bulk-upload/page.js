@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,6 +29,11 @@ export default function BulkUploadPage() {
     const [validationResults, setValidationResults] = useState([])
     const [uploadProgress, setUploadProgress] = useState(0)
     const [uploadResults, setUploadResults] = useState(null)
+
+    // Set page title
+    useEffect(() => {
+        document.title = "Bulk Upload Products | Multigyan"
+    }, [])
 
     const downloadTemplate = () => {
         const template = [
