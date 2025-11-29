@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Shield, Lock, Eye, Database, Mail, UserCheck } from 'lucide-react'
 
 export const metadata = {
-  title: 'Privacy Policy | Multigyan',
+  title: 'Privacy Policy',
   description: 'Learn how Multigyan collects, uses, and protects your personal information.',
   robots: {
     index: true,

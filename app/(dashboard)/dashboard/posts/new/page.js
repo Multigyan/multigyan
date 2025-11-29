@@ -228,6 +228,11 @@ export default function NewPostPage() {
     fetchAllPosts()
   }, [])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Create New Post | Multigyan"
+  }, [])
+
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories')

@@ -105,6 +105,11 @@ export default function SettingsPage() {
     }
   }, [session, status, router])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Settings | Multigyan"
+  }, [])
+
   const fetchUserSettings = async () => {
     try {
       const response = await fetch('/api/users/settings')

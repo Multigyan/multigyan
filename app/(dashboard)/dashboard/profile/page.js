@@ -100,6 +100,11 @@ export default function ProfilePage() {
     }
   }, [session, status, router])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Profile Settings | Multigyan"
+  }, [])
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({

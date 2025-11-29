@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,11 @@ import {
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedFAQ, setExpandedFAQ] = useState(null)
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Help & Support | Multigyan"
+  }, [])
 
   const faqs = [
     {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import TopPosts from '@/components/analytics/TopPosts'
@@ -14,6 +14,11 @@ import { BarChart3, TrendingUp, Users, Eye } from 'lucide-react'
 
 export default function AnalyticsDashboardPage() {
     const [period, setPeriod] = useState('30')
+
+    // Set page title
+    useEffect(() => {
+        document.title = "Analytics | Multigyan"
+    }, [])
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">

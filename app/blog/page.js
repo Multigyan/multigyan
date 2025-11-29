@@ -42,11 +42,11 @@ import PopularPosts from "@/components/blog/PopularPosts"
 
 // ✅ SEO: Comprehensive metadata for blog listing page
 export const metadata = {
-  title: 'Blog - Latest Articles & Insights | Multigyan',
+  title: 'Blog - Latest Articles & Insights',
   description: 'Explore our latest articles on personal finance, health, technology, current affairs, and more. Join thousands of readers discovering expert insights and practical guides on Multigyan.',
   keywords: ['blog', 'articles', 'insights', 'personal finance', 'health', 'technology', 'DIY', 'recipes', 'current affairs'],
   openGraph: {
-    title: 'Blog - Latest Articles & Insights | Multigyan',
+    title: 'Blog - Latest Articles & Insights',
     description: 'Explore our latest articles on personal finance, health, technology, current affairs, and more. Join thousands of readers discovering expert insights.',
     url: 'https://www.multigyan.in/blog',
     type: 'website',
@@ -61,7 +61,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Blog - Latest Articles & Insights | Multigyan',
+    title: 'Blog - Latest Articles & Insights',
     description: 'Explore our latest articles on personal finance, health, technology, and more.',
     images: ['/Multigyan_Logo_bg.png'],
   },

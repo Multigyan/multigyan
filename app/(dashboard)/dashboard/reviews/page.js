@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { MessageSquareText, FileText, Clock } from 'lucide-react'
 import Link from 'next/link'
@@ -12,6 +13,11 @@ import { Button } from '@/components/ui/button'
  */
 
 export default function ReviewsPage() {
+    // Set page title
+    useEffect(() => {
+        document.title = "Draft Reviews | Multigyan"
+    }, [])
+
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
             <div className="mb-8">

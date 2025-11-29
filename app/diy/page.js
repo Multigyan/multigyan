@@ -16,7 +16,7 @@ import StructuredData, { generateBreadcrumbSchema, generateItemListSchema, gener
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.multigyan.in'
 
 export const metadata = {
-  title: 'DIY Tutorials - Do It Yourself Projects | Multigyan',
+  title: 'DIY Tutorials - Do It Yourself Projects',
   description: 'Explore creative DIY tutorials, craft projects, and step-by-step guides. Learn to make amazing things with your own hands.',
   keywords: ['DIY', 'tutorials', 'crafts', 'projects', 'handmade', 'creative', 'do it yourself', 'DIY ideas'],
 

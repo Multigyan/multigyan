@@ -33,6 +33,11 @@ export default function RegisterPage() {
   })
   const [usernameDebounceTimer, setUsernameDebounceTimer] = useState(null)
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Register | Multigyan"
+  }, [])
+
   // Redirect if already logged in
   useEffect(() => {
     if (status === "authenticated") {

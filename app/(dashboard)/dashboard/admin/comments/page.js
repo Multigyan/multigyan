@@ -10,12 +10,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  MessageCircle, 
-  User, 
-  Check, 
-  X, 
-  Search, 
+import {
+  MessageCircle,
+  User,
+  Check,
+  X,
+  Search,
   Filter,
   Eye,
   Trash2,
@@ -52,22 +52,27 @@ export default function AdminCommentsPage() {
     fetchCommentsAndPosts()
   }, [session, router])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Comment Management | Multigyan"
+  }, [])
+
   const fetchCommentsAndPosts = async () => {
     try {
       setLoading(true)
-      
+
       // Fetch posts with comment stats
       const postsResponse = await fetch('/api/posts?includeComments=true')
       const postsData = await postsResponse.json()
-      
+
       if (postsResponse.ok) {
         const postsWithComments = postsData.posts || []
         setPosts(postsWithComments)
-        
+
         // Extract all comments and flatten them
         const allComments = []
         let statsCount = { total: 0, pending: 0, approved: 0, reported: 0 }
-        
+
         postsWithComments.forEach(post => {
           if (post.comments && post.comments.length > 0) {
             post.comments.forEach(comment => {
@@ -78,7 +83,7 @@ export default function AdminCommentsPage() {
                 postId: post._id
               }
               allComments.push(commentWithPost)
-              
+
               // Count stats
               statsCount.total++
               if (comment.isApproved) {
@@ -91,7 +96,7 @@ export default function AdminCommentsPage() {
             })
           }
         })
-        
+
         // Sort by newest first
         allComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         setComments(allComments)
@@ -191,15 +196,15 @@ export default function AdminCommentsPage() {
 
   const filteredComments = comments.filter(comment => {
     const matchesSearch = comment.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         comment.authorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         comment.postTitle.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesTab = 
+      comment.authorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      comment.postTitle.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesTab =
       (activeTab === 'pending' && !comment.isApproved && !comment.isReported) ||
       (activeTab === 'approved' && comment.isApproved) ||
       (activeTab === 'reported' && comment.isReported) ||
       (activeTab === 'all')
-    
+
     return matchesSearch && matchesTab
   })
 
@@ -303,7 +308,7 @@ export default function AdminCommentsPage() {
                 className="pl-10"
               />
             </div>
-            
+
             {selectedComments.length > 0 && (
               <div className="flex gap-2">
                 <Badge variant="outline">

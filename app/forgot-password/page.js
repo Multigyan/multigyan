@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -17,9 +17,14 @@ export default function ForgotPasswordPage() {
   const [emailSent, setEmailSent] = useState(false)
   const [resetUrl, setResetUrl] = useState("") // For development testing
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Forgot Password | Multigyan"
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     // Validate email
     if (!email) {
       toast.error("Please enter your email address")
@@ -48,12 +53,12 @@ export default function ForgotPasswordPage() {
 
       if (response.ok) {
         setEmailSent(true)
-        
+
         // Store reset URL for development testing
         if (data.resetUrl) {
           setResetUrl(data.resetUrl)
         }
-        
+
         toast.success("Password reset instructions sent!")
       } else {
         // Handle specific error cases

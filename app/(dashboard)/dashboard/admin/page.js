@@ -48,6 +48,11 @@ export default function AdminDashboardPage() {
     fetchAdminData()
   }, [session, router])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Admin Dashboard | Multigyan"
+  }, [])
+
   const fetchAdminData = async () => {
     try {
       setLoading(true)

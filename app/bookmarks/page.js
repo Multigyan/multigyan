@@ -30,41 +30,46 @@ import { toast } from 'sonner'
 export default function BookmarksPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  
+
   // State
   const [bookmarks, setBookmarks] = useState([])
   const [filteredBookmarks, setFilteredBookmarks] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [removingId, setRemovingId] = useState(null)
-  
+
+  // Set page title
+  useEffect(() => {
+    document.title = "My Bookmarks | Multigyan"
+  }, [])
+
   // ========================================
   // AUTHENTICATION CHECK
   // ========================================
-  
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       toast.error('Please sign in to view your bookmarks')
       router.push('/login')
     }
   }, [status, router]) // toast is stable, doesn't need to be in deps
-  
+
   // ========================================
   // FETCH BOOKMARKS
   // ========================================
-  
+
   useEffect(() => {
     if (session) {
       fetchBookmarks()
     }
   }, [session])
-  
+
   const fetchBookmarks = async () => {
     try {
       setIsLoading(true)
-      
+
       const response = await fetch('/api/users/bookmarks')
       const data = await response.json()
-      
+
       if (data.success) {
         setBookmarks(data.posts)
         setFilteredBookmarks(data.posts)
@@ -77,26 +82,26 @@ export default function BookmarksPage() {
       setIsLoading(false)
     }
   }
-  
+
   // ========================================
   // REMOVE BOOKMARK
   // ========================================
-  
+
   const handleRemoveBookmark = async (postId) => {
     try {
       setRemovingId(postId)
-      
+
       const response = await fetch(`/api/posts/${postId}/bookmark`, {
         method: 'POST'
       })
-      
+
       const data = await response.json()
-      
+
       if (data.success) {
         // Remove from local state
         setBookmarks(prev => prev.filter(post => post._id !== postId))
         setFilteredBookmarks(prev => prev.filter(post => post._id !== postId))
-        
+
         toast.success('Bookmark removed')
       }
     } catch (error) {
@@ -105,44 +110,44 @@ export default function BookmarksPage() {
       setRemovingId(null)
     }
   }
-  
+
   // ========================================
   // HANDLE FILTERING
   // ========================================
-  
+
   const handleFilter = (filters) => {
     let result = [...bookmarks]
-    
+
     // Filter by content type (DIY/Recipe)
     if (filters.difficulty.length > 0) {
-      result = result.filter(post => 
+      result = result.filter(post =>
         post.contentType === 'diy' && post.diyDifficulty && filters.difficulty.includes(post.diyDifficulty)
       )
     }
-    
+
     if (filters.cuisine.length > 0) {
-      result = result.filter(post => 
+      result = result.filter(post =>
         post.contentType === 'recipe' && post.recipeCuisine && filters.cuisine.includes(post.recipeCuisine)
       )
     }
-    
+
     if (filters.rating) {
       const minRating = parseFloat(filters.rating)
-      result = result.filter(post => 
+      result = result.filter(post =>
         post.averageRating && post.averageRating >= minRating
       )
     }
-    
+
     setFilteredBookmarks(result)
   }
-  
+
   // ========================================
   // HANDLE SORTING
   // ========================================
-  
+
   const handleSort = (sortBy) => {
     let sorted = [...filteredBookmarks]
-    
+
     switch (sortBy) {
       case 'latest':
         sorted.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
@@ -157,14 +162,14 @@ export default function BookmarksPage() {
         sorted.sort((a, b) => (b.views || 0) - (a.views || 0))
         break
     }
-    
+
     setFilteredBookmarks(sorted)
   }
-  
+
   // ========================================
   // GET CONTENT TYPE ICON & COLOR
   // ========================================
-  
+
   const getContentTypeInfo = (contentType) => {
     switch (contentType) {
       case 'diy':
@@ -190,11 +195,11 @@ export default function BookmarksPage() {
         }
     }
   }
-  
+
   // ========================================
   // LOADING STATE
   // ========================================
-  
+
   if (status === 'loading' || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -211,11 +216,11 @@ export default function BookmarksPage() {
       </div>
     )
   }
-  
+
   // ========================================
   // MAIN RENDER
   // ========================================
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Hero Section */}
@@ -230,7 +235,7 @@ export default function BookmarksPage() {
           </p>
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4 py-12">
         {bookmarks.length === 0 ? (
           // Empty State
@@ -271,20 +276,20 @@ export default function BookmarksPage() {
               onFilterChange={handleFilter}
               onSortChange={handleSort}
             />
-            
+
             {/* Results Count */}
             <div className="mb-8">
               <p className="text-gray-600">
                 Showing <span className="font-semibold text-yellow-600">{filteredBookmarks.length}</span> of <span className="font-semibold">{bookmarks.length}</span> bookmark{bookmarks.length !== 1 ? 's' : ''}
               </p>
             </div>
-            
+
             {/* Bookmarks Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredBookmarks.map((post) => {
                 const typeInfo = getContentTypeInfo(post.contentType)
                 const TypeIcon = typeInfo.icon
-                
+
                 return (
                   <Card key={post._id} className="overflow-hidden hover:shadow-xl transition-all">
                     {/* Featured Image */}
@@ -295,7 +300,7 @@ export default function BookmarksPage() {
                         fill
                         className="object-cover"
                       />
-                      
+
                       {/* Content Type Badge */}
                       <div className="absolute top-4 left-4">
                         <Badge className={`${typeInfo.bg} ${typeInfo.color} border-none`}>
@@ -303,7 +308,7 @@ export default function BookmarksPage() {
                           {typeInfo.label}
                         </Badge>
                       </div>
-                      
+
                       {/* Remove Bookmark Button */}
                       <Button
                         size="icon"
@@ -315,7 +320,7 @@ export default function BookmarksPage() {
                         <BookmarkX className="h-4 w-4" />
                       </Button>
                     </div>
-                    
+
                     {/* Content */}
                     <CardContent className="p-6">
                       <Link
@@ -325,12 +330,12 @@ export default function BookmarksPage() {
                         <h2 className="text-xl font-bold mb-3 group-hover:text-primary transition line-clamp-2">
                           {post.title}
                         </h2>
-                        
+
                         <p className="text-gray-600 mb-4 line-clamp-2 text-sm">
                           {post.excerpt}
                         </p>
                       </Link>
-                      
+
                       {/* Meta Info */}
                       <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t">
                         <div className="flex items-center gap-2">
@@ -351,7 +356,7 @@ export default function BookmarksPage() {
                             {post.author?.name}
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                           {post.likes && post.likes.length > 0 && (
                             <span className="flex items-center gap-1 text-red-600">

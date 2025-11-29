@@ -67,6 +67,11 @@ export default function AnalyticsDashboard() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session, router, timeRange])
 
+    // Set page title
+    useEffect(() => {
+        document.title = "Analytics Dashboard | Multigyan"
+    }, [])
+
     const fetchAnalytics = async (silent = false) => {
         try {
             if (!silent) setLoading(true)

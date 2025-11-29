@@ -68,6 +68,11 @@ export default function AdminReviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, router, currentPage])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Content Review | Multigyan"
+  }, [])
+
   const fetchPendingPosts = async () => {
     try {
       setLoading(true)

@@ -21,6 +21,11 @@ export default function LoginPage() {
     password: ""
   })
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Login | Multigyan"
+  }, [])
+
   // Redirect if already logged in
   useEffect(() => {
     if (status === "authenticated") {
@@ -60,11 +65,11 @@ export default function LoginPage() {
         setIsLoading(false)
       } else if (result?.ok) {
         toast.success("Signed in successfully!")
-        
+
         // ✅ FIX: Use window.location for hard redirect to ensure session is loaded
         window.location.href = '/dashboard'
       }
-      
+
     } catch (error) {
       toast.error("An error occurred during sign in")
       setIsLoading(false)

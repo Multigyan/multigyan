@@ -17,12 +17,12 @@ import StructuredData, { generateBreadcrumbSchema, generateItemListSchema, gener
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.multigyan.in'
 
 export const metadata = {
-  title: 'Recipes - Delicious Cooking Guides | Multigyan',
+  title: 'Recipes - Delicious Cooking Guides',
   description: 'Discover amazing recipes, cooking tips, and step-by-step culinary guides. From traditional dishes to modern cuisine.',
   keywords: ['recipes', 'cooking', 'food', 'cuisine', 'meals', 'dishes', 'culinary', 'cooking guides'],
 
   openGraph: {
-    title: 'Recipes - Delicious Cooking Guides | Multigyan',
+    title: 'Recipes - Delicious Cooking Guides',
     description: 'Discover amazing recipes, cooking tips, and step-by-step culinary guides. From traditional dishes to modern cuisine.',
     url: `${SITE_URL}/recipe`,
     siteName: 'Multigyan',

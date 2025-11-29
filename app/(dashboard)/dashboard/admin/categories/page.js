@@ -69,6 +69,11 @@ export default function AdminCategoriesPage() {
     fetchCategories()
   }, [status, session, router])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Category Management | Multigyan"
+  }, [])
+
   async function fetchCategories() {
     try {
       setLoading(true)
@@ -354,8 +359,8 @@ export default function AdminCategoriesPage() {
           <Card
             key={category._id}
             className={`relative hover:shadow-2xl transition-all duration-500 border-2 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm ${selectedCategories.includes(category._id)
-                ? 'ring-2 ring-primary border-primary/50'
-                : 'border-transparent hover:border-primary/20'
+              ? 'ring-2 ring-primary border-primary/50'
+              : 'border-transparent hover:border-primary/20'
               }`}
           >
             <CardHeader>

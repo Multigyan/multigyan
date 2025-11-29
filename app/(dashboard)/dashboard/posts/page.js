@@ -51,6 +51,11 @@ export default function PostsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, statusFilter])
 
+  // Set page title
+  useEffect(() => {
+    document.title = isAdmin ? "All Posts | Multigyan" : "My Posts | Multigyan"
+  }, [isAdmin])
+
   const fetchPosts = async () => {
     try {
       setLoading(true)

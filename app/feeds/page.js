@@ -3,12 +3,17 @@
 import Link from 'next/link'
 import { Rss, Check, Copy, ExternalLink } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 
 export default function FeedsPage() {
   const siteUrl = 'https://www.multigyan.in'
   const [copiedUrl, setCopiedUrl] = useState(null)
+
+  // Set page title
+  useEffect(() => {
+    document.title = "RSS Feeds | Multigyan"
+  }, [])
 
   const copyToClipboard = async (url) => {
     try {
@@ -136,8 +141,8 @@ export default function FeedsPage() {
                       <button
                         onClick={() => copyToClipboard(feed.url)}
                         className={`flex-shrink-0 p-3 rounded-lg transition-colors ${copiedUrl === feed.url
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-800 text-white hover:bg-gray-700'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-800 text-white hover:bg-gray-700'
                           }`}
                         title={copiedUrl === feed.url ? 'Copied!' : 'Copy URL'}
                       >

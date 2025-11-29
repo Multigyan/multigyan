@@ -44,6 +44,11 @@ export default function NotificationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, typeFilter])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Notifications | Multigyan"
+  }, [])
+
   const fetchNotifications = useCallback(async (loadMore = false) => {
     if (loadMore) {
       setActionLoading(true)

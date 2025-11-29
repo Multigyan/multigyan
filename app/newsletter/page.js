@@ -2,7 +2,7 @@ import NewsletterSubscribe from '@/components/newsletter/NewsletterSubscribe'
 import { Mail, TrendingUp, Zap, Shield, Gift, Users } from 'lucide-react'
 
 export const metadata = {
-  title: 'Subscribe to Newsletter - Multigyan',
+  title: 'Subscribe to Newsletter',
   description: 'Get the latest articles, recipes, and DIY tutorials delivered straight to your inbox. Join thousands of subscribers and never miss an update.',
   openGraph: {
     title: 'Subscribe to Multigyan Newsletter',

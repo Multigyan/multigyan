@@ -79,6 +79,11 @@ export default function AdminRevisionsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, router, debouncedSearch, currentPage])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Content Revisions | Multigyan"
+  }, [])
+
   const handleApproveRevision = async (postId) => {
     try {
       setActionLoading(true)

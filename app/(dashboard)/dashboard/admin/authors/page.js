@@ -82,6 +82,11 @@ export default function AdminAuthorsPage() {
         fetchAuthors()
     }, [status, session, router])
 
+    // Set page title
+    useEffect(() => {
+        document.title = "Authors Management | Multigyan"
+    }, [])
+
     async function fetchAuthors() {
         try {
             setLoading(true)
@@ -369,8 +374,8 @@ export default function AdminAuthorsPage() {
                     <Card
                         key={author._id}
                         className={`relative ${selectedAuthors.includes(author._id)
-                                ? 'ring-2 ring-primary'
-                                : ''
+                            ? 'ring-2 ring-primary'
+                            : ''
                             }`}
                     >
                         <CardHeader>

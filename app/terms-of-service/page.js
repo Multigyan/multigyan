@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, Scale, Users, AlertTriangle, Copyright, UserX } from 'lucide-react'
 
 export const metadata = {
-  title: 'Terms of Service | Multigyan',
+  title: 'Terms of Service',
   description: 'Read the Terms of Service for using the Multigyan blogging platform.',
   robots: {
     index: true,

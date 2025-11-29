@@ -1,6 +1,12 @@
 'use client'
 
+import { useEffect } from 'react'
+
 export default function OfflinePage() {
+    // Set page title
+    useEffect(() => {
+        document.title = "You're Offline | Multigyan"
+    }, [])
     return (
         <div className="min-h-screen flex items-center justify-center bg-background">
             <div className="text-center px-4">

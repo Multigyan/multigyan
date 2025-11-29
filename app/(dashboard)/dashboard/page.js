@@ -35,6 +35,11 @@ export default function DashboardPage() {
     if (!session) router.push("/login")
   }, [session, status, router])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Dashboard | Multigyan"
+  }, [])
+
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen">

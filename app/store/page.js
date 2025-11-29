@@ -57,6 +57,11 @@ export default function StorePage() {
         fetchFiltersData()
     }, [])
 
+    // Set page title
+    useEffect(() => {
+        document.title = "Store | Multigyan"
+    }, [])
+
     // Fetch products when filters change
     useEffect(() => {
         const fetchProducts = async () => {

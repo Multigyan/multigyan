@@ -62,6 +62,11 @@ export default function AdminUsersPage() {
     fetchUsers()
   }, [status, session, router])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "User Management | Multigyan"
+  }, [])
+
   useEffect(() => {
     if (!searchTerm.trim()) {
       setFilteredUsers(users)

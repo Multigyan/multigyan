@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 
 export const metadata = {
-  title: 'About Us | Multigyan',
+  title: 'About Us',
   description: 'Learn about Multigyan - A secure, high-performance multi-author blogging platform built for modern content creators.',
   keywords: ['about multigyan', 'blogging platform', 'multi-author blog', 'content creation'],
 }

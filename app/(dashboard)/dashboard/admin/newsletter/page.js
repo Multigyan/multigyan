@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { 
-  Mail, 
-  Send, 
-  Users, 
-  TrendingUp, 
+import {
+  Mail,
+  Send,
+  Users,
+  TrendingUp,
   Calendar,
   Plus,
   Eye,
@@ -24,7 +24,7 @@ import toast from 'react-hot-toast'
 export default function NewsletterDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  
+
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview') // 'overview', 'subscribers', 'campaigns'
   const [subscribers, setSubscribers] = useState([])
@@ -48,16 +48,23 @@ export default function NewsletterDashboard() {
     if (session?.user?.role === 'admin') {
       fetchData()
     }
-  }, [session])
+  }, [session]
+
+  )
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Newsletter Management | Multigyan"
+  }, [])
 
   const fetchData = async () => {
     try {
       setLoading(true)
-      
+
       // Fetch subscribers
       const subscribersRes = await fetch('/api/newsletters?limit=100')
       const subscribersData = await subscribersRes.json()
-      
+
       if (subscribersData.success) {
         setSubscribers(subscribersData.subscribers)
         setStats(subscribersData.stats)
@@ -66,7 +73,7 @@ export default function NewsletterDashboard() {
       // Fetch campaigns
       const campaignsRes = await fetch('/api/admin/newsletter/campaigns?limit=50')
       const campaignsData = await campaignsRes.json()
-      
+
       if (campaignsData.success) {
         setCampaigns(campaignsData.campaigns)
       }
@@ -126,7 +133,7 @@ export default function NewsletterDashboard() {
   // Filter campaigns
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         campaign.subject.toLowerCase().includes(searchQuery.toLowerCase())
+      campaign.subject.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesFilter = filterStatus === 'all' || campaign.status === filterStatus
     return matchesSearch && matchesFilter
   })
@@ -196,31 +203,28 @@ export default function NewsletterDashboard() {
           <nav className="flex space-x-8">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'overview'
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'overview'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-              }`}
+                }`}
             >
               Overview
             </button>
             <button
               onClick={() => setActiveTab('subscribers')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'subscribers'
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'subscribers'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-              }`}
+                }`}
             >
               Subscribers ({subscribers.length})
             </button>
             <button
               onClick={() => setActiveTab('campaigns')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'campaigns'
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'campaigns'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-              }`}
+                }`}
             >
               Campaigns ({campaigns.length})
             </button>
@@ -234,7 +238,7 @@ export default function NewsletterDashboard() {
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold">Quick Actions</h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link href="/dashboard/admin/newsletter/create">
               <div className="bg-card border rounded-lg p-6 hover:shadow-lg transition cursor-pointer">
@@ -252,7 +256,7 @@ export default function NewsletterDashboard() {
               </div>
             </Link>
 
-            <div 
+            <div
               onClick={fetchData}
               className="bg-card border rounded-lg p-6 hover:shadow-lg transition cursor-pointer"
             >
@@ -282,13 +286,12 @@ export default function NewsletterDashboard() {
                       <p className="text-sm text-muted-foreground">{campaign.subject}</p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        campaign.status === 'sent' ? 'bg-green-100 text-green-700' :
-                        campaign.status === 'draft' ? 'bg-gray-100 text-gray-700' :
-                        campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
-                        campaign.status === 'sending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${campaign.status === 'sent' ? 'bg-green-100 text-green-700' :
+                          campaign.status === 'draft' ? 'bg-gray-100 text-gray-700' :
+                            campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
+                              campaign.status === 'sending' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                        }`}>
                         {campaign.status}
                       </span>
                       <Link href={`/dashboard/admin/newsletter/campaigns/${campaign._id}`}>
@@ -349,11 +352,10 @@ export default function NewsletterDashboard() {
                       <div className="text-sm font-medium">{subscriber.email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        subscriber.isActive 
-                          ? 'bg-green-100 text-green-800' 
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${subscriber.isActive
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
-                      }`}>
+                        }`}>
                         {subscriber.isActive ? 'Active' : 'Unsubscribed'}
                       </span>
                     </td>
@@ -422,18 +424,17 @@ export default function NewsletterDashboard() {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <h3 className="text-lg font-semibold">{campaign.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        campaign.status === 'sent' ? 'bg-green-100 text-green-700' :
-                        campaign.status === 'draft' ? 'bg-gray-100 text-gray-700' :
-                        campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
-                        campaign.status === 'sending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${campaign.status === 'sent' ? 'bg-green-100 text-green-700' :
+                          campaign.status === 'draft' ? 'bg-gray-100 text-gray-700' :
+                            campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
+                              campaign.status === 'sending' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                        }`}>
                         {campaign.status}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">{campaign.subject}</p>
-                    
+
                     {campaign.status === 'sent' && (
                       <div className="flex items-center space-x-6 text-sm">
                         <div>
