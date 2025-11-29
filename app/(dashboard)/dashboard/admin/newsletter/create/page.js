@@ -10,7 +10,7 @@ import Link from 'next/link'
 export default function CreateCampaign() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  
+
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [formData, setFormData] = useState({
@@ -29,6 +29,11 @@ export default function CreateCampaign() {
   })
   const [testEmail, setTestEmail] = useState('')
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Create Newsletter | Multigyan"
+  }, [])
+
   // Check if user is admin
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -41,7 +46,7 @@ export default function CreateCampaign() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    
+
     if (name.startsWith('settings.')) {
       const settingName = name.split('.')[1]
       setFormData(prev => ({
@@ -217,7 +222,7 @@ export default function CreateCampaign() {
         {/* Campaign Details */}
         <div className="bg-card border rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Campaign Details</h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
@@ -272,7 +277,7 @@ export default function CreateCampaign() {
         {/* Content */}
         <div className="bg-card border rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Email Content</h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
@@ -314,7 +319,7 @@ export default function CreateCampaign() {
         {/* Targeting */}
         <div className="bg-card border rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Audience</h2>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2">
               Send To
@@ -335,7 +340,7 @@ export default function CreateCampaign() {
         {/* Settings */}
         <div className="bg-card border rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Settings</h2>
-          
+
           <div className="space-y-3">
             <label className="flex items-center">
               <input
@@ -378,7 +383,7 @@ export default function CreateCampaign() {
           <p className="text-sm text-muted-foreground mb-4">
             Send a test email to yourself before sending to all subscribers
           </p>
-          
+
           <div className="flex space-x-4">
             <input
               type="email"
@@ -405,7 +410,7 @@ export default function CreateCampaign() {
               Cancel
             </button>
           </Link>
-          
+
           <div className="flex space-x-4">
             <button
               onClick={handleSaveDraft}

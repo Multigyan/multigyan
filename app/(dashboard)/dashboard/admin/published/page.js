@@ -82,6 +82,11 @@ export default function PublishedPostsPage() {
     }
   }, [session, router])
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Published Posts | Multigyan"
+  }, [])
+
   /**
    * Fetch data when filters change
    */

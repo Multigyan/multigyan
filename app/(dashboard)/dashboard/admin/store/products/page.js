@@ -53,6 +53,11 @@ export default function ProductsListPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const [deleteProduct, setDeleteProduct] = useState(null)
 
+    // Set page title
+    useEffect(() => {
+        document.title = "Products Management | Multigyan"
+    }, [])
+
     useEffect(() => {
         fetchProducts()
     }, [])

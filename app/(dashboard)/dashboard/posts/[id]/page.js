@@ -114,6 +114,15 @@ export default function PostPreviewPage({ params }) {
     }
   }, [postId, fetchPost])
 
+  // Set page title dynamically based on post
+  useEffect(() => {
+    if (post?.title) {
+      document.title = `${post.title} - Preview | Multigyan`
+    } else {
+      document.title = "Post Preview | Multigyan"
+    }
+  }, [post])
+
   /**
    * FUNCTION: Approve a post (Admin only)
    * Changes post status from "pending_review" to "published"

@@ -56,7 +56,7 @@ export default function EditPostPage({ params }) {
     isFeatured: false,
     author: "",
     editReason: "",
-    
+
     // ✨ Content Settings
     contentType: "blog", // blog, diy, recipe
     lang: "en", // en, hi
@@ -64,6 +64,11 @@ export default function EditPostPage({ params }) {
   })
   const [hasLongTags, setHasLongTags] = useState(false)
   const [removedTags, setRemovedTags] = useState([])
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Edit Post | Multigyan"
+  }, [])
 
   useEffect(() => {
     async function init() {
@@ -75,7 +80,7 @@ export default function EditPostPage({ params }) {
 
   useEffect(() => {
     if (!postId) return
-    
+
     async function loadData() {
       try {
         const promises = [
@@ -115,18 +120,18 @@ export default function EditPostPage({ params }) {
           const post = postData.post || postData
           setOriginalAuthor(post.author?._id || post.author)
           setPostStatus(post.status || "published") // ✅ NEW: Set the post status
-          
+
           // Filter out tags longer than 30 characters
           const allTags = post.tags || []
           const validTags = allTags.filter(tag => tag.length <= 30)
           const longTags = allTags.filter(tag => tag.length > 30)
-          
+
           if (longTags.length > 0) {
             setHasLongTags(true)
             setRemovedTags(longTags)
             console.log('Warning: Post has long tags that will be removed:', longTags)
           }
-          
+
           setFormData({
             title: post.title || "",
             excerpt: post.excerpt || "",
@@ -141,7 +146,7 @@ export default function EditPostPage({ params }) {
             isFeatured: post.isFeatured || false,
             author: post.author?._id || post.author || "",
             editReason: "",
-            
+
             // ✨ Content Settings
             contentType: post.contentType || "blog",
             lang: post.lang || "en",
@@ -193,10 +198,10 @@ export default function EditPostPage({ params }) {
     }
 
     // Check if admin is editing another author's post
-    const isEditingOtherAuthor = session?.user?.role === 'admin' && 
-                                  formData.author && 
-                                  formData.author !== session.user.id
-    
+    const isEditingOtherAuthor = session?.user?.role === 'admin' &&
+      formData.author &&
+      formData.author !== session.user.id
+
     if (isEditingOtherAuthor && !formData.editReason.trim()) {
       toast.error('Please provide a reason for editing this post')
       return
@@ -205,13 +210,13 @@ export default function EditPostPage({ params }) {
     // ✅ SANITIZE DATA: Remove/fix invalid data before sending
     const longTags = formData.tags.filter(tag => tag && tag.length > 30)
     const sanitizedTags = formData.tags.filter(tag => tag && typeof tag === 'string' && tag.length > 0 && tag.length <= 30)
-    
+
     if (longTags.length > 0) {
       console.log('Removed long tags:', longTags)
       toast.warning(`Removed ${longTags.length} long tag(s): ${longTags.join(', ')}`, {
         duration: 5000
       })
-      
+
       // Update form state to reflect removed tags
       setFormData(prev => ({ ...prev, tags: sanitizedTags }))
     }
@@ -223,10 +228,10 @@ export default function EditPostPage({ params }) {
 
     // Prepare sanitized data
     const sanitizedData = {}
-    
+
     // ✅ NEW: Include status in the update
     sanitizedData.status = statusToSubmit
-    
+
     // Only include fields that have values
     if (formData.title) sanitizedData.title = formData.title.trim()
     if (formData.excerpt) sanitizedData.excerpt = formData.excerpt.trim()
@@ -236,18 +241,18 @@ export default function EditPostPage({ params }) {
     if (formData.category) sanitizedData.category = formData.category
     if (formData.author) sanitizedData.author = formData.author
     if (formData.editReason) sanitizedData.editReason = formData.editReason.trim()
-    
+
     // Add sanitized tags
     sanitizedData.tags = sanitizedTags
-    
+
     // Add SEO fields (truncated)
     sanitizedData.seoTitle = formData.seoTitle.slice(0, 60)
     sanitizedData.seoDescription = formData.seoDescription.slice(0, 160)
-    
+
     // Add boolean fields
     sanitizedData.allowComments = formData.allowComments
     sanitizedData.isFeatured = formData.isFeatured
-    
+
     // ✨ Add Content Settings
     sanitizedData.contentType = formData.contentType
     sanitizedData.lang = formData.lang
@@ -261,7 +266,7 @@ export default function EditPostPage({ params }) {
       console.log('Submitting sanitized data:', sanitizedData)
       console.log('Tags being sent:', sanitizedData.tags)
       console.log('Tag lengths:', sanitizedData.tags.map(tag => `${tag}: ${tag.length} chars`))
-      
+
       const response = await fetch(`/api/posts/${postId}`, {
         method: 'PUT',
         headers: {
@@ -271,16 +276,16 @@ export default function EditPostPage({ params }) {
       })
 
       console.log('Response status:', response.status, response.statusText)
-      
+
       const data = await response.json()
-      
+
       console.log('API Response:', data)
       console.log('Response OK?', response.ok)
 
       if (response.ok) {
         // ✅ Show detailed success message based on status change
         const wasPublished = newStatus === 'published' || newStatus === 'pending_review'
-        
+
         // Different messages for admin vs regular users
         if (wasPublished) {
           if (session?.user?.role === 'admin') {
@@ -302,13 +307,13 @@ export default function EditPostPage({ params }) {
           if (sanitizedData.title) updatedFields.push('title')
           if (sanitizedData.featuredImageUrl) updatedFields.push('featured image')
           if (sanitizedData.content) updatedFields.push('content')
-          
+
           toast.success(`Post updated successfully!${updatedFields.length > 0 ? ` Updated: ${updatedFields.join(', ')}` : ''}`, {
             description: formData.featuredImageUrl ? 'Featured image has been updated ✅' : undefined,
             duration: 4000
           })
         }
-        
+
         // ✅ Optional: Show the new featured image in a toast
         if (formData.featuredImageUrl && formData.featuredImageUrl !== data.post?.featuredImageUrl) {
           setTimeout(() => {
@@ -317,7 +322,7 @@ export default function EditPostPage({ params }) {
             })
           }, 1000)
         }
-        
+
         router.push('/dashboard/posts')
       } else {
         console.error('API Error Response:', {
@@ -325,7 +330,7 @@ export default function EditPostPage({ params }) {
           statusText: response.statusText,
           data: data
         })
-        
+
         // Show specific error message or generic one
         const errorMessage = data.error || data.message || `Server error: ${response.status}`
         toast.error(errorMessage)
@@ -400,9 +405,9 @@ export default function EditPostPage({ params }) {
               <p className="text-muted-foreground">Update your blog post</p>
             </div>
           </div>
-          
-          <Button 
-            variant="outline" 
+
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setShowPreview(true)}
             disabled={!formData.title && !formData.content}
@@ -463,7 +468,7 @@ export default function EditPostPage({ params }) {
                   onAltTextChange={(alt) => setFormData(prev => ({ ...prev, featuredImageAlt: alt }))}
                   altText={formData.featuredImageAlt}
                 />
-                
+
                 {/* ✅ Show current image preview */}
                 {formData.featuredImageUrl && (
                   <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
@@ -571,8 +576,8 @@ export default function EditPostPage({ params }) {
                   {postStatus === 'draft' ? 'Publish Post' : 'Update Post'}
                 </CardTitle>
                 <CardDescription>
-                  {postStatus === 'draft' 
-                    ? 'Your post is currently a draft. Publish it to make it visible.' 
+                  {postStatus === 'draft'
+                    ? 'Your post is currently a draft. Publish it to make it visible.'
                     : 'Save changes to your published post'}
                 </CardDescription>
               </CardHeader>
@@ -581,8 +586,8 @@ export default function EditPostPage({ params }) {
                 {postStatus === 'draft' ? (
                   <>
                     {/* Publish Button for Drafts */}
-                    <Button 
-                      onClick={() => setShowPublishConfirm(true)} 
+                    <Button
+                      onClick={() => setShowPublishConfirm(true)}
                       className="w-full"
                       disabled={loading}
                     >
@@ -598,10 +603,10 @@ export default function EditPostPage({ params }) {
                         </>
                       )}
                     </Button>
-                    
+
                     {/* Update as Draft Button */}
-                    <Button 
-                      onClick={() => handleSubmit('draft')} 
+                    <Button
+                      onClick={() => handleSubmit('draft')}
                       variant="outline"
                       className="w-full"
                       disabled={loading}
@@ -621,8 +626,8 @@ export default function EditPostPage({ params }) {
                   </>
                 ) : (
                   /* Update Button for Published Posts */
-                  <Button 
-                    onClick={() => handleSubmit()} 
+                  <Button
+                    onClick={() => handleSubmit()}
                     className="w-full"
                     disabled={loading}
                   >
@@ -685,33 +690,33 @@ export default function EditPostPage({ params }) {
             )}
 
             {/* ✅ NEW: Edit Reason (Admin editing another author's post) */}
-            {session?.user?.role === 'admin' && 
-             formData.author && 
-             formData.author !== session.user.id && (
-              <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-900">
-                <CardHeader>
-                  <CardTitle className="text-amber-900 dark:text-amber-100">Edit Reason Required</CardTitle>
-                  <CardDescription className="text-amber-700 dark:text-amber-300">
-                    Provide a reason for editing this author&apos;s post
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    id="editReason"
-                    name="editReason"
-                    value={formData.editReason}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Fixed typos, Updated outdated information, Improved SEO..."
-                    rows={3}
-                    maxLength={500}
-                    className="bg-white dark:bg-gray-900"
-                  />
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                    The author will be notified of your changes and the reason provided.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            {session?.user?.role === 'admin' &&
+              formData.author &&
+              formData.author !== session.user.id && (
+                <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-900">
+                  <CardHeader>
+                    <CardTitle className="text-amber-900 dark:text-amber-100">Edit Reason Required</CardTitle>
+                    <CardDescription className="text-amber-700 dark:text-amber-300">
+                      Provide a reason for editing this author&apos;s post
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      id="editReason"
+                      name="editReason"
+                      value={formData.editReason}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Fixed typos, Updated outdated information, Improved SEO..."
+                      rows={3}
+                      maxLength={500}
+                      className="bg-white dark:bg-gray-900"
+                    />
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                      The author will be notified of your changes and the reason provided.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
             {/* ✨ NEW: Content Settings Card */}
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
@@ -883,7 +888,7 @@ export default function EditPostPage({ params }) {
                   <Switch
                     id="allowComments"
                     checked={formData.allowComments}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setFormData(prev => ({ ...prev, allowComments: checked }))
                     }
                   />
@@ -904,7 +909,7 @@ export default function EditPostPage({ params }) {
                     <Switch
                       id="isFeatured"
                       checked={formData.isFeatured}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         setFormData(prev => ({ ...prev, isFeatured: checked }))
                       }
                     />

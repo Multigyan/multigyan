@@ -21,11 +21,16 @@ function ResetPasswordContent() {
   const [resetSuccess, setResetSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     password: "",
     confirmPassword: ""
   })
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Reset Your Password | Multigyan"
+  }, [])
 
   // Verify token on mount
   useEffect(() => {
@@ -104,7 +109,7 @@ function ResetPasswordContent() {
       if (response.ok) {
         setResetSuccess(true)
         toast.success("Password reset successfully!")
-        
+
         // Redirect to login after 3 seconds
         setTimeout(() => {
           router.push("/login")

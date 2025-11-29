@@ -19,6 +19,11 @@ function SearchContent() {
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Search | Multigyan"
+  }, [])
+
   useEffect(() => {
     const q = searchParams.get('q')
     if (q) {
@@ -38,7 +43,7 @@ function SearchContent() {
     try {
       const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`)
       const data = await response.json()
-      
+
       if (data.success) {
         setResults(data.results)
         setTotal(data.total)
@@ -70,7 +75,7 @@ function SearchContent() {
         {/* Search Header */}
         <div className="max-w-3xl mx-auto mb-12">
           <h1 className="text-4xl font-bold mb-6 text-center">Search</h1>
-          
+
           {/* Search Form */}
           <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
