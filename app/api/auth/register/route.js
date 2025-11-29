@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
+import { generateUsername, validateUsername } from '@/lib/generateUsername'
 
 export async function POST(request) {
   try {
-    const { name, email, password, confirmPassword } = await request.json()
+    const { name, email, username, password, confirmPassword } = await request.json()
 
     // Validation
     if (!name || !email || !password || !confirmPassword) {
@@ -48,12 +49,38 @@ export async function POST(request) {
       )
     }
 
+    // Handle username
+    let finalUsername = username?.trim().toLowerCase()
+
+    if (finalUsername) {
+      // Validate provided username
+      const validation = validateUsername(finalUsername)
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: validation.error },
+          { status: 400 }
+        )
+      }
+
+      // Check if username is already taken
+      const existingUsername = await User.findOne({ username: finalUsername })
+      if (existingUsername) {
+        return NextResponse.json(
+          { error: 'Username is already taken' },
+          { status: 409 }
+        )
+      }
+    } else {
+      // Auto-generate username from name
+      finalUsername = await generateUsername(name)
+    }
+
     // Check for initial admin setup
     const adminCount = await User.getAdminCount()
     const initialAdminEmails = process.env.INITIAL_ADMIN_EMAILS?.split(',').map(email => email.trim().toLowerCase()) || []
-    
+
     let userRole = 'author' // Default role
-    
+
     // If no admins exist and this email is in the initial admin list, make them admin
     if (adminCount === 0 && initialAdminEmails.includes(email.toLowerCase())) {
       userRole = 'admin'
@@ -63,6 +90,7 @@ export async function POST(request) {
     const newUser = new User({
       name: name.trim(),
       email: email.toLowerCase(),
+      username: finalUsername,
       password, // Will be hashed by the pre-save hook
       role: userRole
     })
@@ -77,6 +105,7 @@ export async function POST(request) {
           id: newUser._id,
           name: newUser.name,
           email: newUser.email,
+          username: newUser.username,
           role: newUser.role
         }
       },

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { BookOpen, Eye, EyeOff, UserPlus, Mail, User, Lock } from "lucide-react"
+import { BookOpen, Eye, EyeOff, UserPlus, Mail, User, Lock, Check, X, Loader2, AtSign } from "lucide-react"
 import { toast } from "sonner"
 
 export default function RegisterPage() {
@@ -20,9 +20,18 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    username: "",
     password: "",
     confirmPassword: ""
   })
+
+  // Username validation states
+  const [usernameStatus, setUsernameStatus] = useState({
+    checking: false,
+    available: null,
+    message: ""
+  })
+  const [usernameDebounceTimer, setUsernameDebounceTimer] = useState(null)
 
   // Redirect if already logged in
   useEffect(() => {
@@ -32,12 +41,105 @@ export default function RegisterPage() {
     }
   }, [status, router])
 
+  // Auto-suggest username from name
+  useEffect(() => {
+    if (formData.name && !formData.username) {
+      const suggestedUsername = formData.name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-z0-9_]/g, '')
+        .substring(0, 30)
+
+      if (suggestedUsername.length >= 3) {
+        setFormData(prev => ({ ...prev, username: suggestedUsername }))
+      }
+    }
+  }, [formData.name])
+
+  // Check username availability with debounce
+  const checkUsernameAvailability = useCallback(async (username) => {
+    if (!username || username.length < 3) {
+      setUsernameStatus({
+        checking: false,
+        available: null,
+        message: username ? "Username must be at least 3 characters" : ""
+      })
+      return
+    }
+
+    // Validate format
+    if (!/^[a-z0-9_]+$/.test(username)) {
+      setUsernameStatus({
+        checking: false,
+        available: false,
+        message: "Only lowercase letters, numbers, and underscores allowed"
+      })
+      return
+    }
+
+    if (username.startsWith('_') || username.endsWith('_')) {
+      setUsernameStatus({
+        checking: false,
+        available: false,
+        message: "Username cannot start or end with underscore"
+      })
+      return
+    }
+
+    if (username.includes('__')) {
+      setUsernameStatus({
+        checking: false,
+        available: false,
+        message: "Username cannot contain consecutive underscores"
+      })
+      return
+    }
+
+    setUsernameStatus({ checking: true, available: null, message: "Checking..." })
+
+    try {
+      const response = await fetch('/api/users/check-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      })
+
+      const data = await response.json()
+
+      setUsernameStatus({
+        checking: false,
+        available: data.available,
+        message: data.message
+      })
+    } catch (error) {
+      setUsernameStatus({
+        checking: false,
+        available: null,
+        message: "Error checking username"
+      })
+    }
+  }, [])
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
+
+    // Debounced username check
+    if (name === 'username') {
+      if (usernameDebounceTimer) {
+        clearTimeout(usernameDebounceTimer)
+      }
+
+      const timer = setTimeout(() => {
+        checkUsernameAvailability(value.toLowerCase().trim())
+      }, 500)
+
+      setUsernameDebounceTimer(timer)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -45,8 +147,21 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     // Basic validation
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.name || !formData.email || !formData.username || !formData.password || !formData.confirmPassword) {
       toast.error("Please fill in all fields")
+      setIsLoading(false)
+      return
+    }
+
+    // Username validation
+    if (formData.username.length < 3) {
+      toast.error("Username must be at least 3 characters")
+      setIsLoading(false)
+      return
+    }
+
+    if (!usernameStatus.available) {
+      toast.error("Please choose an available username")
       setIsLoading(false)
       return
     }
@@ -80,7 +195,7 @@ export default function RegisterPage() {
 
       toast.success("Account created successfully! Please sign in.")
       router.push('/login')
-      
+
     } catch (error) {
       toast.error(error.message)
     } finally {
@@ -163,6 +278,58 @@ export default function RegisterPage() {
                     required
                   />
                 </div>
+              </div>
+
+              {/* Username */}
+              <div className="space-y-2">
+                <Label htmlFor="username">
+                  Username
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (will be used in your profile URL)
+                  </span>
+                </Label>
+                <div className="relative">
+                  <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="john_doe"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    className={`pl-10 pr-10 ${usernameStatus.available === true
+                        ? 'border-green-500 focus-visible:ring-green-500'
+                        : usernameStatus.available === false
+                          ? 'border-red-500 focus-visible:ring-red-500'
+                          : ''
+                      }`}
+                    required
+                  />
+                  {/* Status Icon */}
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {usernameStatus.checking ? (
+                      <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+                    ) : usernameStatus.available === true ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : usernameStatus.available === false ? (
+                      <X className="h-4 w-4 text-red-500" />
+                    ) : null}
+                  </div>
+                </div>
+                {/* Validation Message */}
+                {usernameStatus.message && (
+                  <p className={`text-xs ${usernameStatus.available === true
+                      ? 'text-green-600'
+                      : usernameStatus.available === false
+                        ? 'text-red-600'
+                        : 'text-muted-foreground'
+                    }`}>
+                    {usernameStatus.message}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Only lowercase letters, numbers, and underscores. 3-30 characters.
+                </p>
               </div>
 
               {/* Role Info - Read Only */}

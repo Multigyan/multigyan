@@ -16,7 +16,7 @@ export async function generateStaticParams() {
 
     // Get top 50 authors by post count
     const authors = await User.aggregate([
-      { $match: { isActive: true } },
+      { $match: { isActive: true, username: { $exists: true, $ne: null, $ne: '' } } },
       {
         $lookup: {
           from: 'posts',
@@ -46,9 +46,12 @@ export async function generateStaticParams() {
 
     console.log(`[Static Generation] Pre-rendering ${authors.length} author pages`)
 
-    return authors.map((author) => ({
-      username: author.username,
-    }))
+    // Filter out any authors without valid usernames as a safety measure
+    return authors
+      .filter(author => author.username && typeof author.username === 'string')
+      .map((author) => ({
+        username: author.username,
+      }))
   } catch (error) {
     console.error('Error generating static params for authors:', error)
     return []
