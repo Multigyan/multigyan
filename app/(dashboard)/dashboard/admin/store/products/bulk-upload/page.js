@@ -29,30 +29,60 @@ export default function BulkUploadPage() {
     const [validationResults, setValidationResults] = useState([])
     const [uploadProgress, setUploadProgress] = useState(0)
     const [uploadResults, setUploadResults] = useState(null)
+    const [brands, setBrands] = useState([])
+    const [categories, setCategories] = useState([])
 
     // Set page title
     useEffect(() => {
         document.title = "Bulk Upload Products | Multigyan"
     }, [])
 
+    // Fetch brands and categories for lookup
+    useEffect(() => {
+        fetchBrandsAndCategories()
+    }, [])
+
+    const fetchBrandsAndCategories = async () => {
+        try {
+            const [brandsRes, categoriesRes] = await Promise.all([
+                fetch('/api/store/brands'),
+                fetch('/api/categories')
+            ])
+
+            const brandsData = await brandsRes.json()
+            const categoriesData = await categoriesRes.json()
+
+            setBrands(brandsData.brands || [])
+            setCategories(categoriesData.categories || [])
+        } catch (error) {
+            console.error('Error fetching brands/categories:', error)
+            toast.error('Failed to load brands and categories')
+        }
+    }
+
     const downloadTemplate = () => {
         const template = [
             {
-                title: "Example Product 1",
-                description: "Full product description here",
-                shortDescription: "Brief description",
-                price: "999.99",
-                originalPrice: "1299.99",
-                brandId: "BRAND_ID_HERE",
-                categoryId: "CATEGORY_ID_HERE",
-                affiliateLink: "https://example.com/product1",
+                title: "Honeywell HDMI Cable 2.1 with Ethernet, 8k@60Hz, 4K@120Hz UHD Resolution",
+                description: "Experience ultra-high-definition viewing with this premium HDMI cable. Supports 8K resolution at 60Hz and 4K at 120Hz for crystal-clear picture quality. Features Ethernet connectivity for smart device integration. Gold-plated connectors ensure reliable signal transmission. Perfect for gaming consoles, streaming devices, and home theater systems.",
+                shortDescription: "Premium HDMI 2.1 cable with 8K support and Ethernet connectivity",
+                featuredImageUrl: "https://res.cloudinary.com/your-cloud/image/upload/v1234567890/products/hdmi-cable-main.jpg",
+                imageUrls: "https://res.cloudinary.com/your-cloud/image/upload/v1234567890/products/hdmi-1.jpg,https://res.cloudinary.com/your-cloud/image/upload/v1234567890/products/hdmi-2.jpg",
+                price: "1329",
+                originalPrice: "2999",
+                brand: "Generic",
+                category: "Sports",
+                subcategories: "Cables,HDMI Cables,Electronics",
+                tags: "hdmi,cable,8k,4k,ethernet,gaming,home theater",
+                affiliateLink: "https://www.amazon.in/dp/B08HRG6C1Z?tag=multigyan37-21",
                 affiliateNetwork: "Amazon",
-                tags: "electronics,gadgets,tech",
+                rating: "4.5",
+                reviewCount: "1250",
                 isActive: "true",
                 isFeatured: "false",
                 inStock: "true",
-                metaTitle: "SEO Title",
-                metaDescription: "SEO Description"
+                metaTitle: "Honeywell HDMI Cable 2.1 - 8K@60Hz, 4K@120Hz | Best Price",
+                metaDescription: "Buy Honeywell HDMI 2.1 cable with 8K@60Hz and 4K@120Hz support. Premium quality with Ethernet connectivity."
             }
         ]
 
@@ -100,6 +130,18 @@ export default function BulkUploadPage() {
         })
     }
 
+    const findBrandId = (brandName) => {
+        if (!brandName) return null
+        const brand = brands.find(b => b.name.toLowerCase() === brandName.toLowerCase())
+        return brand?._id || null
+    }
+
+    const findCategoryId = (categoryName) => {
+        if (!categoryName) return null
+        const category = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase())
+        return category?._id || null
+    }
+
     const validateData = (data) => {
         const results = data.map((row, index) => {
             const errors = []
@@ -112,12 +154,16 @@ export default function BulkUploadPage() {
                 errors.push('Valid price is required')
             }
 
-            if (!row.brandId || row.brandId.trim() === '') {
-                errors.push('Brand ID is required')
+            if (!row.brand || row.brand.trim() === '') {
+                errors.push('Brand is required')
+            } else if (!findBrandId(row.brand)) {
+                errors.push(`Brand "${row.brand}" not found`)
             }
 
-            if (!row.categoryId || row.categoryId.trim() === '') {
-                errors.push('Category ID is required')
+            if (!row.category || row.category.trim() === '') {
+                errors.push('Category is required')
+            } else if (!findCategoryId(row.category)) {
+                errors.push(`Category "${row.category}" not found`)
             }
 
             if (!row.affiliateLink || !row.affiliateLink.startsWith('http')) {
@@ -157,17 +203,45 @@ export default function BulkUploadPage() {
             const { row } = validRows[i]
 
             try {
+                const brandId = findBrandId(row.brand)
+                const categoryId = findCategoryId(row.category)
+
+                // Parse image URLs
+                const featuredImage = row.featuredImageUrl ? {
+                    url: row.featuredImageUrl.trim(),
+                    alt: row.title,
+                    publicId: ''
+                } : undefined
+
+                const images = row.imageUrls
+                    ? row.imageUrls.split(',').map(url => ({
+                        url: url.trim(),
+                        alt: row.title,
+                        publicId: ''
+                    }))
+                    : []
+
+                // Parse subcategories
+                const subcategories = row.subcategories
+                    ? row.subcategories.split(',').map(s => s.trim())
+                    : []
+
                 const payload = {
                     title: row.title,
-                    description: row.description || '',
+                    description: row.description || 'No description provided',
                     shortDescription: row.shortDescription || '',
+                    featuredImage,
+                    images,
                     price: parseFloat(row.price),
                     originalPrice: row.originalPrice ? parseFloat(row.originalPrice) : null,
-                    brand: row.brandId,
-                    category: row.categoryId,
+                    brand: brandId,
+                    category: categoryId,
+                    subcategories,
                     affiliateLink: row.affiliateLink,
                     affiliateNetwork: row.affiliateNetwork || 'Amazon',
                     tags: row.tags ? row.tags.split(',').map(t => t.trim()) : [],
+                    rating: row.rating ? parseFloat(row.rating) : 0,
+                    reviewCount: row.reviewCount ? parseInt(row.reviewCount) : 0,
                     isActive: row.isActive === 'true',
                     isFeatured: row.isFeatured === 'true',
                     inStock: row.inStock !== 'false',
@@ -238,7 +312,7 @@ export default function BulkUploadPage() {
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">Bulk Product Upload</h1>
                 <p className="text-muted-foreground mt-2">
-                    Upload multiple products at once using CSV or Excel files
+                    Upload multiple products at once using CSV files with complete product details
                 </p>
             </div>
 
@@ -249,60 +323,49 @@ export default function BulkUploadPage() {
                     <CardDescription>Follow these steps to bulk upload products</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid gap-4">
-                        <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <span className="text-sm font-bold text-primary">1</span>
-                            </div>
-                            <div>
-                                <h4 className="font-medium">Download Template</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    Download the CSV template with all required columns
-                                </p>
-                            </div>
-                        </div>
+                    <ol className="list-decimal list-inside space-y-2 text-sm">
+                        <li>Download the CSV template below</li>
+                        <li>Fill in your product details:
+                            <ul className="list-disc list-inside ml-6 mt-1 space-y-1 text-muted-foreground">
+                                <li>Use brand/category <strong>names</strong>, not IDs</li>
+                                <li>For images: provide direct URLs (Cloudinary, Amazon S3, etc.)</li>
+                                <li>Separate multiple values with commas (tags, subcategories, image URLs)</li>
+                                <li>Use "true" or "false" for boolean fields</li>
+                            </ul>
+                        </li>
+                        <li>Upload the completed CSV file</li>
+                        <li>Review validation results</li>
+                        <li>Click "Upload Products" to complete the import</li>
+                    </ol>
 
-                        <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <span className="text-sm font-bold text-primary">2</span>
-                            </div>
-                            <div>
-                                <h4 className="font-medium">Fill Product Data</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    Add your product information. Get Brand IDs and Category IDs from the respective management pages
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <span className="text-sm font-bold text-primary">3</span>
-                            </div>
-                            <div>
-                                <h4 className="font-medium">Upload & Validate</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    Upload your CSV file. The system will validate all entries
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <span className="text-sm font-bold text-primary">4</span>
-                            </div>
-                            <div>
-                                <h4 className="font-medium">Import Products</h4>
-                                <p className="text-sm text-muted-foreground">
-                                    Review validation results and import valid products
-                                </p>
-                            </div>
-                        </div>
+                    <div className="flex gap-2">
+                        <Button onClick={downloadTemplate} variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Download Template
+                        </Button>
                     </div>
 
-                    <Button onClick={downloadTemplate} variant="outline" className="w-full sm:w-auto">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download CSV Template
-                    </Button>
+                    {brands.length > 0 && (
+                        <div className="mt-4 p-4 bg-muted rounded-lg">
+                            <h4 className="font-semibold mb-2">Available Brands:</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {brands.map(brand => (
+                                    <Badge key={brand._id} variant="secondary">{brand.name}</Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {categories.length > 0 && (
+                        <div className="mt-4 p-4 bg-muted rounded-lg">
+                            <h4 className="font-semibold mb-2">Available Categories:</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {categories.map(category => (
+                                    <Badge key={category._id} variant="secondary">{category.name}</Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -310,206 +373,216 @@ export default function BulkUploadPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Upload File</CardTitle>
-                    <CardDescription>Select a CSV or Excel file to upload</CardDescription>
+                    <CardDescription>Select a CSV file containing product data</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                            <FileSpreadsheet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                            <Label htmlFor="file-upload" className="cursor-pointer">
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium">
-                                        {file ? file.name : 'Click to upload or drag and drop'}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        CSV or Excel files only
-                                    </p>
-                                </div>
-                            </Label>
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                            <Label htmlFor="file">Product File</Label>
                             <Input
-                                id="file-upload"
+                                id="file"
                                 type="file"
-                                accept=".csv,.xlsx"
+                                accept=".csv"
                                 onChange={handleFileChange}
-                                className="hidden"
+                                disabled={parsing || uploading}
                             />
-                            <Button
-                                onClick={() => document.getElementById('file-upload').click()}
-                                className="mt-4"
-                                disabled={parsing}
-                            >
-                                {parsing ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Parsing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Upload className="mr-2 h-4 w-4" />
-                                        Select File
-                                    </>
-                                )}
-                            </Button>
                         </div>
+
+                        {file && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <FileSpreadsheet className="h-4 w-4" />
+                                <span>{file.name}</span>
+                                {parsing && <Loader2 className="h-4 w-4 animate-spin" />}
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
 
             {/* Validation Results */}
             {validationResults.length > 0 && (
-                <>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Validation Results</CardTitle>
-                            <CardDescription>
-                                {validCount} valid, {invalidCount} invalid products
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <CheckCircle className="h-5 w-5 text-green-500" />
-                                        <span className="text-sm">
-                                            <span className="font-bold text-green-600">{validCount}</span> Valid Products
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <XCircle className="h-5 w-5 text-red-500" />
-                                        <span className="text-sm">
-                                            <span className="font-bold text-red-600">{invalidCount}</span> Invalid Products
-                                        </span>
-                                    </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Validation Results</CardTitle>
+                        <CardDescription>
+                            Review the validation status of your products
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {/* Summary */}
+                            <div className="flex gap-4">
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                    <span className="font-medium">{validCount} Valid</span>
                                 </div>
+                                <div className="flex items-center gap-2">
+                                    <XCircle className="h-5 w-5 text-red-500" />
+                                    <span className="font-medium">{invalidCount} Invalid</span>
+                                </div>
+                            </div>
 
-                                {validCount > 0 && (
+                            {/* Table */}
+                            <div className="border rounded-lg">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-12">#</TableHead>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Brand</TableHead>
+                                            <TableHead>Category</TableHead>
+                                            <TableHead>Price</TableHead>
+                                            <TableHead>Status</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {validationResults.map((result) => (
+                                            <TableRow key={result.index}>
+                                                <TableCell>{result.index + 1}</TableCell>
+                                                <TableCell className="font-medium">
+                                                    {result.row.title || '-'}
+                                                </TableCell>
+                                                <TableCell>{result.row.brand || '-'}</TableCell>
+                                                <TableCell>{result.row.category || '-'}</TableCell>
+                                                <TableCell>₹{result.row.price || '-'}</TableCell>
+                                                <TableCell>
+                                                    {result.valid ? (
+                                                        <Badge variant="success" className="bg-green-500">
+                                                            <CheckCircle className="mr-1 h-3 w-3" />
+                                                            Valid
+                                                        </Badge>
+                                                    ) : (
+                                                        <div className="space-y-1">
+                                                            <Badge variant="destructive">
+                                                                <XCircle className="mr-1 h-3 w-3" />
+                                                                Invalid
+                                                            </Badge>
+                                                            <ul className="text-xs text-red-500 list-disc list-inside">
+                                                                {result.errors.map((error, i) => (
+                                                                    <li key={i}>{error}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {/* Upload Button */}
+                            {validCount > 0 && (
+                                <div className="flex justify-end">
                                     <Button
                                         onClick={handleBulkUpload}
                                         disabled={uploading}
-                                        className="w-full"
                                         size="lg"
                                     >
                                         {uploading ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Uploading... {uploadProgress}%
+                                                Uploading...
                                             </>
                                         ) : (
                                             <>
                                                 <Upload className="mr-2 h-4 w-4" />
-                                                Import {validCount} Valid Products
+                                                Upload {validCount} Products
                                             </>
                                         )}
                                     </Button>
-                                )}
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
-                                {uploading && (
-                                    <Progress value={uploadProgress} className="w-full" />
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Validation Details */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Product Details</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-12">#</TableHead>
-                                        <TableHead>Title</TableHead>
-                                        <TableHead>Price</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Errors</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {validationResults.map((result) => (
-                                        <TableRow key={result.index}>
-                                            <TableCell>{result.index + 1}</TableCell>
-                                            <TableCell className="font-medium">{result.row.title || 'N/A'}</TableCell>
-                                            <TableCell>₹{result.row.price || 'N/A'}</TableCell>
-                                            <TableCell>
-                                                {result.valid ? (
-                                                    <Badge variant="default" className="bg-green-500">
-                                                        <CheckCircle className="h-3 w-3 mr-1" />
-                                                        Valid
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="destructive">
-                                                        <XCircle className="h-3 w-3 mr-1" />
-                                                        Invalid
-                                                    </Badge>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {result.errors.length > 0 && (
-                                                    <div className="text-xs text-red-600">
-                                                        {result.errors.join(', ')}
-                                                    </div>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-                </>
+            {/* Upload Progress */}
+            {uploading && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Upload Progress</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            <Progress value={uploadProgress} />
+                            <p className="text-sm text-center text-muted-foreground">
+                                {uploadProgress}% Complete
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
 
             {/* Upload Results */}
             {uploadResults && (
-                <Card className={uploadResults.failed > 0 ? "border-yellow-200 bg-yellow-50" : "border-green-200 bg-green-50"}>
+                <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            {uploadResults.failed > 0 ? (
-                                <>
-                                    <AlertCircle className="h-5 w-5 text-yellow-600" />
-                                    Upload Complete with Errors
-                                </>
-                            ) : (
-                                <>
-                                    <CheckCircle className="h-5 w-5 text-green-600" />
-                                    Upload Successful
-                                </>
-                            )}
-                        </CardTitle>
+                        <CardTitle>Upload Results</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
+                            {/* Summary */}
                             <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Total</p>
-                                    <p className="text-2xl font-bold">{uploadResults.total}</p>
+                                <div className="text-center p-4 bg-muted rounded-lg">
+                                    <div className="text-2xl font-bold">{uploadResults.total}</div>
+                                    <div className="text-sm text-muted-foreground">Total</div>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Success</p>
-                                    <p className="text-2xl font-bold text-green-600">{uploadResults.success}</p>
+                                <div className="text-center p-4 bg-green-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-green-600">
+                                        {uploadResults.success}
+                                    </div>
+                                    <div className="text-sm text-green-600">Success</div>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Failed</p>
-                                    <p className="text-2xl font-bold text-red-600">{uploadResults.failed}</p>
+                                <div className="text-center p-4 bg-red-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-red-600">
+                                        {uploadResults.failed}
+                                    </div>
+                                    <div className="text-sm text-red-600">Failed</div>
                                 </div>
                             </div>
 
+                            {/* Errors */}
                             {uploadResults.errors.length > 0 && (
                                 <div className="space-y-2">
-                                    <h4 className="font-medium text-sm">Errors:</h4>
-                                    {uploadResults.errors.map((error, index) => (
-                                        <div key={index} className="text-xs bg-white p-2 rounded border">
-                                            Row {error.row}: {error.title} - {error.error}
-                                        </div>
-                                    ))}
+                                    <h4 className="font-semibold flex items-center gap-2">
+                                        <AlertCircle className="h-4 w-4 text-red-500" />
+                                        Errors
+                                    </h4>
+                                    <div className="border rounded-lg divide-y">
+                                        {uploadResults.errors.map((error, index) => (
+                                            <div key={index} className="p-3 text-sm">
+                                                <div className="font-medium">
+                                                    Row {error.row}: {error.title}
+                                                </div>
+                                                <div className="text-red-500 text-xs mt-1">
+                                                    {error.error}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
-                            <Button onClick={() => router.push('/dashboard/admin/store/products')} className="w-full">
-                                View All Products
-                            </Button>
+                            {/* Actions */}
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={() => {
+                                        setFile(null)
+                                        setParsedData([])
+                                        setValidationResults([])
+                                        setUploadResults(null)
+                                        setUploadProgress(0)
+                                    }}
+                                    variant="outline"
+                                >
+                                    Upload Another File
+                                </Button>
+                                <Button onClick={() => router.push('/dashboard/admin/store/products')}>
+                                    View All Products
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

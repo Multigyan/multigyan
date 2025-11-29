@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        required: [true, 'Please provide a product description']
+        default: ''
     },
     shortDescription: {
         type: String,
