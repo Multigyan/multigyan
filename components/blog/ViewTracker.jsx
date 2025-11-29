@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Client-side View Tracker Component
  * 
@@ -7,8 +9,6 @@
  * It sends a request to increment the view count when the post is loaded.
  */
 
-'use client'
-
 import { useEffect, useRef } from 'react'
 
 export default function ViewTracker({ postId }) {
@@ -16,9 +16,13 @@ export default function ViewTracker({ postId }) {
 
     useEffect(() => {
         // Only track once per page load
-        if (hasTracked.current || !postId) return
+        if (hasTracked.current || !postId) {
+            console.log('[ViewTracker] Skipping:', { hasTracked: hasTracked.current, postId })
+            return
+        }
 
         hasTracked.current = true
+        console.log('[ViewTracker] Tracking view for post:', postId)
 
         // Send view tracking request
         fetch(`/api/posts/${postId}/view`, {
@@ -26,10 +30,14 @@ export default function ViewTracker({ postId }) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            // Don't wait for response - fire and forget
-        }).catch(() => {
-            // Silently fail - view tracking is non-critical
         })
+            .then(res => res.json())
+            .then(data => {
+                console.log('[ViewTracker] Response:', data)
+            })
+            .catch(error => {
+                console.error('[ViewTracker] Error:', error)
+            })
     }, [postId])
 
     // This component doesn't render anything

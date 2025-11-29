@@ -25,8 +25,8 @@ export async function GET(request, { params }) {
             );
         }
 
-        // Increment view count
-        await Product.findByIdAndUpdate(product._id, { $inc: { viewCount: 1 } });
+        // ✅ REMOVED: Server-side view tracking doesn't work for cached pages
+        // View tracking is now handled client-side via ProductViewTracker component
 
         return NextResponse.json({ product });
     } catch (error) {

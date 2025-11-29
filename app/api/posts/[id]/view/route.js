@@ -15,6 +15,8 @@ export async function POST(request, { params }) {
         const resolvedParams = await params
         const postId = resolvedParams.id
 
+        console.log('[View API] Received request for post:', postId)
+
         await connectDB()
 
         // Get session to check if user is the author
@@ -24,6 +26,7 @@ export async function POST(request, { params }) {
         const post = await Post.findById(postId).select('author status').lean()
 
         if (!post) {
+            console.log('[View API] Post not found:', postId)
             return NextResponse.json(
                 { error: 'Post not found' },
                 { status: 404 }
@@ -32,22 +35,25 @@ export async function POST(request, { params }) {
 
         // Only count views for published posts
         if (post.status !== 'published') {
-            return NextResponse.json({ success: true, counted: false })
+            console.log('[View API] Post not published:', postId, post.status)
+            return NextResponse.json({ success: true, counted: false, reason: 'not_published' })
         }
 
         // Don't count views if the user is the author
         if (session && session.user.id === post.author.toString()) {
-            return NextResponse.json({ success: true, counted: false })
+            console.log('[View API] User is author, not counting:', session.user.id)
+            return NextResponse.json({ success: true, counted: false, reason: 'is_author' })
         }
 
         // Increment view count
         await Post.findByIdAndUpdate(postId, { $inc: { views: 1 } })
 
+        console.log('[View API] ✅ View counted for post:', postId)
         return NextResponse.json({ success: true, counted: true })
 
     } catch (error) {
-        console.error('Error tracking view:', error)
+        console.error('[View API] Error tracking view:', error)
         // Return success even on error to not break the page
-        return NextResponse.json({ success: true, counted: false })
+        return NextResponse.json({ success: true, counted: false, error: error.message })
     }
 }

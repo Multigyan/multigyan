@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import dbConnect from "@/lib/mongodb"
 import Product from "@/models/Product"
+import ProductViewTracker from "@/components/store/ProductViewTracker"
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }) {
@@ -73,6 +74,9 @@ export default async function ProductDetailPage({ params }) {
 
     return (
         <div className="min-h-screen">
+            {/* Client-side view tracking for all users */}
+            <ProductViewTracker productId={product._id.toString()} />
+
             {/* Breadcrumb */}
             <section className="bg-muted/30 py-4">
                 <div className="container mx-auto px-4 sm:px-6">
