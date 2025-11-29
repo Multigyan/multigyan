@@ -512,17 +512,20 @@ export default function NewPostPage() {
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="flex items-start md:items-center justify-between mb-8 gap-4">
+        {/* Enhanced Header */}
+        <div className="flex items-start md:items-center justify-between mb-8 gap-4 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 rounded-lg -z-10"></div>
           <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" asChild>
+            <Button variant="outline" size="icon" asChild className="hover:border-primary/50 transition-colors">
               <Link href="/dashboard/posts">
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground">Create New Post</h1>
-              <p className="text-muted-foreground text-sm hidden md:block">Write and publish a new blog post, DIY tutorial, or recipe</p>
+              <h1 className="text-2xl md:text-3xl font-bold">
+                <span className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent">Create New Post</span>
+              </h1>
+              <p className="text-muted-foreground/80 text-sm hidden md:block">Write and publish a new blog post, DIY tutorial, or recipe</p>
             </div>
           </div>
 
@@ -667,13 +670,15 @@ export default function NewPostPage() {
               <div className="lg:col-span-2 space-y-6">
                 {/* ✅ PHASE 2: Content Settings - Only in Full Mode */}
                 {postMode === 'full' && (
-                  <Card className="border-2 border-primary/20 bg-primary/5">
+                  <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-xl transition-all duration-500">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Settings className="h-5 w-5" />
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-md">
+                          <Settings className="h-5 w-5 text-white" />
+                        </div>
                         Content Settings
                       </CardTitle>
-                      <CardDescription>
+                      <CardDescription className="text-muted-foreground/80">
                         Choose the type of content and language
                       </CardDescription>
                     </CardHeader>
@@ -796,14 +801,16 @@ export default function NewPostPage() {
                   </Card>
                 )}
 
-                {/* Featured Image Section */}
-                <Card>
+                {/* Enhanced Featured Image Section */}
+                <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Image className="h-5 w-5" aria-hidden="true" alt="" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                        <Image className="h-5 w-5 text-white" aria-hidden="true" alt="" />
+                      </div>
                       Featured Image
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-muted-foreground/80">
                       Upload a high-quality image (auto-converts to WebP, supports Google Drive)
                     </CardDescription>
                   </CardHeader>
@@ -824,14 +831,16 @@ export default function NewPostPage() {
                   </CardContent>
                 </Card>
 
-                {/* Basic Information */}
-                <Card>
+                {/* Enhanced Basic Information */}
+                <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" aria-hidden="true" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-md">
+                        <FileText className="h-5 w-5 text-white" aria-hidden="true" />
+                      </div>
                       Post Content
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-muted-foreground/80">
                       Enter the main content for your {getContentTypeLabel(formData.contentType).toLowerCase()}
                     </CardDescription>
                   </CardHeader>
