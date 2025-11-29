@@ -11,6 +11,7 @@ import {
   generateBreadcrumbSchema
 } from "@/lib/seo-enhanced"
 import EnhancedSchema from "@/components/seo/EnhancedSchema"
+import ViewTracker from "@/components/blog/ViewTracker"
 
 // ========================================
 // DYNAMIC RENDERING CONFIGURATION
@@ -178,8 +179,8 @@ export default async function BlogPostPage({ params }) {
       redirect(`/recipe/${post.slug}`)
     }
 
-    // Increment view count (we'll do this async to not block rendering)
-    Post.findByIdAndUpdate(post._id, { $inc: { views: 1 } }).exec()
+    // ✅ REMOVED: Server-side view tracking doesn't work for cached pages
+    // View tracking is now handled client-side via ViewTracker component
 
     // ✅ OPTIMIZATION: Fetch related posts server-side (eliminates client-side API call)
     let relatedPosts = []
@@ -330,6 +331,8 @@ export default async function BlogPostPage({ params }) {
       <>
         {/* ✅ Using Enhanced Schema with author URL */}
         <EnhancedSchema schemas={[enhancedArticleSchema, breadcrumbSchema]} />
+        {/* ✅ Client-side view tracking for all users */}
+        <ViewTracker postId={post._id.toString()} />
         <BlogPostClient post={serializedPost} relatedPosts={serializedRelatedPosts} />
       </>
     )

@@ -11,6 +11,7 @@ import {
 } from '@/lib/seo-enhanced'
 import EnhancedSchema from '@/components/seo/EnhancedSchema'
 import RecipePostClient from './RecipePostClient'
+import ViewTracker from '@/components/blog/ViewTracker'
 
 // =========================================
 // DYNAMIC RENDERING CONFIGURATION
@@ -144,8 +145,8 @@ export default async function RecipePostPage({ params }) {
       notFound()
     }
 
-    // Increment view count
-    Post.findByIdAndUpdate(post._id, { $inc: { views: 1 } }).exec()
+    // ✅ REMOVED: Server-side view tracking doesn't work for cached pages
+    // View tracking is now handled client-side via ViewTracker component
 
     // Generate structured data
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
@@ -274,6 +275,8 @@ export default async function RecipePostPage({ params }) {
       <>
         {/* ✅ Include Recipe schema for rich search results */}
         <EnhancedSchema schemas={[recipeSchema, enhancedArticleSchema, breadcrumbSchema]} />
+        {/* ✅ Client-side view tracking for all users */}
+        <ViewTracker postId={post._id.toString()} />
         <RecipePostClient post={serializedPost} />
       </>
     )
