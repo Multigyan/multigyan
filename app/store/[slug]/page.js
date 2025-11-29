@@ -75,7 +75,7 @@ export default async function ProductDetailPage({ params }) {
     return (
         <div className="min-h-screen">
             {/* Client-side view tracking for all users */}
-            <ProductViewTracker productId={product._id.toString()} />
+            <ProductViewTracker productSlug={product.slug} />
 
             {/* Breadcrumb */}
             <section className="bg-muted/30 py-4">
