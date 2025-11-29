@@ -137,7 +137,16 @@ export async function POST(request) {
         // Validate required fields
         if (!data.title || !data.price || !data.affiliateLink || !data.brand || !data.category) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                {
+                    error: 'Missing required fields',
+                    details: {
+                        hasTitle: !!data.title,
+                        hasPrice: !!data.price,
+                        hasAffiliateLink: !!data.affiliateLink,
+                        hasBrand: !!data.brand,
+                        hasCategory: !!data.category
+                    }
+                },
                 { status: 400 }
             );
         }
@@ -163,8 +172,14 @@ export async function POST(request) {
         );
     } catch (error) {
         console.error('Error creating product:', error);
+
+        // Return detailed error for debugging
         return NextResponse.json(
-            { error: 'Failed to create product' },
+            {
+                error: 'Failed to create product',
+                message: error.message,
+                details: error.toString()
+            },
             { status: 500 }
         );
     }

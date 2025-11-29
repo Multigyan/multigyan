@@ -186,10 +186,24 @@ export default function BulkUploadPage() {
                 } else {
                     const error = await response.json()
                     results.failed++
+
+                    // Build detailed error message
+                    let errorMessage = error.error || 'Unknown error'
+                    if (error.message) {
+                        errorMessage += `: ${error.message}`
+                    }
+                    if (error.details) {
+                        if (typeof error.details === 'object') {
+                            errorMessage += ` (${JSON.stringify(error.details)})`
+                        } else {
+                            errorMessage += ` (${error.details})`
+                        }
+                    }
+
                     results.errors.push({
                         row: i + 1,
                         title: row.title,
-                        error: error.error || 'Unknown error'
+                        error: errorMessage
                     })
                 }
             } catch (error) {
