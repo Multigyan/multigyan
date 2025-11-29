@@ -335,7 +335,7 @@ export default function BrandsManagementPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Brand?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete "{deleteBrand?.name}"? This action cannot be undone.
+                            Are you sure you want to delete &#34;{deleteBrand?.name}&#34;? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

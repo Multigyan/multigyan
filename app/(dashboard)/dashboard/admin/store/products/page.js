@@ -309,7 +309,7 @@ export default function ProductsListPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete "{deleteProduct?.title}". This action cannot be undone.
+                            This will permanently delete &#34;{deleteProduct?.title}&#34;. This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

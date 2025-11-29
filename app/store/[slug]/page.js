@@ -187,8 +187,8 @@ export default async function ProductDetailPage({ params }) {
                                                 <Star
                                                     key={i}
                                                     className={`h-5 w-5 ${i < Math.floor(product.rating)
-                                                            ? "text-yellow-500 fill-yellow-500"
-                                                            : "text-gray-300"
+                                                        ? "text-yellow-500 fill-yellow-500"
+                                                        : "text-gray-300"
                                                         }`}
                                                 />
                                             ))}
@@ -273,7 +273,7 @@ export default async function ProductDetailPage({ params }) {
                                         <span className="font-semibold text-foreground">
                                             {product.affiliateNetwork}
                                         </span>
-                                        . Clicking "Buy Now" will redirect you to their website.
+                                        . Clicking &#34;Buy Now&#34; will redirect you to their website.
                                     </p>
                                 </CardContent>
                             </Card>
