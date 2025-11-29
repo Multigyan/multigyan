@@ -23,7 +23,8 @@ import {
   Mail,
   Folder,
   BarChart3,
-  GitBranch
+  GitBranch,
+  ShoppingBag
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
 
@@ -347,6 +348,14 @@ export default function AdminDashboardPage() {
               <Link href="/dashboard/admin/analytics">
                 <BarChart3 className="mr-2 h-4 w-4" />
                 Analytics Dashboard
+              </Link>
+            </Button>
+
+            {/* NEW: Store Management */}
+            <Button className="w-full justify-start bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" asChild>
+              <Link href="/dashboard/admin/store">
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Store Management
               </Link>
             </Button>
 

@@ -28,6 +28,15 @@ const CategorySchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  productCount: {
+    type: Number,
+    default: 0
+  },
+  type: {
+    type: String,
+    enum: ['blog', 'store', 'both'],
+    default: 'blog'
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -41,6 +50,7 @@ const CategorySchema = new mongoose.Schema({
 // Index for better query performance
 // Note: slug and name indexes are already created by unique: true in schema
 CategorySchema.index({ isActive: 1 })
+CategorySchema.index({ type: 1 })
 
 // Virtual for category URL
 CategorySchema.virtual('url').get(function () {
@@ -76,6 +86,16 @@ CategorySchema.statics.getActiveWithCounts = function () {
     .select('name slug description color postCount')
 }
 
+// Static method to get active store categories
+CategorySchema.statics.getActiveStoreCategories = function () {
+  return this.find({
+    isActive: true,
+    type: { $in: ['store', 'both'] }
+  })
+    .sort({ productCount: -1, name: 1 })
+    .select('name slug description color productCount')
+}
+
 // Static method to increment post count
 CategorySchema.statics.incrementPostCount = function (categoryId) {
   return this.findByIdAndUpdate(
@@ -90,6 +110,24 @@ CategorySchema.statics.decrementPostCount = function (categoryId) {
   return this.findByIdAndUpdate(
     categoryId,
     { $inc: { postCount: -1 } },
+    { new: true }
+  )
+}
+
+// Static method to increment product count
+CategorySchema.statics.incrementProductCount = function (categoryId) {
+  return this.findByIdAndUpdate(
+    categoryId,
+    { $inc: { productCount: 1 } },
+    { new: true }
+  )
+}
+
+// Static method to decrement product count
+CategorySchema.statics.decrementProductCount = function (categoryId) {
+  return this.findByIdAndUpdate(
+    categoryId,
+    { $inc: { productCount: -1 } },
     { new: true }
   )
 }

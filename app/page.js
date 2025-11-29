@@ -2,8 +2,9 @@ import Link from "next/link"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { BookOpen, PenTool, ArrowRight, TrendingUp, Sparkles, Users, FileText, Layers, Zap, Star, Clock, Eye, Calendar, User, ChevronRight, Mail, Award, Heart, MessageCircle } from "lucide-react"
+import { BookOpen, PenTool, ArrowRight, TrendingUp, Sparkles, Users, FileText, Layers, Zap, Star, Clock, Eye, Calendar, User, ChevronRight, Mail, Award, Heart, MessageCircle, ShoppingBag } from "lucide-react"
 import PostCard from "@/components/blog/PostCard"
+import ProductCard from "@/components/store/ProductCard"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { formatDate, getPostUrl } from "@/lib/helpers"
@@ -23,7 +24,7 @@ export const revalidate = 60
 
 export default async function HomePage() {
   // Fetch data server-side with caching
-  const [statsData, latestData, categoriesData, topAuthorsData] = await Promise.all([
+  const [statsData, latestData, categoriesData, topAuthorsData, featuredProductsData] = await Promise.all([
     fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/stats/public`, {
       next: { revalidate: 60 }
     }).then(res => res.json()).catch(() => ({ totalPosts: 0, totalAuthors: 0, totalCategories: 0 })),
@@ -38,12 +39,17 @@ export default async function HomePage() {
 
     fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/authors/top?limit=6`, {
       next: { revalidate: 60 }
-    }).then(res => res.json()).catch(() => ({ authors: [] }))
+    }).then(res => res.json()).catch(() => ({ authors: [] })),
+
+    fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/store/products?featured=true&limit=6`, {
+      next: { revalidate: 60 }
+    }).then(res => res.json()).catch(() => ({ products: [] }))
   ])
 
   const latestPosts = latestData.posts || []
   const topCategories = categoriesData.categories || []
   const topAuthors = topAuthorsData.authors || []
+  const featuredProducts = featuredProductsData.products || []
   const stats = {
     totalPosts: statsData.totalPosts || 0,
     totalAuthors: statsData.totalAuthors || 0,
@@ -404,6 +410,53 @@ export default async function HomePage() {
                     </Card>
                   </Link>
                 ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 🛒 FEATURED PRODUCTS SECTION */}
+        {featuredProducts.length > 0 && (
+          <section className="py-20 bg-gradient-to-br from-primary/10 via-primary/5 to-background relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 -z-10">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            </div>
+
+            <div className="container mx-auto px-4 sm:px-6">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full mb-4 border border-primary/20">
+                  <ShoppingBag className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-medium text-primary uppercase tracking-wider">Featured Products</span>
+                </div>
+                <h2 className="text-4xl font-bold mb-4">
+                  Discover Amazing <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Products</span>
+                </h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Handpicked products from top brands, curated just for you
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-8">
+                {featuredProducts.slice(0, 6).map((product, index) => (
+                  <div
+                    key={product._id}
+                    className="animate-in fade-in slide-in-from-bottom-6 duration-500"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center">
+                <Button size="lg" variant="outline" asChild className="group">
+                  <Link href="/store">
+                    View All Products
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
               </div>
             </div>
           </section>
