@@ -55,7 +55,7 @@ export default function RegisterPage() {
         setFormData(prev => ({ ...prev, username: suggestedUsername }))
       }
     }
-  }, [formData.name])
+  }, [formData.name, formData.username])
 
   // Check username availability with debounce
   const checkUsernameAvailability = useCallback(async (username) => {
@@ -298,10 +298,10 @@ export default function RegisterPage() {
                     value={formData.username}
                     onChange={handleInputChange}
                     className={`pl-10 pr-10 ${usernameStatus.available === true
-                        ? 'border-green-500 focus-visible:ring-green-500'
-                        : usernameStatus.available === false
-                          ? 'border-red-500 focus-visible:ring-red-500'
-                          : ''
+                      ? 'border-green-500 focus-visible:ring-green-500'
+                      : usernameStatus.available === false
+                        ? 'border-red-500 focus-visible:ring-red-500'
+                        : ''
                       }`}
                     required
                   />
@@ -319,10 +319,10 @@ export default function RegisterPage() {
                 {/* Validation Message */}
                 {usernameStatus.message && (
                   <p className={`text-xs ${usernameStatus.available === true
-                      ? 'text-green-600'
-                      : usernameStatus.available === false
-                        ? 'text-red-600'
-                        : 'text-muted-foreground'
+                    ? 'text-green-600'
+                    : usernameStatus.available === false
+                      ? 'text-red-600'
+                      : 'text-muted-foreground'
                     }`}>
                     {usernameStatus.message}
                   </p>
