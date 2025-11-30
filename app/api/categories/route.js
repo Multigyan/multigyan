@@ -15,7 +15,7 @@ export async function GET(request) {
     const includeCounts = searchParams.get('includeCounts') === 'true' // NEW: option to include real counts
 
     const query = includeInactive ? {} : { isActive: true }
-    
+
     const categories = await Category.find(query)
       .select('name slug description color postCount isActive createdAt')
       .sort({ name: 1 })
@@ -25,8 +25,8 @@ export async function GET(request) {
     if (includeCounts) {
       const postCounts = await Post.aggregate([
         { $match: { status: 'published' } },
-        { 
-          $group: { 
+        {
+          $group: {
             _id: '$category',
             count: { $sum: 1 }
           }
@@ -35,7 +35,7 @@ export async function GET(request) {
 
       // Map counts to categories
       const enrichedCategories = categories.map(category => {
-        const countData = postCounts.find(pc => 
+        const countData = postCounts.find(pc =>
           pc._id && pc._id.toString() === category._id.toString()
         )
         return {
@@ -82,7 +82,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
@@ -90,7 +90,7 @@ export async function POST(request) {
       )
     }
 
-    const { name, description, color } = await request.json()
+    const { name, description, color, type } = await request.json()
 
     // Validation
     if (!name || name.trim().length === 0) {
@@ -121,13 +121,20 @@ export async function POST(request) {
       )
     }
 
+    if (type && !['blog', 'store', 'both'].includes(type)) {
+      return NextResponse.json(
+        { error: 'Type must be blog, store, or both' },
+        { status: 400 }
+      )
+    }
+
     await connectDB()
 
     // Check if category already exists
-    const existingCategory = await Category.findOne({ 
-      name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } 
+    const existingCategory = await Category.findOne({
+      name: { $regex: new RegExp(`^${name.trim()}$`, 'i') }
     })
-    
+
     if (existingCategory) {
       return NextResponse.json(
         { error: 'Category with this name already exists' },
@@ -139,7 +146,8 @@ export async function POST(request) {
     const newCategory = new Category({
       name: name.trim(),
       description: description ? description.trim() : '',
-      color: color || '#3B82F6'
+      color: color || '#3B82F6',
+      type: type || 'blog'
     })
 
     await newCategory.save()
