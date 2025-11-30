@@ -46,7 +46,7 @@ export default function BulkUploadPage() {
         try {
             const [brandsRes, categoriesRes] = await Promise.all([
                 fetch('/api/store/brands'),
-                fetch('/api/categories')
+                fetch('/api/store/categories')
             ])
 
             const brandsData = await brandsRes.json()
@@ -71,8 +71,8 @@ export default function BulkUploadPage() {
                 price: "1329",
                 originalPrice: "2999",
                 brand: "Generic",
-                category: "Sports",
-                subcategories: "Cables,HDMI Cables,Electronics",
+                category: "Electronics",
+                subcategories: "Cables,HDMI Cables,Accessories",
                 tags: "hdmi,cable,8k,4k,ethernet,gaming,home theater",
                 affiliateLink: "https://www.amazon.in/dp/B08HRG6C1Z?tag=multigyan37-21",
                 affiliateNetwork: "Amazon",
