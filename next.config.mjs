@@ -189,6 +189,16 @@ const nextConfig = {
         hostname: 'ik.imagekit.io',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images-na.ssl-images-amazon.com',
+        pathname: '/**',
+      },
     ],
 
     // Image formats - AVIF is 30% smaller than WebP, WebP is 30% smaller than JPEG

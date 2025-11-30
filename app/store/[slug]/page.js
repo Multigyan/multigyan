@@ -36,7 +36,7 @@ export async function generateMetadata({ params }) {
     }
 
     return {
-        title: `${product.title} - ${product.brand.name} | Multigyan Store`,
+        title: `${product.title}${product.brand?.name ? ` - ${product.brand.name}` : ''} | Multigyan Store`,
         description: product.shortDescription || product.description?.substring(0, 160),
         openGraph: {
             title: product.title,
