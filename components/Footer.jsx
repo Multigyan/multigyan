@@ -21,7 +21,13 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="relative bg-gradient-to-b from-gray-50 via-white to-blue-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 border-t border-gray-200 dark:border-gray-700 overflow-hidden">
+    <footer
+      className="relative bg-gradient-to-b from-gray-50 via-white to-blue-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 border-t border-gray-200 dark:border-gray-700 overflow-hidden"
+      role="contentinfo"
+      itemScope
+      itemType="https://schema.org/WPFooter"
+      aria-label="Site footer"
+    >
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -43,7 +49,10 @@ export default function Footer() {
                   />
                 </div>
               </Link>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <p
+                className="text-muted-foreground text-sm leading-relaxed"
+                itemProp="description"
+              >
                 A secure, high-performance, and SEO-optimized multi-author blogging platform
                 built with modern web technologies.
               </p>

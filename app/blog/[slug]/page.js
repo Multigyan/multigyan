@@ -212,7 +212,25 @@ export default async function BlogPostPage({ params }) {
     const postUrl = `${siteUrl}/blog/${post.slug}`
 
     // ✅ Generate enhanced schemas for bilingual SEO (includes author URL)
-    const enhancedArticleSchema = generateArticleSchema(post)
+    const enhancedArticleSchema = {
+      ...generateArticleSchema(post),
+      // ✅ NOTEBOOKLM FIX: Add explicit mainEntity to mark primary content
+      mainEntity: {
+        "@type": "Article",
+        "headline": post.title,
+        "description": post.excerpt || post.seoDescription,
+        "articleBody": post.content ? post.content.substring(0, 500).replace(/<[^>]*>/g, '') + "..." : undefined,
+      },
+      // ✅ Mark supplementary content (footer) explicitly
+      hasPart: [
+        {
+          "@type": "WPFooter",
+          "name": "Site Footer",
+          "description": "Supplementary navigation and contact information"
+        }
+      ]
+    }
+
     const breadcrumbSchema = generateBreadcrumbSchema([
       { name: 'Home', url: siteUrl },
       { name: 'Blog', url: `${siteUrl}/blog` },
