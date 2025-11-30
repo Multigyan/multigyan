@@ -1,7 +1,6 @@
 "use client"
 
 import Image from "next/image"
-import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,7 +12,12 @@ export default function ProductCard({ product, className }) {
     const hasDiscount = discountPercentage > 0
 
     return (
-        <Link href={`/store/${product.slug}`} className="block group">
+        <a
+            href={product.affiliateLink}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="block group"
+        >
             <Card className={cn(
                 "overflow-hidden hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/30 bg-gradient-to-br from-background via-background to-muted/20 backdrop-blur-sm h-full",
                 className
@@ -142,6 +146,6 @@ export default function ProductCard({ product, className }) {
                     </div>
                 </CardContent>
             </Card>
-        </Link>
+        </a>
     )
 }
