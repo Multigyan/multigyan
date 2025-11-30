@@ -6,6 +6,7 @@ import dbConnect from "@/lib/mongodb"
 import Product from "@/models/Product"
 import Brand from "@/models/Brand"
 import Category from "@/models/Category"
+import RefreshStoreButton from "@/components/store/RefreshStoreButton"
 
 export const metadata = {
     title: 'Store Management - Admin Dashboard',
@@ -40,12 +41,15 @@ export default async function StoreAdminPage() {
                         Manage your affiliate products, brands, and track performance
                     </p>
                 </div>
-                <Button asChild size="lg" className="gap-2">
-                    <Link href="/dashboard/admin/store/products/new">
-                        <Plus className="h-4 w-4" />
-                        Add Product
-                    </Link>
-                </Button>
+                <div className="flex gap-3">
+                    <RefreshStoreButton />
+                    <Button asChild size="lg" className="gap-2">
+                        <Link href="/dashboard/admin/store/products/new">
+                            <Plus className="h-4 w-4" />
+                            Add Product
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             {/* Statistics Cards */}
