@@ -130,6 +130,23 @@ NotificationSchema.statics.createNotification = async function ({
     return null
   }
 
+  // Check for duplicate notification in last 5 minutes (deduplication)
+  const recentDuplicate = await this.findOne({
+    recipient,
+    sender,
+    type,
+    post: post || null,
+    comment: comment || null,
+    createdAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) }
+  })
+
+  if (recentDuplicate) {
+    // Update the timestamp to show it's still relevant
+    recentDuplicate.createdAt = new Date()
+    await recentDuplicate.save()
+    return recentDuplicate
+  }
+
   // Create the notification
   const notification = await this.create({
     recipient,
@@ -142,6 +159,70 @@ NotificationSchema.statics.createNotification = async function ({
   })
 
   return notification
+}
+
+// Static method to create bulk notifications (for batch operations)
+NotificationSchema.statics.createBulkNotifications = async function (notifications) {
+  if (!notifications || notifications.length === 0) {
+    return []
+  }
+
+  const User = mongoose.model('User')
+  const validNotifications = []
+
+  // Batch fetch all unique recipients
+  const recipientIds = [...new Set(notifications.map(n => n.recipient.toString()))]
+  const recipients = await User.find({ _id: { $in: recipientIds } }).select('settings').lean()
+  const recipientMap = new Map(recipients.map(r => [r._id.toString(), r]))
+
+  for (const notif of notifications) {
+    // Skip self-notifications
+    if (notif.recipient.toString() === notif.sender.toString()) {
+      continue
+    }
+
+    // Check user preferences
+    const recipientUser = recipientMap.get(notif.recipient.toString())
+    if (!recipientUser || !recipientUser.settings) {
+      continue
+    }
+
+    const { settings } = recipientUser
+    let shouldCreate = false
+
+    switch (notif.type) {
+      case 'comment_post':
+      case 'reply_comment':
+        shouldCreate = settings.commentNotifications !== false
+        break
+      case 'like_post':
+      case 'like_comment':
+        shouldCreate = settings.likeNotifications === true
+        break
+      case 'follow':
+        shouldCreate = settings.newFollowerNotifications !== false
+        break
+      default:
+        shouldCreate = settings.emailNotifications !== false
+    }
+
+    if (shouldCreate) {
+      validNotifications.push(notif)
+    }
+  }
+
+  if (validNotifications.length === 0) {
+    return []
+  }
+
+  // Insert all valid notifications in one operation
+  try {
+    return await this.insertMany(validNotifications, { ordered: false })
+  } catch (error) {
+    // Some might fail due to duplicates, that's okay
+    console.error('Bulk notification creation error:', error)
+    return []
+  }
 }
 
 // Static method to mark as read

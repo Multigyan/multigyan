@@ -30,7 +30,8 @@
     "verify:setup": "node scripts/verify-optimization-setup.js",
     "fix:references": "node scripts/fix-post-references.js",
     "newsletter:verify": "node scripts/verify-newsletter-setup.js",
-    "newsletter:fix-subscribers": "node scripts/fix-newsletter-subscribers.js"
+    "newsletter:fix-subscribers": "node scripts/fix-newsletter-subscribers.js",
+    "notifications:cleanup": "node scripts/cleanup-notifications.js"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

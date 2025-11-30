@@ -46,8 +46,10 @@ export async function GET(request) {
       Notification.getUnreadCount(session.user.id)
     ])
 
-    // Add debug logging
-    console.log(`[NOTIFICATIONS] User ${session.user.id}: ${unreadCount} unread, ${total} total`)
+    // Add debug logging (development only)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[NOTIFICATIONS] User ${session.user.id}: ${unreadCount} unread, ${total} total`)
+    }
 
     return NextResponse.json({
       notifications,
@@ -58,6 +60,10 @@ export async function GET(request) {
         pages: Math.ceil(total / limit)
       },
       unreadCount
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=120'
+      }
     })
 
   } catch (error) {
@@ -95,15 +101,21 @@ export async function PUT(request) {
     if (markAll) {
       // Mark all notifications as read
       const result = await Notification.markAllAsRead(session.user.id)
-      console.log(`[MARK ALL READ] User ${session.user.id}: ${beforeCount} unread before, ${result.modifiedCount} marked as read`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[MARK ALL READ] User ${session.user.id}: ${beforeCount} unread before, ${result.modifiedCount} marked as read`)
+      }
     } else if (notificationIds && notificationIds.length > 0) {
       await Notification.markAsRead(notificationIds, session.user.id)
-      console.log(`[MARK READ] User ${session.user.id}: Marked ${notificationIds.length} notifications as read`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[MARK READ] User ${session.user.id}: Marked ${notificationIds.length} notifications as read`)
+      }
     }
 
     // Get fresh unread count after update
     const unreadCount = await Notification.getUnreadCount(session.user.id)
-    console.log(`[AFTER UPDATE] User ${session.user.id}: ${unreadCount} unread remaining`)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[AFTER UPDATE] User ${session.user.id}: ${unreadCount} unread remaining`)
+    }
 
     return NextResponse.json({
       success: true,
