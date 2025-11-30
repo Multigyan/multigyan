@@ -443,7 +443,7 @@ export default function StoreCategoriesPage() {
                     <DialogHeader>
                         <DialogTitle>Delete Category</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete "{deletingCategory?.name}"?
+                            Are you sure you want to delete &#34;{deletingCategory?.name}&#34;?
                         </DialogDescription>
                     </DialogHeader>
 
