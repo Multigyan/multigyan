@@ -10,11 +10,11 @@ import { invalidatePostCaches } from '@/lib/cache' // ✅ ADD CACHE INVALIDATION
 export async function GET(request, { params }) {
   try {
     const resolvedParams = await params
-    
+
     await connectDB()
 
     const category = await Category.findById(resolvedParams.id)
-    
+
     if (!category) {
       return NextResponse.json(
         { error: 'Category not found' },
@@ -37,9 +37,9 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const resolvedParams = await params
-    
+
     const session = await getServerSession(authOptions)
-    
+
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
@@ -47,7 +47,7 @@ export async function PUT(request, { params }) {
       )
     }
 
-    const { name, description, color, isActive } = await request.json()
+    const { name, description, color, isActive, type } = await request.json()
 
     // Validation
     if (name !== undefined) {
@@ -80,10 +80,17 @@ export async function PUT(request, { params }) {
       )
     }
 
+    if (type !== undefined && !['blog', 'store', 'both'].includes(type)) {
+      return NextResponse.json(
+        { error: 'Type must be blog, store, or both' },
+        { status: 400 }
+      )
+    }
+
     await connectDB()
 
     const category = await Category.findById(resolvedParams.id)
-    
+
     if (!category) {
       return NextResponse.json(
         { error: 'Category not found' },
@@ -93,11 +100,11 @@ export async function PUT(request, { params }) {
 
     // Check if new name conflicts with existing category
     if (name && name.trim() !== category.name) {
-      const existingCategory = await Category.findOne({ 
+      const existingCategory = await Category.findOne({
         name: { $regex: new RegExp(`^${name.trim()}$`, 'i') },
         _id: { $ne: resolvedParams.id }
       })
-      
+
       if (existingCategory) {
         return NextResponse.json(
           { error: 'Category with this name already exists' },
@@ -111,6 +118,7 @@ export async function PUT(request, { params }) {
     if (description !== undefined) category.description = description.trim()
     if (color !== undefined) category.color = color
     if (isActive !== undefined) category.isActive = isActive
+    if (type !== undefined) category.type = type
 
     await category.save()
 
@@ -152,9 +160,9 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const resolvedParams = await params
-    
+
     const session = await getServerSession(authOptions)
-    
+
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
@@ -165,7 +173,7 @@ export async function DELETE(request, { params }) {
     await connectDB()
 
     const category = await Category.findById(resolvedParams.id)
-    
+
     if (!category) {
       return NextResponse.json(
         { error: 'Category not found' },
@@ -175,12 +183,12 @@ export async function DELETE(request, { params }) {
 
     // ✅ NEW: Check if there are posts with this category
     const postCount = await Post.countDocuments({ category: resolvedParams.id })
-    
+
     // ✅ NEW: Remove category from all posts (set to null)
     if (postCount > 0) {
       // Find or create "Uncategorized" category
-      let uncategorized = await Category.findOne({ 
-        slug: 'uncategorized' 
+      let uncategorized = await Category.findOne({
+        slug: 'uncategorized'
       })
 
       if (!uncategorized) {
@@ -213,7 +221,7 @@ export async function DELETE(request, { params }) {
     invalidatePostCaches()
 
     return NextResponse.json({
-      message: postCount > 0 
+      message: postCount > 0
         ? `Category deleted successfully. ${postCount} post(s) moved to Uncategorized.`
         : 'Category deleted successfully',
       movedPosts: postCount
