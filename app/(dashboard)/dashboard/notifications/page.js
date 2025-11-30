@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import {
   Bell,
   Heart,
@@ -25,79 +24,65 @@ import {
 import { formatDistanceToNow, format } from "date-fns"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import useSWRInfinite from "swr/infinite"
+
+const fetcher = (...args) => fetch(...args).then(res => res.json())
 
 export default function NotificationsPage() {
   const { data: session } = useSession()
-  const [notifications, setNotifications] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
   const [filter, setFilter] = useState('all') // 'all' | 'unread'
   const [typeFilter, setTypeFilter] = useState('all') // 'all' | specific type
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(false)
-
-  // ✅ FIX: Remove fetchNotifications from dependency array to prevent infinite loop
-  useEffect(() => {
-    fetchNotifications()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter, typeFilter])
+  const [actionLoading, setActionLoading] = useState(false)
 
   // Set page title
   useEffect(() => {
     document.title = "Notifications | Multigyan"
   }, [])
 
-  const fetchNotifications = useCallback(async (loadMore = false) => {
-    if (loadMore) {
-      setActionLoading(true)
-    } else {
-      setLoading(true)
+  const getKey = (pageIndex, previousPageData) => {
+    // Reached the end
+    if (previousPageData && !previousPageData.notifications?.length) return null
+
+    let url = `/api/notifications?limit=20&page=${pageIndex + 1}`
+    if (filter === 'unread') url += '&unreadOnly=true'
+
+    return url
+  }
+
+  const { data, error, size, setSize, mutate, isLoading, isValidating } = useSWRInfinite(
+    getKey,
+    fetcher,
+    {
+      revalidateFirstPage: false,
+      revalidateOnFocus: true
     }
+  )
 
-    try {
-      const currentPage = loadMore ? page + 1 : 1
-      let url = `/api/notifications?limit=20&page=${currentPage}`
+  const notifications = data ? data.flatMap(page => page.notifications) : []
+  const unreadCount = data?.[0]?.unreadCount || 0
+  const isLoadingMore = isLoading || (size > 0 && data && typeof data[size - 1] === "undefined")
+  const isEmpty = data?.[0]?.notifications?.length === 0
+  const isReachingEnd = isEmpty || (data && data[data.length - 1]?.notifications?.length < 20)
+  const isRefreshing = isValidating && data && data.length === size
 
-      if (filter === 'unread') {
-        url += '&unreadOnly=true'
-      }
-
-      const response = await fetch(url)
-      if (response.ok) {
-        const data = await response.json()
-
-        if (loadMore) {
-          setNotifications(prev => [...prev, ...(data.notifications || [])])
-          setPage(currentPage)
-        } else {
-          setNotifications(data.notifications || [])
-          setPage(1)
-        }
-
-        setUnreadCount(data.unreadCount || 0)
-        setHasMore(data.pagination?.page < data.pagination?.pages)
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error)
-      toast.error('Failed to load notifications')
-    } finally {
-      setLoading(false)
-      setActionLoading(false)
-    }
-    // ✅ FIX: Include filter in dependencies, but not in useEffect deps to avoid circular dependency
-  }, [filter, page])
-
-  const refreshNotifications = async () => {
-    setRefreshing(true)
-    await fetchNotifications()
-    setRefreshing(false)
+  const refreshNotifications = () => {
+    mutate()
     toast.success('Notifications refreshed')
   }
 
   const markAsRead = async (notificationIds) => {
     try {
+      // Optimistic update
+      const newPages = data.map(page => ({
+        ...page,
+        unreadCount: Math.max(0, page.unreadCount - notificationIds.length),
+        notifications: page.notifications.map(n =>
+          notificationIds.includes(n._id) ? { ...n, isRead: true } : n
+        )
+      }))
+
+      mutate(newPages, false)
+
       const response = await fetch('/api/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -105,25 +90,26 @@ export default function NotificationsPage() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        setUnreadCount(data.unreadCount || 0)
-
-        setNotifications(prev =>
-          prev.map(notif =>
-            notificationIds.includes(notif._id)
-              ? { ...notif, isRead: true }
-              : notif
-          )
-        )
+        mutate() // Revalidate
       }
     } catch (error) {
       console.error('Error marking notifications as read:', error)
+      mutate() // Revert
     }
   }
 
   const markAllAsRead = async () => {
     setActionLoading(true)
     try {
+      // Optimistic update
+      const newPages = data.map(page => ({
+        ...page,
+        unreadCount: 0,
+        notifications: page.notifications.map(n => ({ ...n, isRead: true }))
+      }))
+
+      mutate(newPages, false)
+
       const response = await fetch('/api/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -131,14 +117,15 @@ export default function NotificationsPage() {
       })
 
       if (response.ok) {
-        setUnreadCount(0)
-        setNotifications(prev =>
-          prev.map(notif => ({ ...notif, isRead: true }))
-        )
         toast.success('All notifications marked as read')
+        mutate()
+      } else {
+        toast.error('Failed to mark notifications as read')
+        mutate()
       }
     } catch (error) {
       toast.error('Failed to mark notifications as read')
+      mutate()
     } finally {
       setActionLoading(false)
     }
@@ -146,25 +133,27 @@ export default function NotificationsPage() {
 
   const deleteNotification = async (notificationId) => {
     try {
+      // Optimistic update
+      const newPages = data.map(page => ({
+        ...page,
+        notifications: page.notifications.filter(n => n._id !== notificationId)
+      }))
+
+      mutate(newPages, false)
+
       const response = await fetch(`/api/notifications?id=${notificationId}`, {
         method: 'DELETE'
       })
 
       if (response.ok) {
-        setNotifications(prev =>
-          prev.filter(notif => notif._id !== notificationId)
-        )
-
-        // Update unread count if the deleted notification was unread
-        const deletedNotif = notifications.find(n => n._id === notificationId)
-        if (deletedNotif && !deletedNotif.isRead) {
-          setUnreadCount(prev => Math.max(0, prev - 1))
-        }
-
         toast.success('Notification deleted')
+        mutate()
+      } else {
+        mutate()
       }
     } catch (error) {
       toast.error('Failed to delete notification')
+      mutate()
     }
   }
 
@@ -193,20 +182,13 @@ export default function NotificationsPage() {
 
   const getTypeLabel = (type) => {
     switch (type) {
-      case 'like_post':
-        return 'Post Like'
-      case 'like_comment':
-        return 'Comment Like'
-      case 'comment_post':
-        return 'New Comment'
-      case 'reply_comment':
-        return 'Comment Reply'
-      case 'follow':
-        return 'New Follower'
-      case 'post_published':
-        return 'Post Published'
-      default:
-        return 'Notification'
+      case 'like_post': return 'Post Like'
+      case 'like_comment': return 'Comment Like'
+      case 'comment_post': return 'New Comment'
+      case 'reply_comment': return 'Comment Reply'
+      case 'follow': return 'New Follower'
+      case 'post_published': return 'Post Published'
+      default: return 'Notification'
     }
   }
 
@@ -230,9 +212,9 @@ export default function NotificationsPage() {
               variant="outline"
               size="sm"
               onClick={refreshNotifications}
-              disabled={refreshing}
+              disabled={isRefreshing}
             >
-              <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
+              <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
               <span className="ml-2 hidden sm:inline">Refresh</span>
             </Button>
           </div>
@@ -291,7 +273,7 @@ export default function NotificationsPage() {
       </Card>
 
       {/* Notifications List */}
-      {loading ? (
+      {isLoading && !data ? (
         <Card>
           <CardContent className="p-8 sm:p-12">
             <div className="text-center">
@@ -424,15 +406,15 @@ export default function NotificationsPage() {
           </div>
 
           {/* Load More Button */}
-          {hasMore && (
+          {!isReachingEnd && (
             <div className="mt-6 text-center">
               <Button
                 variant="outline"
-                onClick={() => fetchNotifications(true)}
-                disabled={actionLoading}
+                onClick={() => setSize(size + 1)}
+                disabled={isLoadingMore}
                 className="w-full sm:w-auto"
               >
-                {actionLoading ? (
+                {isLoadingMore ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Loading...

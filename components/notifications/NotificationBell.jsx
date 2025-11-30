@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -17,46 +16,46 @@ import { Bell, Heart, MessageCircle, UserPlus, Check, X, Loader2, User, FileText
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import useSWR from "swr"
+
+const fetcher = (...args) => fetch(...args).then(res => res.json())
 
 export default function NotificationBell() {
   const { data: session } = useSession()
-  const [notifications, setNotifications] = useState([])
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const response = await fetch('/api/notifications?limit=10')
-      if (response.ok) {
-        const data = await response.json()
-        setNotifications(data.notifications || [])
-        setUnreadCount(data.unreadCount || 0)
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error)
+  // Use SWR for fetching notifications
+  // Only fetch if user is authenticated
+  // Refresh every 60 seconds, but pause when window is hidden (default SWR behavior)
+  const { data, mutate } = useSWR(
+    session?.user ? '/api/notifications?limit=10' : null,
+    fetcher,
+    {
+      refreshInterval: 300000, // 5 minutes
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+      keepPreviousData: true
     }
-  }, [])
+  )
 
-  useEffect(() => {
-    if (session?.user) {
-      fetchNotifications()
-
-      // Poll for new notifications every 30 seconds
-      const interval = setInterval(fetchNotifications, 30000)
-      return () => clearInterval(interval)
-    }
-  }, [session?.user, fetchNotifications])
-
-  // Refetch when dropdown opens
-  useEffect(() => {
-    if (open && session?.user) {
-      fetchNotifications()
-    }
-  }, [open, session?.user, fetchNotifications])
+  const notifications = data?.notifications || []
+  const unreadCount = data?.unreadCount || 0
 
   const markAsRead = async (notificationIds) => {
     try {
+      // Optimistic update
+      mutate(
+        {
+          ...data,
+          unreadCount: Math.max(0, unreadCount - notificationIds.length),
+          notifications: notifications.map(n =>
+            notificationIds.includes(n._id) ? { ...n, isRead: true } : n
+          )
+        },
+        false // Don't revalidate immediately
+      )
+
       const response = await fetch('/api/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -64,26 +63,29 @@ export default function NotificationBell() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        setUnreadCount(data.unreadCount || 0)
-
-        // Update notifications in state
-        setNotifications(prev =>
-          prev.map(notif =>
-            notificationIds.includes(notif._id)
-              ? { ...notif, isRead: true }
-              : notif
-          )
-        )
+        // Revalidate to get the true server state
+        mutate()
       }
     } catch (error) {
       console.error('Error marking notifications as read:', error)
+      // Revert on error
+      mutate()
     }
   }
 
   const markAllAsRead = async () => {
-    setLoading(true)
+    setActionLoading(true)
     try {
+      // Optimistic update
+      mutate(
+        {
+          ...data,
+          unreadCount: 0,
+          notifications: notifications.map(n => ({ ...n, isRead: true }))
+        },
+        false
+      )
+
       const response = await fetch('/api/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -91,41 +93,49 @@ export default function NotificationBell() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        // Immediately update UI
-        setUnreadCount(0)
-        setNotifications(prev =>
-          prev.map(notif => ({ ...notif, isRead: true }))
-        )
         toast.success('All notifications marked as read')
-
-        // Refetch to ensure sync with server
-        await fetchNotifications()
+        mutate()
       } else {
         toast.error('Failed to mark notifications as read')
+        mutate() // Revert
       }
     } catch (error) {
       console.error('Error marking all as read:', error)
       toast.error('Failed to mark notifications as read')
+      mutate()
     } finally {
-      setLoading(false)
+      setActionLoading(false)
     }
   }
 
   const deleteNotification = async (notificationId) => {
     try {
+      // Optimistic update
+      const deletedNotif = notifications.find(n => n._id === notificationId)
+      const wasUnread = deletedNotif && !deletedNotif.isRead
+
+      mutate(
+        {
+          ...data,
+          unreadCount: wasUnread ? Math.max(0, unreadCount - 1) : unreadCount,
+          notifications: notifications.filter(n => n._id !== notificationId)
+        },
+        false
+      )
+
       const response = await fetch(`/api/notifications?id=${notificationId}`, {
         method: 'DELETE'
       })
 
       if (response.ok) {
-        setNotifications(prev =>
-          prev.filter(notif => notif._id !== notificationId)
-        )
         toast.success('Notification deleted')
+        mutate()
+      } else {
+        mutate() // Revert
       }
     } catch (error) {
       toast.error('Failed to delete notification')
+      mutate()
     }
   }
 
@@ -181,10 +191,10 @@ export default function NotificationBell() {
               variant="ghost"
               size="sm"
               onClick={markAllAsRead}
-              disabled={loading}
+              disabled={actionLoading}
               className="h-8 text-xs"
             >
-              {loading ? (
+              {actionLoading ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
                 <>
