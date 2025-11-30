@@ -17,7 +17,7 @@ import {
     DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog"
-import { Folder, Plus, Trash2, Edit, Loader2, Save, ShoppingBag } from "lucide-react"
+import { Folder, Plus, Trash2, Edit, Loader2, Save, ShoppingBag, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 
 export default function StoreCategoriesPage() {
@@ -59,7 +59,9 @@ export default function StoreCategoriesPage() {
     async function fetchCategories() {
         try {
             setLoading(true)
-            const response = await fetch('/api/store/categories')
+            const response = await fetch('/api/store/categories?t=' + Date.now(), {
+                cache: 'no-store'
+            })
             const data = await response.json()
 
             if (response.ok) {
@@ -223,6 +225,10 @@ export default function StoreCategoriesPage() {
                 <Button onClick={() => setShowCreateDialog(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Category
+                </Button>
+                <Button variant="outline" onClick={fetchCategories} disabled={loading}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
                 </Button>
             </div>
 
