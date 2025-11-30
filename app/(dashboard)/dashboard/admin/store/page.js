@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ShoppingBag, Package, Tag, TrendingUp, Plus, BarChart3, Upload } from "lucide-react"
+import { ShoppingBag, Package, Tag, TrendingUp, Plus, BarChart3, Upload, Folder } from "lucide-react"
 import dbConnect from "@/lib/mongodb"
 import Product from "@/models/Product"
 import Brand from "@/models/Brand"
@@ -144,6 +144,20 @@ export default async function StoreAdminPage() {
                                 <CardTitle className="text-base mb-2">Manage Brands</CardTitle>
                                 <CardDescription className="text-sm">
                                     Add and manage affiliate brands
+                                </CardDescription>
+                            </CardHeader>
+                        </Link>
+                    </Card>
+
+                    <Card className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-orange-500/50 group">
+                        <Link href="/dashboard/admin/store/categories">
+                            <CardHeader className="pb-4">
+                                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <Folder className="h-6 w-6 text-orange-600" />
+                                </div>
+                                <CardTitle className="text-base mb-2">Categories</CardTitle>
+                                <CardDescription className="text-sm">
+                                    Manage product categories
                                 </CardDescription>
                             </CardHeader>
                         </Link>
