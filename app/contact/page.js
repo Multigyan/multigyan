@@ -18,13 +18,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-// ✅ SEO: Contact page metadata
-export const metadata = {
-  title: 'Contact Us',
-  description: 'Get in touch with Multigyan support team. Send us your questions, feedback, or inquiries and we\'ll respond within 24-48 hours.',
-  keywords: ['contact', 'support', 'help', 'feedback', 'customer service'],
-}
-
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
