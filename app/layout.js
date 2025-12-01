@@ -34,7 +34,8 @@ export const metadata = {
     default: 'Multigyan - Multi-Author Blogging Platform',
     template: '%s | Multigyan'
   },
-  description: 'A secure, high-performance, and SEO-optimized multi-author blogging platform built with Next.js, MongoDB, and Cloudinary.',
+  // ✅ NOTEBOOKLM FIX: Removed generic description - let pages define their own
+  // This prevents AI crawlers from prioritizing site description over article content
   keywords: ['blog', 'nextjs', 'mongodb', 'multi-author', 'cms', 'multigyan'],
   authors: [{ name: 'Multigyan Team' }],
   creator: 'Multigyan',
