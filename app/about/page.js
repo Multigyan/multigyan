@@ -19,8 +19,8 @@ import {
 
 export const metadata = {
   title: 'About Us',
-  description: 'Learn about Multigyan - A secure, high-performance multi-author blogging platform built for modern content creators.',
-  keywords: ['about multigyan', 'blogging platform', 'multi-author blog', 'content creation'],
+  description: 'Learn about Multigyan - A secure, high-performance multi-author blogging platform built for modern content creators. Discover our mission, values, and community.',
+  keywords: ['about multigyan', 'blogging platform', 'multi-author blog', 'content creation', 'our mission', 'our story'],
 }
 
 // Static generation for performance

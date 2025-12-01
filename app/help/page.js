@@ -21,6 +21,13 @@ import {
   AlertCircle
 } from 'lucide-react'
 
+// ✅ SEO: Help page metadata
+export const metadata = {
+  title: 'Help & Support',
+  description: 'Find answers to common questions about Multigyan. Browse FAQs on account management, writing guides, security, comments, and technical support.',
+  keywords: ['help', 'support', 'faq', 'guide', 'documentation', 'troubleshooting'],
+}
+
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedFAQ, setExpandedFAQ] = useState(null)
