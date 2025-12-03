@@ -17,6 +17,8 @@ import {
     BookOpen
 } from "lucide-react"
 import { formatDate, getPostUrl } from "@/lib/helpers"
+import { BatchStatsProvider } from "@/components/blog/BatchStatsProvider"
+import BlogPostCard from "@/components/blog/BlogPostCard"
 
 export default function CategoryClient({
     category,
@@ -205,77 +207,10 @@ export default function CategoryClient({
                                 </CardContent>
                             </Card>
                         ) : !loading && (
-                            <>
+                            <BatchStatsProvider postIds={posts.map(p => p._id)}>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
                                     {posts.map((post) => (
-                                        <Card key={post._id} className="blog-card overflow-hidden hover:shadow-lg transition-all">
-                                            <div className="relative h-40 sm:h-48">
-                                                {post.featuredImageUrl ? (
-                                                    <Image
-                                                        src={post.featuredImageUrl}
-                                                        alt={post.featuredImageAlt || post.title}
-                                                        fill
-                                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                                        className="object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-                                                        <BookOpen className="h-8 w-8 sm:h-12 sm:w-12 text-primary/60" />
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <CardContent className="p-4 sm:p-6">
-                                                <h3 className="text-base sm:text-lg lg:text-xl font-semibold mb-2 sm:mb-3 line-clamp-2">
-                                                    <Link href={getPostUrl(post)} className="hover:text-primary">
-                                                        {post.title}
-                                                    </Link>
-                                                </h3>
-
-                                                <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
-                                                    {post.excerpt}
-                                                </p>
-
-                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                                                    <div className="flex items-center gap-2 min-h-[32px]">
-                                                        {post.author?.profilePictureUrl ? (
-                                                            <Image
-                                                                src={post.author.profilePictureUrl}
-                                                                alt={post.author.name}
-                                                                width={20}
-                                                                height={20}
-                                                                className="rounded-full sm:w-6 sm:h-6"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-primary/10 rounded-full flex items-center justify-center">
-                                                                <User className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
-                                                            </div>
-                                                        )}
-                                                        <span className="text-xs sm:text-sm text-muted-foreground truncate">
-                                                            {post.author?.name}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground flex-wrap">
-                                                        <span className="flex items-center gap-1 whitespace-nowrap">
-                                                            <Calendar className="h-3 w-3" />
-                                                            <span className="hidden sm:inline">{formatDate(post.publishedAt)}</span>
-                                                            <span className="sm:hidden">{formatDate(post.publishedAt).split(',')[0]}</span>
-                                                        </span>
-                                                        <span className="flex items-center gap-1 whitespace-nowrap">
-                                                            <Clock className="h-3 w-3" />
-                                                            {post.readingTime} min
-                                                        </span>
-                                                        {post.views > 0 && (
-                                                            <span className="flex items-center gap-1 whitespace-nowrap">
-                                                                <Eye className="h-3 w-3" />
-                                                                {post.views}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                        <BlogPostCard key={post._id} post={post} getPostUrl={getPostUrl} />
                                     ))}
                                 </div>
 
@@ -305,7 +240,7 @@ export default function CategoryClient({
                                         </Button>
                                     </div>
                                 )}
-                            </>
+                            </BatchStatsProvider>
                         )}
                     </div>
 
@@ -369,6 +304,6 @@ export default function CategoryClient({
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

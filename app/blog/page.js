@@ -39,6 +39,8 @@ import { BLOG_CONFIG } from "@/lib/constants"
 import Pagination from "@/components/blog/Pagination"
 import EmptyState from "@/components/blog/EmptyState"
 import PopularPosts from "@/components/blog/PopularPosts"
+import BlogPostCard from "@/components/blog/BlogPostCard"
+import { BatchStatsProvider } from "@/components/blog/BatchStatsProvider"
 
 // ✅ SEO: Comprehensive metadata for blog listing page
 export const metadata = {
@@ -309,7 +311,7 @@ export default async function BlogPage({ searchParams }) {
                   action={search && <Button asChild><Link href="/blog">Clear Search</Link></Button>}
                 />
               ) : (
-                <>
+                <BatchStatsProvider postIds={posts.map(p => p._id)}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
                     {posts.map((post, index) => {
                       // Show 2 stacked ads after Post 3 (index 2)
@@ -317,102 +319,7 @@ export default async function BlogPage({ searchParams }) {
 
                       return (
                         <React.Fragment key={post._id}>
-                          <div>
-                            {/* Blog Post Card */}
-                            <Link href={getPostUrl(post)} className="block">
-                              <Card className="blog-card overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group h-full">
-                                <div className="relative h-48 overflow-hidden">
-                                  {post.featuredImageUrl ? (
-                                    <Image
-                                      src={post.featuredImageUrl}
-                                      alt={post.featuredImageAlt || post.title}
-                                      fill
-                                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                      className="object-cover transition-transform duration-300 group-hover:scale-110"
-                                    />
-                                  ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
-                                      <BookOpen className="h-12 w-12 text-primary/60" />
-                                    </div>
-                                  )}
-                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
-                                </div>
-
-                                <CardContent className="p-6 pt-0 mt-6">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <Badge style={{ backgroundColor: post.category?.color }}>
-                                      {post.category?.name}
-                                    </Badge>
-                                  </div>
-
-                                  <h3 className="text-xl font-semibold mb-3 line-clamp-2 group-hover:text-primary transition-colors">
-                                    {post.title}
-                                  </h3>
-
-                                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                                    {post.excerpt}
-                                  </p>
-
-                                  <div className="space-y-3">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                                        {post.author?.profilePictureUrl ? (
-                                          <Image
-                                            src={post.author.profilePictureUrl}
-                                            alt={post.author.name}
-                                            width={24}
-                                            height={24}
-                                            className="rounded-full"
-                                          />
-                                        ) : (
-                                          <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
-                                            <User className="h-3 w-3 text-primary" />
-                                          </div>
-                                        )}
-                                        <span className="text-sm text-muted-foreground truncate">
-                                          {post.author?.name}
-                                        </span>
-                                      </div>
-
-                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <Calendar className="h-3 w-3" />
-                                        <span className="hidden sm:inline">{formatDate(post.publishedAt)}</span>
-                                        <span className="sm:hidden">{formatDate(post.publishedAt).split(',')[0]}</span>
-                                      </div>
-                                    </div>
-
-                                    <div className="border-t" />
-
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-3 text-xs">
-                                        <span className="flex items-center gap-1 text-muted-foreground">
-                                          <Clock className="h-3 w-3" />
-                                          {post.readingTime} min
-                                        </span>
-                                        {post.views > 0 && (
-                                          <span className="flex items-center gap-1 text-muted-foreground">
-                                            <Eye className="h-3 w-3" />
-                                            {post.views}
-                                          </span>
-                                        )}
-                                      </div>
-
-                                      <div className="flex items-center gap-2">
-                                        <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-600 group-hover:bg-red-100">
-                                          <Heart className="h-3 w-3 fill-current" />
-                                          <span className="text-xs font-semibold">{post.likeCount ?? post.likes?.length ?? 0}</span>
-                                        </span>
-                                        <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-100">
-                                          <MessageCircle className="h-3 w-3" />
-                                          <span className="text-xs font-semibold">{post.commentCount ?? post.comments?.filter(c => c.isApproved).length ?? 0}</span>
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            </Link>
-                          </div>
+                          <BlogPostCard post={post} getPostUrl={getPostUrl} />
 
                           {/* 2 Stacked Ads - After 1st post only */}
                           {showAdsAfter && (
@@ -476,7 +383,7 @@ export default async function BlogPage({ searchParams }) {
                       searchParams={{ search, sort }}
                     />
                   )}
-                </>
+                </BatchStatsProvider>
               )}
             </div>
 
