@@ -40,7 +40,7 @@ import Pagination from "@/components/blog/Pagination"
 import EmptyState from "@/components/blog/EmptyState"
 import PopularPosts from "@/components/blog/PopularPosts"
 import BlogPostCard from "@/components/blog/BlogPostCard"
-import { BatchStatsProvider } from "@/components/blog/BatchStatsProvider"
+import BlogPostGrid from "@/components/blog/BlogPostGrid"
 
 // ✅ SEO: Comprehensive metadata for blog listing page
 export const metadata = {
@@ -311,68 +311,8 @@ export default async function BlogPage({ searchParams }) {
                   action={search && <Button asChild><Link href="/blog">Clear Search</Link></Button>}
                 />
               ) : (
-                <BatchStatsProvider postIds={posts.map(p => p._id)}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-                    {posts.map((post, index) => {
-                      // Show 2 stacked ads after Post 3 (index 2)
-                      const showAdsAfter = index === 2
-
-                      return (
-                        <React.Fragment key={post._id}>
-                          <BlogPostCard post={post} getPostUrl={getPostUrl} />
-
-                          {/* 2 Stacked Ads - After 1st post only */}
-                          {showAdsAfter && (
-                            <div key="ads-stack" className="space-y-6">
-                              {/* Ad 1 */}
-                              <Card className="overflow-hidden">
-                                <CardContent className="p-0">
-                                  <div className="hidden sm:block">
-                                    <AdSense
-                                      adSlot="9582096729"
-                                      adFormat="fluid"
-                                      adLayout="in-article"
-                                      adStyle={{ display: 'block', minHeight: '210px' }}
-                                    />
-                                  </div>
-                                  <div className="block sm:hidden">
-                                    <AdSense
-                                      adSlot="3893945332"
-                                      adFormat="fluid"
-                                      adLayout="in-article"
-                                      adStyle={{ display: 'block', minHeight: '210px' }}
-                                    />
-                                  </div>
-                                </CardContent>
-                              </Card>
-
-                              {/* Ad 2 */}
-                              <Card className="overflow-hidden">
-                                <CardContent className="p-0">
-                                  <div className="hidden sm:block">
-                                    <AdSense
-                                      adSlot="9582096729"
-                                      adFormat="fluid"
-                                      adLayout="in-article"
-                                      adStyle={{ display: 'block', minHeight: '210px' }}
-                                    />
-                                  </div>
-                                  <div className="block sm:hidden">
-                                    <AdSense
-                                      adSlot="3893945332"
-                                      adFormat="fluid"
-                                      adLayout="in-article"
-                                      adStyle={{ display: 'block', minHeight: '210px' }}
-                                    />
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            </div>
-                          )}
-                        </React.Fragment>
-                      )
-                    })}
-                  </div>
+                <>
+                  <BlogPostGrid posts={posts} getPostUrl={getPostUrl} />
 
                   {/* Enhanced Pagination */}
                   {pagination && pagination.pages > 1 && (
@@ -383,7 +323,7 @@ export default async function BlogPage({ searchParams }) {
                       searchParams={{ search, sort }}
                     />
                   )}
-                </BatchStatsProvider>
+                </>
               )}
             </div>
 

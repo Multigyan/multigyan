@@ -8,16 +8,25 @@ const BatchStatsContext = createContext(null)
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 // Provider component that fetches stats for all posts on the page
-export function BatchStatsProvider({ postIds, children }) {
-    const ids = postIds.join(',')
+export function BatchStatsProvider({ postIds = [], children }) {
+    // Safety check: ensure postIds is an array and has items
+    const validPostIds = Array.isArray(postIds) ? postIds.filter(Boolean) : []
+    const ids = validPostIds.join(',')
 
     const { data } = useSWR(
-        postIds.length > 0 ? `/api/posts/batch-stats?ids=${ids}` : null,
+        // Only fetch if we have valid post IDs
+        validPostIds.length > 0 ? `/api/posts/batch-stats?ids=${ids}` : null,
         fetcher,
         {
             refreshInterval: 60000, // Refresh every minute
             revalidateOnFocus: true,
             dedupingInterval: 30000, // Dedupe requests within 30s
+            // Don't throw errors, just log them
+            onError: (error) => {
+                console.error('BatchStatsProvider error:', error)
+            },
+            // Fallback to empty object on error
+            fallbackData: { stats: {} }
         }
     )
 

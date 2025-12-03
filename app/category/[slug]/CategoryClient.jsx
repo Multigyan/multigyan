@@ -17,8 +17,7 @@ import {
     BookOpen
 } from "lucide-react"
 import { formatDate, getPostUrl } from "@/lib/helpers"
-import { BatchStatsProvider } from "@/components/blog/BatchStatsProvider"
-import BlogPostCard from "@/components/blog/BlogPostCard"
+import CategoryPostGrid from "@/components/blog/CategoryPostGrid"
 
 export default function CategoryClient({
     category,
@@ -207,12 +206,8 @@ export default function CategoryClient({
                                 </CardContent>
                             </Card>
                         ) : !loading && (
-                            <BatchStatsProvider postIds={posts.map(p => p._id)}>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
-                                    {posts.map((post) => (
-                                        <BlogPostCard key={post._id} post={post} getPostUrl={getPostUrl} />
-                                    ))}
-                                </div>
+                            <>
+                                <CategoryPostGrid posts={posts} getPostUrl={getPostUrl} />
 
                                 {/* Pagination - Mobile optimized */}
                                 {pagination && pagination.pages > 1 && (
@@ -240,7 +235,7 @@ export default function CategoryClient({
                                         </Button>
                                     </div>
                                 )}
-                            </BatchStatsProvider>
+                            </>
                         )}
                     </div>
 
