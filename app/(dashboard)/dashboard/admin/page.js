@@ -112,22 +112,22 @@ export default function AdminDashboardPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Enhanced Header */}
-      <div className="flex items-center justify-between mb-8 relative">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-yellow/5 via-transparent to-yellow/5 rounded-lg -z-10"></div>
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2">
-            <Crown className="h-8 w-8 text-yellow-500" />
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 flex items-center gap-2">
+            <Crown className="h-6 w-6 md:h-8 md:w-8 text-yellow-500" />
             <span className="bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-400 bg-clip-text text-transparent">Admin Dashboard</span>
           </h1>
-          <p className="text-muted-foreground/80">
+          <p className="text-sm md:text-base text-muted-foreground/80">
             Overview and management of your Multigyan platform
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild className="bg-gradient-to-r from-primary to-primary/90 hover:shadow-xl transition-all">
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <Button asChild className="bg-gradient-to-r from-primary to-primary/90 hover:shadow-xl transition-all w-full sm:w-auto">
             <Link href="/dashboard/admin/users">Manage Users</Link>
           </Button>
-          <Button variant="outline" asChild className="hover:border-primary/50 transition-colors">
+          <Button variant="outline" asChild className="hover:border-primary/50 transition-colors w-full sm:w-auto">
             <Link href="/dashboard/admin/review">Review Posts</Link>
           </Button>
         </div>
