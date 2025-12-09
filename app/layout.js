@@ -36,9 +36,15 @@ export const metadata = {
   },
   // ✅ NOTEBOOKLM FIX: Removed generic description - let pages define their own
   // This prevents AI crawlers from prioritizing site description over article content
-  keywords: ['blog', 'nextjs', 'mongodb', 'multi-author', 'cms', 'multigyan'],
+  keywords: ['blog', 'nextjs', 'mongodb', 'multi-author', 'cms', 'multigyan', 'articles', 'tutorials', 'knowledge sharing'],
   authors: [{ name: 'Multigyan Team' }],
   creator: 'Multigyan',
+  publisher: 'Multigyan',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   verification: {
     google: 'pub-1982960683340318',
     yandex: '3001730bb2c04a53',
@@ -87,11 +93,21 @@ export const metadata = {
     title: 'Multigyan - Multi-Author Blogging Platform',
     description: 'A secure, high-performance, and SEO-optimized multi-author blogging platform.',
     creator: '@multigyan',
+    site: '@multigyan',
+    images: ['/Multigyan_Logo_bg.png'],
   },
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+    bingBot: {
       index: true,
       follow: true,
       'max-video-preview': -1,
@@ -100,6 +116,7 @@ export const metadata = {
     },
   },
   alternates: {
+    canonical: 'https://multigyan.in',
     types: {
       'application/rss+xml': [
         { url: '/rss.xml', title: 'Multigyan RSS Feed' },
@@ -111,18 +128,34 @@ export const metadata = {
     },
   },
   manifest: '/manifest.json',
+  category: 'technology',
 }
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider"
 import { AutoThemeHandler } from "@/components/theme/AutoThemeHandler"
+import { generateWebSiteSchema, generateOrganizationSchema } from "@/lib/seo-bing"
 
 export default function RootLayout({ children }) {
+  // Generate global structured data
+  const websiteSchema = generateWebSiteSchema()
+  const organizationSchema = generateOrganizationSchema()
+
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body
         className="min-h-screen bg-background font-sans antialiased"
         suppressHydrationWarning={true}
       >
+        {/* Global Structured Data for Bing */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+
         {/* Skip to main content link for accessibility */}
         <a
           href="#main-content"

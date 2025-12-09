@@ -7,9 +7,10 @@ import User from "@/models/User" // ✅ FIX: Import User model for populate()
 import { generateSEOMetadata } from "@/lib/seo"
 // ✅ Import bilingual SEO utilities
 import {
-  generateArticleSchema,
   generateBreadcrumbSchema
 } from "@/lib/seo-enhanced"
+// ✅ Import Bing-specific enhanced Article schema
+import { generateEnhancedArticleSchema } from "@/lib/seo-bing"
 import EnhancedSchema from "@/components/seo/EnhancedSchema"
 import ViewTracker from "@/components/blog/ViewTracker"
 
@@ -207,12 +208,12 @@ export default async function BlogPostPage({ params }) {
       ? await Post.findById(post.translationOf).select('slug lang').lean()
       : await Post.findOne({ translationOf: post._id }).select('slug lang').lean()
 
-    // Generate structured data - Using Enhanced Schema Only
+    // Generate structured data - Using Enhanced Bing Schema
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const postUrl = `${siteUrl}/blog/${post.slug}`
 
-    // ✅ Generate Article schema with full articleBody (no need for mainEntity workaround)
-    const enhancedArticleSchema = generateArticleSchema(post)
+    // ✅ Generate Enhanced Article schema optimized for Bing
+    const enhancedArticleSchema = generateEnhancedArticleSchema(post)
 
     const breadcrumbSchema = generateBreadcrumbSchema([
       { name: 'Home', url: siteUrl },
