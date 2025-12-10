@@ -165,7 +165,11 @@ export default function EditPostPage({ params }) {
     }
 
     loadData()
-  }, [postId, router, session])
+    // ✅ FIX ISSUE 3: Removed 'session' from dependencies to prevent form data reload
+    // when session updates (e.g., after image upload). This was causing unsaved changes
+    // to be lost because the form would reload old data from the server.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId, router])
 
   function handleInputChange(e) {
     const { name, value, type, checked } = e.target
