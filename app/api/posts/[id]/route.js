@@ -485,13 +485,16 @@ export async function PUT(request, { params }) {
       if (isAdmin) {
         post.status = status
 
-        if (status === 'published' && oldStatus === 'pending_review') {
+        // ✅ FIX ISSUE 2: Set publishedAt whenever status changes to 'published'
+        // This ensures draft-to-published posts get the correct publish timestamp
+        if (status === 'published') {
+          post.publishedAt = new Date()
           post.reviewedBy = session.user.id
           post.reviewedAt = new Date()
           post.rejectionReason = undefined
 
-          // Notify author that post was published
-          if (!isAuthor) {
+          // Notify author that post was published (only if coming from pending_review)
+          if (oldStatus === 'pending_review' && !isAuthor) {
             await Notification.createNotification({
               recipient: post.author._id,
               sender: session.user.id,
@@ -598,17 +601,21 @@ export async function PUT(request, { params }) {
       })
     }
 
+    // ✅ FIX ISSUE 1: Explicitly mark updatedAt as modified to ensure it updates
+    // This fixes the issue where admin edits weren't showing updated timestamp
+    post.markModified('updatedAt')
+
     // ✅ SAVE: Now save all changes with proper Mongoose middleware
     await post.save()
 
     // ✅ Reload post from database to get updated values with populated fields
+    // Use lean() to bypass Mongoose cache and get fresh data
     const updatedPost = await Post.findById(post._id)
-
-    // Populate for response
-    await updatedPost.populate('author', 'name email profilePictureUrl')
-    await updatedPost.populate('category', 'name slug color')
-    await updatedPost.populate('reviewedBy', 'name email')
-    await updatedPost.populate('lastEditedBy', 'name email')
+      .populate('author', 'name email profilePictureUrl')
+      .populate('category', 'name slug color')
+      .populate('reviewedBy', 'name email')
+      .populate('lastEditedBy', 'name email')
+      .lean()
 
     // ✅ Invalidate caches after updating post
     invalidatePostCaches()

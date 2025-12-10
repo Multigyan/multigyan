@@ -854,14 +854,17 @@ PostSchema.pre('save', async function (next) {
     this.excerpt = plainText.slice(0, 297) + (plainText.length > 297 ? '...' : '')
   }
 
-  // Set published date when status changes to published
-  if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
-    this.publishedAt = new Date()
-  }
-
-  // Clear published date if status changes from published
-  if (this.isModified('status') && this.status !== 'published' && this.publishedAt) {
-    this.publishedAt = null
+  // ✅ FIX ISSUE 2: Set published date whenever status changes to published
+  // This ensures draft-to-published posts get the current timestamp, not the draft creation time
+  if (this.isModified('status')) {
+    if (this.status === 'published') {
+      // Always update publishedAt when publishing (even if re-publishing)
+      // This fixes the issue where draft posts would show old timestamps
+      this.publishedAt = new Date()
+    } else if (this.status !== 'published' && this.publishedAt) {
+      // Clear published date if status changes from published to something else
+      this.publishedAt = null
+    }
   }
 
   next()
@@ -944,7 +947,7 @@ PostSchema.methods.approve = function (reviewerId) {
   this.status = 'published'
   this.reviewedBy = reviewerId
   this.reviewedAt = new Date()
-  this.publishedAt = new Date()
+  // ✅ publishedAt is now set automatically by pre-save middleware
   this.rejectionReason = undefined
   return this.save()
 }
