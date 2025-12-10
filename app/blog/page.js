@@ -43,7 +43,7 @@ import PopularPosts from "@/components/blog/PopularPosts"
 // ✅ SEO: Comprehensive metadata for blog listing page
 export const metadata = {
   title: 'Blog - Latest Articles & Insights',
-  description: 'Explore our latest articles on personal finance, health, technology, current affairs, and more. Join thousands of readers discovering expert insights and practical guides on Multigyan.',
+  description: 'Explore latest articles on personal finance, health, technology, and current affairs. Join thousands discovering expert insights and practical guides.',
   keywords: ['blog', 'articles', 'insights', 'personal finance', 'health', 'technology', 'DIY', 'recipes', 'current affairs'],
   openGraph: {
     title: 'Blog - Latest Articles & Insights',

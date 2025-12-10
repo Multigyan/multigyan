@@ -25,7 +25,7 @@ export const revalidate = 60
 // ✅ SEO: Homepage metadata (critical after removing root layout description)
 export const metadata = {
   title: 'Multigyan - Discover, Learn, Share Knowledge',
-  description: 'Explore insightful articles, DIY tutorials, and recipes on Multigyan. Join our community of writers and readers sharing knowledge on technology, lifestyle, finance, and more.',
+  description: 'Explore insightful articles, DIY tutorials, and recipes. Join our community of writers and readers sharing knowledge on tech, lifestyle, and more.',
   keywords: ['blog', 'articles', 'tutorials', 'recipes', 'knowledge sharing', 'multi-author platform', 'learning community'],
   openGraph: {
     title: 'Multigyan - Discover, Learn, Share Knowledge',
