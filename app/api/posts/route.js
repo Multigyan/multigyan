@@ -7,6 +7,8 @@ import Category from '@/models/Category'
 import { apiCache, invalidatePostCaches } from '@/lib/cache'
 import { postRateLimit, rateLimitResponse } from '@/lib/ratelimit'
 import logger from '@/lib/logger'
+import { submitPostToIndexNow } from '@/lib/indexnow'
+
 
 // ⚡ PERFORMANCE: Short revalidation for fresh content
 // Note: Cache-Control headers below handle development vs production behavior
@@ -296,6 +298,14 @@ export async function POST(request) {
       .populate('author', 'name email profilePictureUrl')
       .populate('category', 'name slug color')
       .lean()
+
+    // 🚀 IndexNow: Submit to Bing when post is published
+    if (postStatus === 'published') {
+      // Don't await - submit in background to avoid blocking response
+      submitPostToIndexNow(savedPost.slug).catch(error => {
+        logger.error('IndexNow submission failed:', { error, slug: savedPost.slug })
+      })
+    }
 
     return NextResponse.json(
       {

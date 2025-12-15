@@ -8,6 +8,8 @@ import User from '@/models/User'
 import Notification from '@/models/Notification'
 import { updateUserStats } from '@/lib/updateUserStats'
 import { invalidatePostCaches } from '@/lib/cache'
+import { submitPostToIndexNow } from '@/lib/indexnow'
+import logger from '@/lib/logger'
 
 // GET single post
 export async function GET(request, { params }) {
@@ -619,6 +621,20 @@ export async function PUT(request, { params }) {
 
     // ✅ Invalidate caches after updating post
     invalidatePostCaches()
+
+    // 🚀 IndexNow: Submit to Bing when post is published or updated
+    if (updatedPost.status === 'published') {
+      // Check if status changed to published OR if already published and content updated
+      const shouldSubmit = (oldStatus !== 'published' && updatedPost.status === 'published') ||
+        (oldStatus === 'published' && updatedPost.status === 'published')
+
+      if (shouldSubmit) {
+        // Don't await - submit in background
+        submitPostToIndexNow(updatedPost.slug).catch(error => {
+          logger.error('IndexNow submission failed:', { error, slug: updatedPost.slug })
+        })
+      }
+    }
 
     return NextResponse.json({
       message: 'Post updated successfully',

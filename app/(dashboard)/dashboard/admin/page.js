@@ -27,6 +27,8 @@ import {
   ShoppingBag
 } from "lucide-react"
 import { formatDate } from "@/lib/helpers"
+import IndexNowManager from "@/components/admin/IndexNowManager"
+
 
 export default function AdminDashboardPage() {
   const { data: session } = useSession()
@@ -416,6 +418,9 @@ export default function AdminDashboardPage() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* IndexNow Management */}
+        <IndexNowManager />
 
         {/* Enhanced Recent Pending Posts */}
         <Card className="hover:shadow-2xl transition-all duration-500 border-2 border-transparent hover:border-primary/20 bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
