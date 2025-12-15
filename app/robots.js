@@ -1,6 +1,9 @@
 export default function robots() {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.multigyan.in'
 
+    // ✅ FIX: Extract hostname for Host directive (robots.txt doesn't accept full URLs)
+    const hostname = new URL(baseUrl).hostname
+
     return {
         rules: [
             {
@@ -30,6 +33,6 @@ export default function robots() {
             },
         ],
         sitemap: `${baseUrl}/sitemap.xml`,
-        host: baseUrl,
+        host: hostname, // ✅ Use hostname only (e.g., "www.multigyan.in")
     }
 }
