@@ -2,7 +2,7 @@
 
 import { useEditor, EditorContent } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'
-import { Image } from '@tiptap/extension-image'
+import { Image as TiptapImage } from '@tiptap/extension-image'
 import { Link } from '@tiptap/extension-link'
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
 import { Youtube } from '@tiptap/extension-youtube'
@@ -15,6 +15,7 @@ import { TableCell } from '@tiptap/extension-table-cell'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import { Highlight } from '@tiptap/extension-highlight'
+import { Extension } from '@tiptap/core'
 import { createLowlight } from 'lowlight'
 
 import js from 'highlight.js/lib/languages/javascript'
@@ -36,6 +37,7 @@ import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Youtube as YoutubeIcon, Underline as UnderlineIcon,
   Minus, Upload, Zap, Table as TableIcon, Trash2, Plus, Palette, Highlighter,
+  TextCursorInput,
 } from 'lucide-react'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
@@ -56,6 +58,80 @@ lowlight.register('python', python)
 lowlight.register('java', java)
 lowlight.register('cpp', cpp)
 
+// ✅ Custom FontSize Extension
+const FontSize = Extension.create({
+  name: 'fontSize',
+
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    }
+  },
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize?.replace(/['"]+/g, ''),
+            renderHTML: attributes => {
+              if (!attributes.fontSize) {
+                return {}
+              }
+              return {
+                style: `font-size: ${attributes.fontSize}`,
+              }
+            },
+          },
+        },
+      },
+    ]
+  },
+
+  addCommands() {
+    return {
+      setFontSize: fontSize => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize })
+          .run()
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize: null })
+          .removeEmptyTextStyle()
+          .run()
+      },
+    }
+  },
+})
+
+// ✅ Enhanced Image Extension with Caption Support
+const ImageWithCaption = TiptapImage.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      caption: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-caption'),
+        renderHTML: attributes => {
+          if (!attributes.caption) return {}
+          return { 'data-caption': attributes.caption }
+        },
+      },
+      credit: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-credit'),
+        renderHTML: attributes => {
+          if (!attributes.credit) return {}
+          return { 'data-credit': attributes.credit }
+        },
+      },
+    }
+  },
+})
+
 const MenuBar = ({ editor }) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
@@ -63,6 +139,9 @@ const MenuBar = ({ editor }) => {
   const [linkUrl, setLinkUrl] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [imageAlt, setImageAlt] = useState('')
+  const [imageCaption, setImageCaption] = useState('') // ✅ NEW: Image caption
+  const [selectedFile, setSelectedFile] = useState(null) // ✅ NEW: Store selected file
+  const [imageCredit, setImageCredit] = useState('') // ✅ NEW: Image credit/source
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [uploadingImage, setUploadingImage] = useState(false)
   const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false)
@@ -131,8 +210,18 @@ const MenuBar = ({ editor }) => {
     try {
       const url = await uploadToCloudinary(file)
       if (url && editor) {
-        editor.chain().focus().setImage({ src: url, alt: file.name }).run()
+        // ✅ Include caption and credit when adding image
+        editor.chain().focus().setImage({
+          src: url,
+          alt: imageAlt || file.name,
+          caption: imageCaption || null,
+          credit: imageCredit || null
+        }).run()
         toast.success('Image uploaded successfully!')
+        // Clear fields after upload
+        setImageCaption('')
+        setImageCredit('')
+        setImageAlt('')
       }
     } catch (error) {
       console.error('Upload error:', error)
@@ -140,16 +229,49 @@ const MenuBar = ({ editor }) => {
     } finally {
       setUploadingImage(false)
     }
-  }, [editor, uploadToCloudinary])
+  }, [editor, uploadToCloudinary, imageAlt, imageCaption, imageCredit])
 
+  // ✅ NEW: Store file selection instead of immediate upload
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0]
     if (file) {
-      handleImageUpload(file)
+      // Validate file
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file')
+        return
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('File size must be less than 10MB')
+        return
+      }
+
+      // Store file and auto-fill alt text from filename
+      setSelectedFile(file)
+      if (!imageAlt) {
+        const filename = file.name.split('.')[0].replace(/[-_]/g, ' ')
+        setImageAlt(filename)
+      }
+      toast.success('File selected! Fill in the details below and click Add Image.')
     }
   }
 
+  // ✅ UPDATED: Handle both file upload and URL
   const addImage = useCallback(async () => {
+    if (!editor) return
+
+    // Case 1: File selected from local system
+    if (selectedFile) {
+      if (!imageAlt.trim()) {
+        toast.error('Alt text is required for accessibility')
+        return
+      }
+
+      await handleImageUpload(selectedFile)
+      setSelectedFile(null)
+      return
+    }
+
+    // Case 2: URL provided
     if (imageUrl && editor) {
       if (imageUrl.includes('drive.google.com')) {
         toast.info('Google Drive URL detected - downloading and uploading image...')
@@ -165,7 +287,9 @@ const MenuBar = ({ editor }) => {
             if (cloudinaryUrl) {
               editor.chain().focus().setImage({
                 src: cloudinaryUrl,
-                alt: imageAlt || 'Google Drive Image'
+                alt: imageAlt || 'Google Drive Image',
+                caption: imageCaption || null,
+                credit: imageCredit || null
               }).run()
               toast.success('Image uploaded successfully!')
             }
@@ -184,15 +308,22 @@ const MenuBar = ({ editor }) => {
       } else {
         editor.chain().focus().setImage({
           src: imageUrl,
-          alt: imageAlt || 'Image'
+          alt: imageAlt || 'Image',
+          caption: imageCaption || null,
+          credit: imageCredit || null
         }).run()
         toast.success('Image added successfully!')
       }
     }
+
+    // Clear all fields
     setImageUrl('')
     setImageAlt('')
+    setImageCaption('')
+    setImageCredit('')
+    setSelectedFile(null)
     setIsImageDialogOpen(false)
-  }, [editor, imageUrl, imageAlt, uploadToCloudinary])
+  }, [editor, selectedFile, imageUrl, imageAlt, imageCaption, imageCredit, uploadToCloudinary, handleImageUpload])
 
   const addYoutube = useCallback(() => {
     if (youtubeUrl && editor) {
@@ -326,6 +457,43 @@ const MenuBar = ({ editor }) => {
         >
           <Highlighter className="h-4 w-4" />
         </ToolbarButton>
+      </div>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
+      {/* ✅ Font Size Control */}
+      <div className="flex items-center gap-1">
+        <Select
+          value={editor.getAttributes('textStyle').fontSize || 'normal'}
+          onValueChange={(value) => {
+            if (value === 'normal') {
+              editor.chain().focus().unsetFontSize().run()
+            } else {
+              editor.chain().focus().setFontSize(value).run()
+            }
+          }}
+        >
+          <SelectTrigger className="h-8 w-[110px] text-xs">
+            <SelectValue placeholder="Font size" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="12px">
+              <span className="text-xs">Small</span>
+            </SelectItem>
+            <SelectItem value="normal">
+              <span className="text-sm">Normal</span>
+            </SelectItem>
+            <SelectItem value="18px">
+              <span className="text-base">Large</span>
+            </SelectItem>
+            <SelectItem value="24px">
+              <span className="text-lg">Extra Large</span>
+            </SelectItem>
+            <SelectItem value="32px">
+              <span className="text-xl">Huge</span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Separator orientation="vertical" className="h-6 mx-1" />
@@ -594,17 +762,69 @@ const MenuBar = ({ editor }) => {
                 />
               </div>
               <div>
-                <Label htmlFor="imageAlt">Alt Text</Label>
+                <Label htmlFor="imageAlt">Alt Text *</Label>
                 <Input
                   id="imageAlt"
-                  placeholder="Describe the image"
+                  placeholder="Describe the image for accessibility"
                   value={imageAlt}
                   onChange={(e) => setImageAlt(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Required for accessibility and SEO
+                </p>
               </div>
-              <Button onClick={addImage} disabled={!imageUrl || uploadingImage}>
-                Add Image
+
+              {/* ✅ NEW: Image Caption */}
+              <div>
+                <Label htmlFor="imageCaption">Caption / Description (Optional)</Label>
+                <Input
+                  id="imageCaption"
+                  placeholder="e.g., A beautiful sunset over the mountains"
+                  value={imageCaption}
+                  onChange={(e) => setImageCaption(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  This will appear below the image in your published post
+                </p>
+              </div>
+
+              {/* ✅ NEW: Image Credit/Source */}
+              <div>
+                <Label htmlFor="imageCredit">Image Credit / Source (Optional)</Label>
+                <Input
+                  id="imageCredit"
+                  placeholder="e.g., Photo by John Doe on Unsplash"
+                  value={imageCredit}
+                  onChange={(e) => setImageCredit(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Give credit to the image source or photographer
+                </p>
+              </div>
+
+
+              <Button
+                onClick={addImage}
+                disabled={(!selectedFile && !imageUrl) || uploadingImage}
+                className="w-full"
+              >
+                {uploadingImage ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    {selectedFile ? 'Upload & Add Image' : 'Add Image'}
+                  </>
+                )}
               </Button>
+
+              {selectedFile && (
+                <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                  <span>✓</span> {selectedFile.name} selected ({(selectedFile.size / 1024).toFixed(1)} KB)
+                </p>
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -751,6 +971,7 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       }),
       Underline,
       TextStyle,
+      FontSize, // ✅ NEW: Font size control
       Color,
       Highlight.configure({
         multicolor: true,
@@ -767,7 +988,7 @@ export default function EnhancedRichTextEditor({ content, onChange, placeholder 
       TableRow,
       TableHeader,
       TableCell,
-      Image.configure({
+      ImageWithCaption.configure({ // ✅ NEW: Image with caption support
         HTMLAttributes: {
           class: 'max-w-full h-auto rounded-lg border my-4',
         },

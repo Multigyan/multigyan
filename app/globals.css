@@ -1110,3 +1110,46 @@
     scroll-behavior: auto !important;
   }
 }
+/* ✅ NEW: Image Caption Styles for Published Blogs */
+.prose img[data-caption],
+.ProseMirror img[data-caption] {
+  @apply block mx-auto;
+}
+
+/* Caption container */
+.prose img[data-caption]::after,
+.ProseMirror img[data-caption]::after {
+  content: attr(data-caption);
+  @apply block text-center text-sm text-muted-foreground italic mt-2 px-4;
+}
+
+/* Credit/Source below caption */
+.prose img[data-credit]::before,
+.ProseMirror img[data-credit]::before {
+  content: attr(data-credit);
+  @apply block text-center text-xs text-muted-foreground/70 mt-1 mb-2;
+}
+
+/* When both caption and credit exist, adjust spacing */
+.prose img[data-caption][data-credit]::after {
+  @apply mb-1;
+}
+
+/* Figure-like styling for images with captions */
+.prose img[data-caption],
+.ProseMirror img[data-caption] {
+  @apply mb-6 mt-6;
+}
+
+/* Mobile responsive caption text */
+@media (max-width: 640px) {
+  .prose img[data-caption]::after,
+  .ProseMirror img[data-caption]::after {
+    @apply text-xs px-2;
+  }
+  
+  .prose img[data-credit]::before,
+  .ProseMirror img[data-credit]::before {
+    @apply text-[10px];
+  }
+}
