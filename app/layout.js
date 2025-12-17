@@ -30,10 +30,9 @@ function ServiceWorkerRegistration() {
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: {
-    default: 'Multigyan - Multi-Author Blogging Platform',
-    template: '%s | Multigyan'
-  },
+  // ✅ FIX: Removed title template to comply with Bing's 70-character limit
+  // Pages now define their own complete titles without automatic suffix
+  title: 'Multigyan - Multi-Author Blogging Platform',
   // ✅ NOTEBOOKLM FIX: Removed generic description - let pages define their own
   // This prevents AI crawlers from prioritizing site description over article content
   keywords: ['blog', 'nextjs', 'mongodb', 'multi-author', 'cms', 'multigyan', 'articles', 'tutorials', 'knowledge sharing'],
