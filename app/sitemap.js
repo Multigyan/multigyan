@@ -71,13 +71,40 @@ export default async function sitemap() {
             },
         ]
 
-        // Blog posts - higher priority for recent posts
-        const postUrls = posts.map((post, index) => ({
-            url: `${baseUrl}/blog/${post.slug}`,
-            lastModified: post.updatedAt || post.createdAt,
-            changeFrequency: 'weekly',
-            priority: index < 10 ? 0.9 : 0.8, // Higher priority for top 10 recent posts
-        }))
+        // Blog posts - prioritize based on freshness and views
+        const now = new Date()
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+        const postUrls = posts.map((post) => {
+            const postDate = post.updatedAt || post.createdAt
+            const daysSinceUpdate = (now - new Date(postDate)) / (24 * 60 * 60 * 1000)
+
+            // Priority based on content freshness
+            let priority = 0.7 // Default
+            let changeFrequency = 'monthly'
+
+            if (postDate >= sevenDaysAgo) {
+                // Very fresh content (last 7 days)
+                priority = 0.95
+                changeFrequency = 'daily'
+            } else if (postDate >= thirtyDaysAgo) {
+                // Recent content (last 30 days)
+                priority = 0.85
+                changeFrequency = 'weekly'
+            } else if (daysSinceUpdate <= 90) {
+                // Moderately recent (last 90 days)
+                priority = 0.75
+                changeFrequency = 'weekly'
+            }
+
+            return {
+                url: `${baseUrl}/blog/${post.slug}`,
+                lastModified: postDate,
+                changeFrequency,
+                priority,
+            }
+        })
 
         // Categories
         const categoryUrls = categories.map(cat => ({

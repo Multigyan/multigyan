@@ -9,8 +9,15 @@ import { generateSEOMetadata } from "@/lib/seo"
 import {
   generateBreadcrumbSchema
 } from "@/lib/seo-enhanced"
-// ✅ Import Bing-specific enhanced Article schema
-import { generateEnhancedArticleSchema } from "@/lib/seo-bing"
+// ✅ Import Bing-specific enhanced schemas and extractors
+import {
+  generateEnhancedArticleSchema,
+  generateFAQSchema,
+  generateHowToSchema,
+  generateWebPageSchema,
+  extractFAQFromContent,
+  extractHowToFromContent
+} from "@/lib/seo-bing"
 import EnhancedSchema from "@/components/seo/EnhancedSchema"
 import ViewTracker from "@/components/blog/ViewTracker"
 
@@ -222,6 +229,26 @@ export default async function BlogPostPage({ params }) {
       { name: post.title, url: postUrl }
     ])
 
+    // ✅ NEW: Extract and generate FAQ schema from content
+    const faqItems = extractFAQFromContent(post.content)
+    const faqSchema = faqItems.length > 0 ? generateFAQSchema(faqItems) : null
+
+    // ✅ NEW: Extract and generate HowTo schema for tutorial content
+    const howToData = extractHowToFromContent(post.content, post)
+    const howToSchema = howToData ? generateHowToSchema(howToData) : null
+
+    // ✅ NEW: Generate WebPage schema for better page understanding
+    const webPageSchema = generateWebPageSchema(post)
+
+    // Collect all schemas (filter out null values)
+    const schemas = [
+      enhancedArticleSchema,
+      breadcrumbSchema,
+      webPageSchema,
+      faqSchema,
+      howToSchema
+    ].filter(Boolean)
+
     // Serialize the post for client component (NO SPREAD OPERATOR!)
     const serializedPost = {
       // Basic fields
@@ -331,8 +358,8 @@ export default async function BlogPostPage({ params }) {
 
     return (
       <>
-        {/* ✅ Using Enhanced Schema with author URL */}
-        <EnhancedSchema schemas={[enhancedArticleSchema, breadcrumbSchema]} />
+        {/* ✅ Render all collected schemas for comprehensive rich results */}
+        <EnhancedSchema schemas={schemas} />
         {/* ✅ Client-side view tracking for all users */}
         <ViewTracker postId={post._id.toString()} />
         <BlogPostClient post={serializedPost} relatedPosts={serializedRelatedPosts} />

@@ -1,0 +1,65 @@
+# Robots.txt for Multigyan - Multi-Author Blogging Platform
+# Last Updated: 2025-12-23
+
+# Allow all major search engines
+User-agent: *
+Allow: /
+
+# Block admin and dashboard areas
+Disallow: /dashboard/
+Disallow: /api/auth/
+Disallow: /api/admin/
+
+# Block authentication pages
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+
+# Allow API routes that should be crawlable (feeds, sitemaps)
+Allow: /api/feed/
+Allow: /sitemap.xml
+Allow: /image-sitemap.xml
+
+# Block search results and filter pages (prevent duplicate content)
+Disallow: /*?search=
+Disallow: /*?filter=
+Disallow: /*?sort=
+Disallow: /*?page=
+
+# Block private user data
+Disallow: /api/users/*/private
+
+# Specific rules for Bingbot (Microsoft's crawler)
+User-agent: bingbot
+Crawl-delay: 1
+Allow: /
+
+# Specific rules for Googlebot
+User-agent: Googlebot
+Allow: /
+
+# Block AI training bots (optional - respects your content ownership)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+# Sitemaps
+Sitemap: https://www.multigyan.in/sitemap.xml
+Sitemap: https://www.multigyan.in/image-sitemap.xml
+
+# Note: This robots.txt follows Bing Webmaster Guidelines
+# for optimal crawl efficiency and indexing

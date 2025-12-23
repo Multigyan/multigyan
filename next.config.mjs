@@ -76,7 +76,7 @@ const nextConfig = {
           },
         ],
       },
-      // ✅ UPDATED: Blog posts - cache for 1 minute in production, NO cache in development
+      // ✅ UPDATED: Blog posts - cache for 1 hour in production, NO cache in development
       {
         source: '/blog/:slug',
         headers: [
@@ -84,7 +84,7 @@ const nextConfig = {
             key: 'Cache-Control',
             value: process.env.NODE_ENV === 'development'
               ? 'no-store, no-cache, must-revalidate' // Development: always fresh
-              : 's-maxage=60, stale-while-revalidate=120', // Production: 1 min cache, 2 min stale
+              : 's-maxage=3600, stale-while-revalidate=7200', // Production: 1 hour cache, 2 hour stale
           },
         ],
       },
