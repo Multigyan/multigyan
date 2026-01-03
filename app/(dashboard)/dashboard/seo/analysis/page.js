@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
     ArrowLeft,
     BarChart3,
@@ -38,6 +39,9 @@ export default function BulkAnalysisPage() {
     const [analyzing, setAnalyzing] = useState(false)
     const [loadingPosts, setLoadingPosts] = useState(true)
     const [posts, setPosts] = useState([])
+    const [allPosts, setAllPosts] = useState([])
+    const [authors, setAuthors] = useState([])
+    const [selectedAuthor, setSelectedAuthor] = useState('all')
     const [analyses, setAnalyses] = useState([])
     const [stats, setStats] = useState(null)
     const [searchTerm, setSearchTerm] = useState("")
@@ -108,7 +112,19 @@ export default function BulkAnalysisPage() {
 
             if (response.ok) {
                 const data = await response.json()
-                setPosts(data.posts || [])
+                const loadedPosts = data.posts || []
+                setAllPosts(loadedPosts)
+                setPosts(loadedPosts)
+
+                // Extract unique authors for admin
+                if (session.user.role === 'admin') {
+                    const uniqueAuthors = [...new Map(
+                        loadedPosts
+                            .filter(p => p.author)
+                            .map(p => [p.author._id, p.author])
+                    ).values()]
+                    setAuthors(uniqueAuthors)
+                }
             } else {
                 toast.error('Failed to load posts')
             }
@@ -201,6 +217,18 @@ export default function BulkAnalysisPage() {
         return `${days} day${days > 1 ? 's' : ''} ago`
     }
 
+    // Filter posts by selected author
+    useEffect(() => {
+        if (selectedAuthor === 'all') {
+            setPosts(allPosts)
+        } else {
+            setPosts(allPosts.filter(p => p.author?._id === selectedAuthor))
+        }
+        // Clear analyses when changing author filter
+        setAnalyses([])
+        setStats(null)
+    }, [selectedAuthor, allPosts])
+
     // Filter and paginate
     const filteredAnalyses = analyses.filter(a =>
         a.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -228,41 +256,85 @@ export default function BulkAnalysisPage() {
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" asChild>
-                        <Link href="/dashboard/posts">
-                            <ArrowLeft className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <div>
-                        <h1 className="text-3xl font-bold flex items-center gap-3">
-                            <BarChart3 className="h-8 w-8" />
-                            SEO Quality Analysis
-                        </h1>
-                        <p className="text-muted-foreground">
-                            {posts.length} posts available for analysis
-                        </p>
+            <div className="flex flex-col gap-4 mb-8">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Button variant="outline" size="icon" asChild>
+                            <Link href="/dashboard/posts">
+                                <ArrowLeft className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                        <div>
+                            <h1 className="text-3xl font-bold flex items-center gap-3">
+                                <BarChart3 className="h-8 w-8" />
+                                SEO Quality Analysis
+                            </h1>
+                            <p className="text-muted-foreground">
+                                {posts.length} posts available for analysis
+                                {selectedAuthor !== 'all' && authors.length > 0 && (
+                                    <span className="ml-2">
+                                        by {authors.find(a => a._id === selectedAuthor)?.name || 'Unknown'}
+                                    </span>
+                                )}
+                            </p>
+                        </div>
                     </div>
+
+                    <Button
+                        onClick={analyzeAllPosts}
+                        disabled={analyzing || posts.length === 0}
+                        className="gap-2"
+                    >
+                        {analyzing ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Analyzing... ({analyses.length}/{posts.length})
+                            </>
+                        ) : (
+                            <>
+                                <RefreshCw className="h-4 w-4" />
+                                {analyses.length > 0 ? 'Refresh Analysis' : 'Start Analysis'}
+                            </>
+                        )}
+                    </Button>
                 </div>
 
-                <Button
-                    onClick={analyzeAllPosts}
-                    disabled={analyzing || posts.length === 0}
-                    className="gap-2"
-                >
-                    {analyzing ? (
-                        <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Analyzing... ({analyses.length}/{posts.length})
-                        </>
-                    ) : (
-                        <>
-                            <RefreshCw className="h-4 w-4" />
-                            {analyses.length > 0 ? 'Refresh Analysis' : 'Start Analysis'}
-                        </>
-                    )}
-                </Button>
+                {/* Admin Author Filter */}
+                {session?.user?.role === 'admin' && authors.length > 0 && (
+                    <Card className="border-purple-200 bg-purple-50/30 dark:bg-purple-950/20">
+                        <CardContent className="py-4">
+                            <div className="flex items-center gap-4">
+                                <label className="text-sm font-medium whitespace-nowrap">
+                                    Filter by Author:
+                                </label>
+                                <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
+                                    <SelectTrigger className="w-[300px] bg-white dark:bg-gray-900">
+                                        <SelectValue placeholder="Select author" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">
+                                            <div className="flex items-center justify-between gap-4 w-full">
+                                                <span className="font-medium">All Authors</span>
+                                                <Badge variant="secondary">{allPosts.length} posts</Badge>
+                                            </div>
+                                        </SelectItem>
+                                        {authors.map((author) => {
+                                            const authorPostCount = allPosts.filter(p => p.author?._id === author._id).length
+                                            return (
+                                                <SelectItem key={author._id} value={author._id}>
+                                                    <div className="flex items-center justify-between gap-4 w-full">
+                                                        <span>{author.name}</span>
+                                                        <Badge variant="outline">{authorPostCount} posts</Badge>
+                                                    </div>
+                                                </SelectItem>
+                                            )
+                                        })}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
 
             {/* Last Analyzed Info */}
