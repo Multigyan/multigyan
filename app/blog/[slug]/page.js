@@ -12,6 +12,7 @@ import {
 // ✅ Import Bing-specific enhanced schemas and extractors
 import {
   generateEnhancedArticleSchema,
+  generateNewsArticleSchema,
   generateFAQSchema,
   generateHowToSchema,
   generateWebPageSchema,
@@ -202,7 +203,12 @@ export default async function BlogPostPage({ params }) {
           .limit(3)
           .select('title slug featuredImageUrl featuredImageAlt category publishedAt readingTime')
           .populate('category', 'name color slug')
-          .sort({ views: -1 }) // Get most viewed posts by same author
+          // ✅ PHASE 1 FIX: Changed from static views-based to recency-first
+          // This ensures users see FRESH content from same author, not always the same old 3 posts
+          .sort({
+            publishedAt: -1,  // Primary: Most recent first
+            views: -1         // Secondary: Break ties with popular posts
+          })
           .lean()
       }
     } catch (error) {
@@ -219,8 +225,16 @@ export default async function BlogPostPage({ params }) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const postUrl = `${siteUrl}/blog/${post.slug}`
 
-    // ✅ Generate Enhanced Article schema optimized for Bing
-    const enhancedArticleSchema = generateEnhancedArticleSchema(post)
+    // ✅ PHASE 1: Detect if this is a news article
+    const isNewsArticle = post.tags?.some(tag =>
+      tag.toLowerCase().includes('news') ||
+      tag.toLowerCase().includes('daily news')
+    ) || post.category?.slug === 'news'
+
+    // ✅ Generate appropriate schema based on content type
+    const enhancedArticleSchema = isNewsArticle
+      ? generateNewsArticleSchema(post)
+      : generateEnhancedArticleSchema(post)
 
     const breadcrumbSchema = generateBreadcrumbSchema([
       { name: 'Home', url: siteUrl },
