@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+
+
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -56,7 +58,7 @@ export default function BulkAnalysisPage() {
         document.title = "SEO Analysis | Multigyan"
     }, [])
 
-    function loadCachedAnalyses() {
+    const loadCachedAnalyses = useCallback(() => {
         try {
             const cached = localStorage.getItem(CACHE_KEY)
             if (cached) {
@@ -78,7 +80,7 @@ export default function BulkAnalysisPage() {
         } catch (error) {
             console.error('Failed to load cache:', error)
         }
-    }
+    }, [])
 
     function saveCachedAnalyses(analysesData, statsData) {
         try {
@@ -96,10 +98,12 @@ export default function BulkAnalysisPage() {
         }
     }
 
-    async function loadPosts() {
+    const loadPosts = useCallback(async () => {
+        if (!session?.user) return
+
         setLoadingPosts(true)
         try {
-            const userParam = session?.user?.role === 'admin' ? '' : `&author=${session.user.id}`
+            const userParam = session.user.role === 'admin' ? '' : `&author=${session.user.id}`
             const response = await fetch(`/api/posts?status=published&limit=1000${userParam}`)
 
             if (response.ok) {
@@ -114,7 +118,7 @@ export default function BulkAnalysisPage() {
         } finally {
             setLoadingPosts(false)
         }
-    }
+    }, [session])
 
     async function analyzeAllPosts() {
         if (posts.length === 0) {
@@ -286,7 +290,7 @@ export default function BulkAnalysisPage() {
                         <BarChart3 className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                         <h2 className="text-2xl font-semibold mb-2">No Analysis Data</h2>
                         <p className="text-muted-foreground mb-6">
-                            Click "Start Analysis" to analyze all {posts.length} posts and get quality scores
+                            Click &quot;Start Analysis&quot; to analyze all {posts.length} posts and get quality scores
                         </p>
                         <Button onClick={analyzeAllPosts} size="lg" className="gap-2">
                             <BarChart3 className="h-5 w-5" />
@@ -362,7 +366,7 @@ export default function BulkAnalysisPage() {
                             <Card>
                                 <CardContent className="text-center py-12">
                                     <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                                    <p className="text-muted-foreground">No posts found matching "{searchTerm}"</p>
+                                    <p className="text-muted-foreground">No posts found matching &quot;{searchTerm}&quot;</p>
                                 </CardContent>
                             </Card>
                         ) : (
