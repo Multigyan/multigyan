@@ -879,6 +879,20 @@ export default function EditPostPage({ params }) {
               </CardContent>
             </Card>
 
+            {/* ✅ PHASE 2: SEO Quality Analysis Widget */}
+            {postId && formData.content && (
+              <ContentQualityWidget
+                postId={postId}
+                content={formData.content}
+                contentType={formData.contentType}
+              />
+            )}
+
+            {/* ✅ PHASE 2: Internal Link Suggestions */}
+            {postId && (
+              <InternalLinkSuggestions postId={postId} />
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle>Post Settings</CardTitle>
