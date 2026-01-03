@@ -7,7 +7,7 @@ import useSWR from "swr"
 import { dashboardStatsConfig } from "@/lib/swr-config"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PenTool, Users, BarChart3, Settings, Plus, FileText, Folder, TrendingUp, History, MessageSquareText, Image } from "lucide-react"
+import { PenTool, Users, BarChart3, Settings, Plus, FileText, Folder, TrendingUp, History, MessageSquareText, Image, Search } from "lucide-react"
 import Link from "next/link"
 
 export default function DashboardPage() {
@@ -197,6 +197,12 @@ export default function DashboardPage() {
               <Link href="/dashboard/posts">
                 <FileText className="mr-2 h-4 w-4" />
                 <span className="text-sm sm:text-base">Manage Posts</span>
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full transition-all hover:scale-105 hover:shadow-lg min-h-[44px] hover:border-blue-500/50 bg-blue-50/30 dark:bg-blue-950/20" asChild>
+              <Link href="/dashboard/seo/analysis">
+                <Search className="mr-2 h-4 w-4" />
+                <span className="text-sm sm:text-base">SEO Analysis</span>
               </Link>
             </Button>
           </CardContent>

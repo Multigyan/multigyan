@@ -18,6 +18,8 @@ import CategorySelector from "@/components/blog/CategorySelector"
 import BlogPostPreview from "@/components/blog/BlogPostPreview"
 import { ArrowLeft, Save, Loader2, Eye, User, AlertTriangle, FileText, Send, CheckCircle2, Globe, Link as LinkIcon, Wrench, ChefHat } from "lucide-react"
 import { toast } from "sonner"
+import ContentQualityWidget from "@/components/seo/ContentQualityWidget"
+import InternalLinkSuggestions from "@/components/seo/InternalLinkSuggestions"
 import {
   AlertDialog,
   AlertDialogAction,
