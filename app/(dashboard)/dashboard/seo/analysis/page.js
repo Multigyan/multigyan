@@ -30,8 +30,12 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 const POSTS_PER_PAGE = 20
-const CACHE_KEY = 'seo-analysis-cache'
+const CACHE_KEY_PREFIX = 'seo-analysis-cache'
 const CACHE_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
+
+function getCacheKey(authorId) {
+    return `${CACHE_KEY_PREFIX}-${authorId || 'all'}`
+}
 
 export default function BulkAnalysisPage() {
     const { data: session, status } = useSession()
@@ -64,7 +68,8 @@ export default function BulkAnalysisPage() {
 
     const loadCachedAnalyses = useCallback(() => {
         try {
-            const cached = localStorage.getItem(CACHE_KEY)
+            const cacheKey = getCacheKey(selectedAuthor)
+            const cached = localStorage.getItem(cacheKey)
             if (cached) {
                 const { data, timestamp } = JSON.parse(cached)
                 const age = Date.now() - timestamp
@@ -78,16 +83,22 @@ export default function BulkAnalysisPage() {
                     })
                 } else {
                     // Cache expired
-                    localStorage.removeItem(CACHE_KEY)
+                    localStorage.removeItem(cacheKey)
                 }
+            } else {
+                // No cache found for this author filter
+                setAnalyses([])
+                setStats(null)
+                setLastAnalyzed(null)
             }
         } catch (error) {
             console.error('Failed to load cache:', error)
         }
-    }, [])
+    }, [selectedAuthor])
 
     function saveCachedAnalyses(analysesData, statsData) {
         try {
+            const cacheKey = getCacheKey(selectedAuthor)
             const cacheData = {
                 data: {
                     analyses: analysesData,
@@ -95,7 +106,7 @@ export default function BulkAnalysisPage() {
                 },
                 timestamp: Date.now()
             }
-            localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData))
+            localStorage.setItem(cacheKey, JSON.stringify(cacheData))
             setLastAnalyzed(new Date())
         } catch (error) {
             console.error('Failed to save cache:', error)
@@ -217,17 +228,16 @@ export default function BulkAnalysisPage() {
         return `${days} day${days > 1 ? 's' : ''} ago`
     }
 
-    // Filter posts by selected author
+    // Filter posts by selected author and load cached results
     useEffect(() => {
         if (selectedAuthor === 'all') {
             setPosts(allPosts)
         } else {
             setPosts(allPosts.filter(p => p.author?._id === selectedAuthor))
         }
-        // Clear analyses when changing author filter
-        setAnalyses([])
-        setStats(null)
-    }, [selectedAuthor, allPosts])
+        // Load cached results for this author filter
+        loadCachedAnalyses()
+    }, [selectedAuthor, allPosts, loadCachedAnalyses])
 
     // Filter and paginate
     const filteredAnalyses = analyses.filter(a =>
