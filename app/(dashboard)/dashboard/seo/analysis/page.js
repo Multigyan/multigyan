@@ -13,111 +13,209 @@ import {
     ArrowLeft,
     BarChart3,
     TrendingUp,
-    TrendingDown,
     Search,
     Loader2,
     ExternalLink,
     AlertTriangle,
     CheckCircle2,
-    FileText
+    FileText,
+    RefreshCw,
+    ChevronLeft,
+    ChevronRight
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
+const POSTS_PER_PAGE = 20
+const CACHE_KEY = 'seo-analysis-cache'
+const CACHE_EXPIRY = 1000 * 60 * 60 * 24 // 24 hours
+
 export default function BulkAnalysisPage() {
     const { data: session, status } = useSession()
     const router = useRouter()
-    const [loading, setLoading] = useState(false)
+    const [analyzing, setAnalyzing] = useState(false)
+    const [loadingPosts, setLoadingPosts] = useState(true)
     const [posts, setPosts] = useState([])
     const [analyses, setAnalyses] = useState([])
     const [stats, setStats] = useState(null)
     const [searchTerm, setSearchTerm] = useState("")
+    const [currentPage, setCurrentPage] = useState(1)
+    const [lastAnalyzed, setLastAnalyzed] = useState(null)
 
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/login")
         } else if (session?.user) {
             loadPosts()
+            loadCachedAnalyses()
         }
     }, [session, status, router])
 
-    async function loadPosts() {
-        setLoading(true)
+    // Set page title
+    useEffect(() => {
+        document.title = "SEO Analysis | Multigyan"
+    }, [])
+
+    function loadCachedAnalyses() {
         try {
-            // Fetch all user's posts
-            const userParam = session.user.role === 'admin' ? '' : `&author=${session.user.id}`
+            const cached = localStorage.getItem(CACHE_KEY)
+            if (cached) {
+                const { data, timestamp } = JSON.parse(cached)
+                const age = Date.now() - timestamp
+
+                if (age < CACHE_EXPIRY) {
+                    setAnalyses(data.analyses || [])
+                    setStats(data.stats || null)
+                    setLastAnalyzed(new Date(timestamp))
+                    toast.success('Loaded cached analysis results', {
+                        description: `Last analyzed ${formatTimeAgo(timestamp)}`
+                    })
+                } else {
+                    // Cache expired
+                    localStorage.removeItem(CACHE_KEY)
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load cache:', error)
+        }
+    }
+
+    function saveCachedAnalyses(analysesData, statsData) {
+        try {
+            const cacheData = {
+                data: {
+                    analyses: analysesData,
+                    stats: statsData
+                },
+                timestamp: Date.now()
+            }
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData))
+            setLastAnalyzed(new Date())
+        } catch (error) {
+            console.error('Failed to save cache:', error)
+        }
+    }
+
+    async function loadPosts() {
+        setLoadingPosts(true)
+        try {
+            const userParam = session?.user?.role === 'admin' ? '' : `&author=${session.user.id}`
             const response = await fetch(`/api/posts?status=published&limit=1000${userParam}`)
 
             if (response.ok) {
                 const data = await response.json()
                 setPosts(data.posts || [])
-                analyzeAllPosts(data.posts || [])
             } else {
                 toast.error('Failed to load posts')
             }
         } catch (error) {
             console.error('Load error:', error)
             toast.error('Failed to load posts')
+        } finally {
+            setLoadingPosts(false)
         }
     }
 
-    async function analyzeAllPosts(postsToAnalyze) {
-        const analyses = []
+    async function analyzeAllPosts() {
+        if (posts.length === 0) {
+            toast.error('No posts to analyze')
+            return
+        }
 
-        for (const post of postsToAnalyze) {
-            try {
-                const response = await fetch('/api/content/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ postId: post._id })
-                })
+        setAnalyzing(true)
+        const newAnalyses = []
 
-                if (response.ok) {
-                    const data = await response.json()
-                    analyses.push({
-                        _id: post._id,
-                        title: post.title,
-                        slug: post.slug,
-                        ...data.analysis
+        try {
+            toast.info(`Starting analysis of ${posts.length} posts...`, {
+                description: 'This may take a few moments'
+            })
+
+            for (const post of posts) {
+                try {
+                    const response = await fetch('/api/content/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ postId: post._id })
                     })
-                }
-            } catch (error) {
-                console.error(`Analysis failed for ${post._id}:`, error)
-            }
-        }
 
-        setAnalyses(analyses)
-        calculateStats(analyses)
-        setLoading(false)
+                    if (response.ok) {
+                        const data = await response.json()
+                        newAnalyses.push({
+                            _id: post._id,
+                            title: post.title,
+                            slug: post.slug,
+                            ...data.analysis
+                        })
+                    }
+                } catch (error) {
+                    console.error(`Analysis failed for ${post._id}:`, error)
+                }
+            }
+
+            setAnalyses(newAnalyses)
+            const newStats = calculateStats(newAnalyses)
+            setStats(newStats)
+
+            // Save to cache
+            saveCachedAnalyses(newAnalyses, newStats)
+
+            toast.success(`Analysis complete! Analyzed ${newAnalyses.length} posts`, {
+                description: 'Results cached for 24 hours'
+            })
+        } catch (error) {
+            console.error('Analysis error:', error)
+            toast.error('Analysis failed')
+        } finally {
+            setAnalyzing(false)
+        }
     }
 
-    function calculateStats(analyses) {
-        const avgScore = analyses.reduce((sum, a) => sum + a.score, 0) / analyses.length || 0
+    function calculateStats(analysesData) {
+        if (analysesData.length === 0) return null
+
+        const avgScore = analysesData.reduce((sum, a) => sum + a.score, 0) / analysesData.length || 0
 
         const distribution = {
-            excellent: analyses.filter(a => a.score >= 90).length,
-            veryGood: analyses.filter(a => a.score >= 80 && a.score < 90).length,
-            good: analyses.filter(a => a.score >= 70 && a.score < 80).length,
-            fair: analyses.filter(a => a.score >= 60 && a.score < 70).length,
-            poor: analyses.filter(a => a.score < 60).length
+            excellent: analysesData.filter(a => a.score >= 90).length,
+            veryGood: analysesData.filter(a => a.score >= 80 && a.score < 90).length,
+            good: analysesData.filter(a => a.score >= 70 && a.score < 80).length,
+            fair: analysesData.filter(a => a.score >= 60 && a.score < 70).length,
+            poor: analysesData.filter(a => a.score < 60).length
         }
 
-        setStats({ avgScore: Math.round(avgScore), distribution })
+        return { avgScore: Math.round(avgScore), distribution }
     }
 
+    function formatTimeAgo(timestamp) {
+        const seconds = Math.floor((Date.now() - timestamp) / 1000)
+        if (seconds < 60) return 'just now'
+        const minutes = Math.floor(seconds / 60)
+        if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`
+        const hours = Math.floor(minutes / 60)
+        if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`
+        const days = Math.floor(hours / 24)
+        return `${days} day${days > 1 ? 's' : ''} ago`
+    }
+
+    // Filter and paginate
     const filteredAnalyses = analyses.filter(a =>
         a.title.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    if (loading) {
+    const sortedAnalyses = [...filteredAnalyses].sort((a, b) => a.score - b.score)
+
+    const totalPages = Math.ceil(sortedAnalyses.length / POSTS_PER_PAGE)
+    const startIndex = (currentPage - 1) * POSTS_PER_PAGE
+    const endIndex = startIndex + POSTS_PER_PAGE
+    const paginatedAnalyses = sortedAnalyses.slice(startIndex, endIndex)
+
+    if (loadingPosts) {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="text-center py-20">
                     <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-                    <h2 className="text-xl font-semibold mb-2">Analyzing All Posts...</h2>
-                    <p className="text-muted-foreground">
-                        This may take a moment. Analyzing {posts.length} posts.
-                    </p>
+                    <h2 className="text-xl font-semibold mb-2">Loading Posts...</h2>
+                    <p className="text-muted-foreground">Fetching your content</p>
                 </div>
             </div>
         )
@@ -136,17 +234,70 @@ export default function BulkAnalysisPage() {
                     <div>
                         <h1 className="text-3xl font-bold flex items-center gap-3">
                             <BarChart3 className="h-8 w-8" />
-                            Content Quality Analysis
+                            SEO Quality Analysis
                         </h1>
                         <p className="text-muted-foreground">
-                            SEO quality scores for all your posts
+                            {posts.length} posts available for analysis
                         </p>
                     </div>
                 </div>
+
+                <Button
+                    onClick={analyzeAllPosts}
+                    disabled={analyzing || posts.length === 0}
+                    className="gap-2"
+                >
+                    {analyzing ? (
+                        <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Analyzing... ({analyses.length}/{posts.length})
+                        </>
+                    ) : (
+                        <>
+                            <RefreshCw className="h-4 w-4" />
+                            {analyses.length > 0 ? 'Refresh Analysis' : 'Start Analysis'}
+                        </>
+                    )}
+                </Button>
             </div>
 
+            {/* Last Analyzed Info */}
+            {lastAnalyzed && !analyzing && (
+                <Card className="mb-6 border-blue-200 bg-blue-50/30 dark:bg-blue-950/20">
+                    <CardContent className="py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <span>Last analyzed: {formatTimeAgo(lastAnalyzed.getTime())}</span>
+                            <span className="text-muted-foreground">
+                                ({lastAnalyzed.toLocaleString()})
+                            </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                            Cache expires in {Math.ceil((CACHE_EXPIRY - (Date.now() - lastAnalyzed.getTime())) / (1000 * 60 * 60))} hours
+                        </span>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* No Analysis State */}
+            {analyses.length === 0 && !analyzing && (
+                <Card className="border-2 border-dashed">
+                    <CardContent className="text-center py-20">
+                        <BarChart3 className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <h2 className="text-2xl font-semibold mb-2">No Analysis Data</h2>
+                        <p className="text-muted-foreground mb-6">
+                            Click "Start Analysis" to analyze all {posts.length} posts and get quality scores
+                        </p>
+                        <Button onClick={analyzeAllPosts} size="lg" className="gap-2">
+                            <BarChart3 className="h-5 w-5" />
+                            Start Analysis Now
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Stats Overview */}
-            {stats && (
+            {stats && !analyzing && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <Card>
                         <CardHeader className="pb-3">
@@ -184,36 +335,79 @@ export default function BulkAnalysisPage() {
                 </div>
             )}
 
-            {/* Search */}
-            <div className="mb-6">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search posts..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                    />
-                </div>
-            </div>
+            {/* Search and Pagination Info */}
+            {analyses.length > 0 && !analyzing && (
+                <>
+                    <div className="flex items-center justify-between gap-4 mb-6">
+                        <div className="relative flex-1 max-w-md">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search posts..."
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value)
+                                    setCurrentPage(1) // Reset to first page on search
+                                }}
+                                className="pl-10"
+                            />
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                            Showing {startIndex + 1}-{Math.min(endIndex, filteredAnalyses.length)} of {filteredAnalyses.length} posts
+                        </div>
+                    </div>
 
-            {/* Posts List */}
-            <div className="space-y-4">
-                {filteredAnalyses.length === 0 ? (
-                    <Card>
-                        <CardContent className="text-center py-12">
-                            <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                            <p className="text-muted-foreground">No posts found</p>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    filteredAnalyses
-                        .sort((a, b) => a.score - b.score) // Lowest scores first (need most attention)
-                        .map((analysis, idx) => (
-                            <AnalysisCard key={analysis._id} analysis={analysis} rank={filteredAnalyses.length - idx} />
-                        ))
-                )}
-            </div>
+                    {/* Posts List */}
+                    <div className="space-y-4 mb-6">
+                        {paginatedAnalyses.length === 0 ? (
+                            <Card>
+                                <CardContent className="text-center py-12">
+                                    <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                                    <p className="text-muted-foreground">No posts found matching "{searchTerm}"</p>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            paginatedAnalyses.map((analysis) => (
+                                <AnalysisCard key={analysis._id} analysis={analysis} />
+                            ))
+                        )}
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <Card>
+                            <CardContent className="py-4">
+                                <div className="flex items-center justify-between">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="gap-2"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                        Previous
+                                    </Button>
+
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-muted-foreground">
+                                            Page {currentPage} of {totalPages}
+                                        </span>
+                                    </div>
+
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="gap-2"
+                                    >
+                                        Next
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                </>
+            )}
         </div>
     )
 }
@@ -251,7 +445,7 @@ function StatsCard({ title, count, total, color, icon }) {
     )
 }
 
-function AnalysisCard({ analysis, rank }) {
+function AnalysisCard({ analysis }) {
     return (
         <Card className={cn(
             "border-2",
@@ -314,7 +508,7 @@ function AnalysisCard({ analysis, rank }) {
                     </div>
                 )}
             </CardContent>
-        </Card >
+        </Card>
     )
 }
 
