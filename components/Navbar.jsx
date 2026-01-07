@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Search, Menu, X, PenTool, BookOpen, Users, Home, User, Settings, LogOut, Shield, LayoutDashboard, Wrench, ChefHat, Bookmark, ShoppingBag } from "lucide-react"
+import { Search, Menu, X, PenTool, BookOpen, Users, Home, User, Settings, LogOut, Shield, LayoutDashboard, Bookmark } from "lucide-react"
 import NotificationBell from "@/components/notifications/NotificationBell"
 import { ThemeToggle } from "@/components/theme/ThemeToggle"
 import { cn } from "@/lib/utils"
@@ -157,47 +157,7 @@ export default function Navbar() {
                     </NavigationMenuContent>
                   </NavigationMenuItem>
 
-                  {/* 🎨 NEW: DIY Link */}
-                  <NavigationMenuItem>
-                    <Link
-                      href="/diy"
-                      className={cn(
-                        "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground hover:scale-105 focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
-                        isActiveLink('/diy') && "bg-accent text-accent-foreground"
-                      )}
-                    >
-                      <Wrench className="mr-2 h-4 w-4" />
-                      DIY
-                    </Link>
-                  </NavigationMenuItem>
 
-                  {/* 🍳 NEW: Recipe Link */}
-                  <NavigationMenuItem>
-                    <Link
-                      href="/recipe"
-                      className={cn(
-                        "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground hover:scale-105 focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
-                        isActiveLink('/recipe') && "bg-accent text-accent-foreground"
-                      )}
-                    >
-                      <ChefHat className="mr-2 h-4 w-4" />
-                      Recipes
-                    </Link>
-                  </NavigationMenuItem>
-
-                  {/* 🛒 NEW: Store Link */}
-                  <NavigationMenuItem>
-                    <Link
-                      href="/store"
-                      className={cn(
-                        "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground hover:scale-105 focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
-                        isActiveLink('/store') && "bg-accent text-accent-foreground"
-                      )}
-                    >
-                      <ShoppingBag className="mr-2 h-4 w-4" />
-                      Store
-                    </Link>
-                  </NavigationMenuItem>
 
                   <NavigationMenuItem>
                     <Link
@@ -439,44 +399,7 @@ export default function Navbar() {
                   <span>Categories</span>
                 </Link>
 
-                {/* 🎨 NEW: DIY Link - Mobile */}
-                <Link
-                  href="/diy"
-                  className={cn(
-                    "flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md hover:bg-accent transition-all hover:scale-105 min-h-[44px]",
-                    isActiveLink('/diy') && "bg-accent"
-                  )}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Wrench className="h-5 w-5" />
-                  <span>DIY Tutorials</span>
-                </Link>
 
-                {/* 🍳 NEW: Recipe Link - Mobile */}
-                <Link
-                  href="/recipe"
-                  className={cn(
-                    "flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md hover:bg-accent transition-all hover:scale-105 min-h-[44px]",
-                    isActiveLink('/recipe') && "bg-accent"
-                  )}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <ChefHat className="h-5 w-5" />
-                  <span>Recipes</span>
-                </Link>
-
-                {/* 🛒 NEW: Store Link - Mobile */}
-                <Link
-                  href="/store"
-                  className={cn(
-                    "flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md hover:bg-accent transition-all hover:scale-105 min-h-[44px]",
-                    isActiveLink('/store') && "bg-accent"
-                  )}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <ShoppingBag className="h-5 w-5" />
-                  <span>Store</span>
-                </Link>
 
                 <Link
                   href="/authors"
