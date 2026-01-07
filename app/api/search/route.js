@@ -43,14 +43,21 @@ export async function GET(request) {
           { tags: { $regex: searchQuery, $options: 'i' } }
         ]
       })
-        .populate('author', 'name profilePictureUrl')
+        .populate('author', 'name profilePictureUrl username')
         .populate('category', 'name slug color')
-        .select('title slug excerpt featuredImage readTime publishedAt')
+        .select('title slug excerpt featuredImageUrl featuredImageAlt readingTime publishedAt likes comments views isFeatured')
         .sort({ publishedAt: -1 })
         .limit(limit)
         .lean()
 
-      results.posts = posts
+      // ✅ Calculate virtuals manually since .lean() doesn't include them
+      const postsWithCounts = posts.map(post => ({
+        ...post,
+        likeCount: post.likes?.length || 0,
+        commentCount: post.comments?.filter(c => c.isApproved).length || 0
+      }))
+
+      results.posts = postsWithCounts
     }
 
     // Search in Categories
@@ -96,7 +103,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Search error:', error)
     return NextResponse.json(
-      { 
+      {
         success: false,
         error: 'Failed to perform search',
         results: { posts: [], categories: [], authors: [] },
